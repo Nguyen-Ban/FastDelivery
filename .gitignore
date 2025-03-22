@@ -2,7 +2,7 @@
 
 # dependencies
 node_modules/
-scripts/
+
 
 # Expo
 .expo/
@@ -37,3 +37,4 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
+scripts

@@ -1,3 +1,16 @@
+# Project Structure:
+- assets: images, fonts,...
+- backend: backend server
+- components: react native components (Button, View,...)
+- context: context api
+- navigation: navigation setup
+- screens: pages of the app
+- hooks: react hooks
+- constants: const var (.env, .theme, ...)
+- services: api call
+- scripts: setup scripts, build scripts,...
+
+
 # Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).

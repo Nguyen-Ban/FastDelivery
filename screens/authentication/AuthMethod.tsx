@@ -10,6 +10,12 @@ const AuthMethod = () => {
     const phoneInput = useRef(null);
     const [phoneNumber, setPhoneNumber] = useState('');
     const [isFocused, setIsFocused] = useState(false);
+    const [isDisabled, setIsDisabled] = useState(true);
+
+    const handlePhoneNumberChange = (formattedNumber: string) => {
+        setPhoneNumber(formattedNumber);
+        setIsDisabled(formattedNumber.length < 10); 
+    };
 
     return (
         <View style={styles.container}>
@@ -18,12 +24,14 @@ const AuthMethod = () => {
                 ref={phoneInput}
                 defaultCountry="VN"
                 placeholder="Nhập số điện thoại"
+                allowZeroAfterCallingCode={false}
                 phoneInputStyles={{
                     container: {
                         borderColor: isFocused ? COLOR.blue_theme : COLOR.grey90,
                         borderWidth: 2,
                     },
                 }}
+                onChange={(e) => handlePhoneNumberChange(e.nativeEvent.text)}
                 onFocus={() => setIsFocused(true)}
                 onBlur={() => setIsFocused(false)}
             />
@@ -32,9 +40,21 @@ const AuthMethod = () => {
                 title="Tiếp tục"
                 onPress={() => {}}
                 size="large"
-                disabled={phoneNumber === ''}
-                //TODO: Update disable state when phone number is valid
+                type="primary"
+                disabled={isDisabled}           
             />
+            <View style={styles.otherAuthContainer}>
+                <View style = {styles.line}/>
+                <Text style = {styles.otherAuthText}>Hoặc đăng nhập bằng</Text>
+                <View style = {styles.line}/>
+            </View>   
+            <Button
+                title="Google"
+                onPress={() => {}}
+                size="large"
+                type="sub"
+                leftImg={require("../../assets/images/google.png")}
+            />        
         </View>
     )
 };
@@ -59,10 +79,22 @@ const styles = StyleSheet.create({
         paddingBottom: 16,
         alignSelf: "flex-start",
     },
-    phoneInputFocused: {
-        borderColor: COLOR.blue_theme,
-        borderWidth: 2,
-    }
+    otherAuthText: {
+        padding: 8,
+        paddingTop: 16,
+        fontSize: 12,
+        color: COLOR.grey50,
+    },
+    line: {
+        flex: 1,
+        height: 1,
+        backgroundColor: COLOR.grey90,
+    },
+    otherAuthContainer: {
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+    },
 });
 
 export default AuthMethod;

@@ -4,6 +4,8 @@ import {View, Text, StyleSheet} from "react-native";
 import PhoneInput from "react-native-international-phone-number"
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
+import GLOBAL from "../../constants/GlobalStyles";
+import { goBack } from "expo-router/build/global-state/routing";
 
 
 const AuthMethod = () => {
@@ -18,7 +20,7 @@ const AuthMethod = () => {
     };
 
     return (
-        <View style={styles.container}>
+        <View style={GLOBAL.container}>
             <Text style={styles.title}>Đăng ký/Đăng nhập với số điện thoại</Text>
             <PhoneInput 
                 ref={phoneInput}
@@ -60,12 +62,6 @@ const AuthMethod = () => {
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: "flex-start",
-        alignItems: "center",
-        padding: 16,
-    },
     title: {
         fontSize: 24,
         fontWeight: "bold",

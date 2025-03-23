@@ -110,11 +110,9 @@ const styles = StyleSheet.create({
     },  
     largeButton: {
         width: '100%',
-        height: 60,
     },
     smallButton: {
-        width: '25%',
-        height: 48,
+        width: '30%',
     },
     disabledButton: {
         backgroundColor: COLOR.grey90,

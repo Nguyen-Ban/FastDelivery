@@ -5,7 +5,7 @@ import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 
-const OriginPick = () => {
+const Location = () => {
     return (
         <View>
 
@@ -13,7 +13,7 @@ const OriginPick = () => {
     );
 };
 
-export default OriginPick;
+export default Location;
 
 const styles = StyleSheet.create({
 

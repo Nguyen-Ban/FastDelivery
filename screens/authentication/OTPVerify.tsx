@@ -20,6 +20,7 @@ const OTPVerify = () => {
             <OtpInput
                 numberOfDigits={6}
                 focusColor={COLOR.blue_theme}
+                type="numeric"
             />
             <View style={styles.resendTimerView}>
                 <Text style = {styles.resendLabel}>Gửi lại mã sau:</Text>

@@ -5,7 +5,6 @@ import PhoneInput from "react-native-international-phone-number"
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
-import { goBack } from "expo-router/build/global-state/routing";
 
 
 const AuthMethod = () => {

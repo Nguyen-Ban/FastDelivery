@@ -1,5 +1,5 @@
 # Project Structure:
-- app: root component, entry point, navigator
+- app: root component, entry point
 - assets: images, fonts,...
 - backend: backend server
 - components: react native components (Button, View,...)

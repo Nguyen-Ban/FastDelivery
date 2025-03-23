@@ -73,15 +73,14 @@ const styles = StyleSheet.create({
         alignSelf: "flex-start",
     },
     policy: {
-        paddingTop: 16,
         fontSize: 12,
         color: COLOR.grey50,
-        paddingBottom: 16,
+        paddingVertical: 16,
         alignSelf: "flex-start",
     },
     otherAuthText: {
-        padding: 8,
-        paddingTop: 16,
+        paddingVertical: 16,
+        paddingHorizontal: 8,
         fontSize: 12,
         color: COLOR.grey50,
     },

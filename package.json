@@ -1,68 +1,26 @@
 {
-  "name": "fastdelivery",
-  "main": "expo-router/entry",
-  "version": "1.0.0",
-  "scripts": {
-    "start": "npx expo start",
-    "android": "npx expo start --android --tunnel",
-    "ios": "npx expo start --ios --tunnel",
-    "web": "npx expo start --web",
-    "doctor": "npx expo-doctor",
-    "test": "jest --watchAll",
-    "lint": "expo lint"
-  },
-  "jest": {
-    "preset": "jest-expo"
-  },
-  "dependencies": {
-    "@expo/vector-icons": "^14.0.2",
-    "@react-native-community/datetimepicker": "8.2.0",
-    "@react-navigation/bottom-tabs": "^7.2.0",
-    "@react-navigation/native": "^7.0.14",
-    "expo": "~52.0.40",
-    "expo-auth-session": "^6.0.3",
-    "expo-blur": "~14.0.3",
-    "expo-constants": "~17.0.8",
-    "expo-font": "~13.0.4",
-    "expo-haptics": "~14.0.1",
-    "expo-linking": "~7.0.5",
-    "expo-router": "~4.0.19",
-    "expo-splash-screen": "~0.29.22",
-    "expo-status-bar": "~2.0.1",
-    "expo-symbols": "~0.2.2",
-    "expo-system-ui": "~4.0.8",
-    "expo-web-browser": "~14.0.2",
-    "nativewind": "^4.1.23",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
-    "react-native": "0.76.7",
-    "react-native-dropdown-picker": "^5.4.6",
-    "react-native-gesture-handler": "~2.20.2",
-    "react-native-international-phone-number": "^0.9.1",
-    "react-native-otp-entry": "^1.8.4",
-    "react-native-reanimated": "~3.16.1",
-    "react-native-safe-area-context": "4.12.0",
-    "react-native-screens": "~4.4.0",
-    "react-native-web": "~0.19.13",
-    "react-native-webview": "13.12.5",
-    "tailwindcss": "^3.4.17"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.25.2",
-    "@types/jest": "^29.5.12",
-    "@types/react": "~18.3.12",
-    "@types/react-test-renderer": "^18.3.0",
-    "jest": "^29.2.1",
-    "jest-expo": "~52.0.6",
-    "react-test-renderer": "18.3.1",
-    "typescript": "^5.3.3"
-  },
-  "expo": {
-    "doctor": {
-      "reactNativeDirectoryCheck": {
-        "listUnknownPackages": false
-      }
+    "name": "nodejs-express-sequelize",
+    "version": "1.0.0",
+    "description": "Node.js Express Sequelize MySQL project",
+    "main": "src/index.js",
+    "scripts": {
+        "start": "node src/index.js",
+        "dev": "nodemon src/index.js"
+    },
+    "dependencies": {
+        "axios": "^1.8.4",
+        "bcrypt": "^5.1.1",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^4.18.3",
+        "joi": "^17.13.3",
+        "jsonwebtoken": "^9.0.2",
+        "mysql2": "^3.9.2",
+        "redis": "^4.7.0",
+        "sequelize": "^6.37.1",
+        "winston": "^3.17.0"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.0"
     }
-  },
-  "private": true
 }

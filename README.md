@@ -1,86 +1,232 @@
-# Project Structure:
-- app: root component, entry point, navigator
-- assets: images, fonts,...
-- backend: backend server
-- components: react native components (Button, View,...)
-- context: context api
-- navigation: navigation setup
-- screens: pages of the app
-- hooks: react hooks
-- constants: const var (.env, .theme, ...)
-- services: api call
+# FastDelivery API
 
+```
 
+## Installation and Running
 
-# Welcome to your Expo app 👋
+### Using Docker
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+1. Clone repository:
+```bash
+git clone <repository-url>
+cd FastDelivery
+```
 
-## Get started
+2. Create .env file from template:
+```bash
+cp .env.example .env
+```
 
-1. Install dependencies
+3. Run application with Docker Compose:
+```bash
+docker-compose up -d
+```
 
-   ```bash
-   npm install
-   ```
-   eas:
-   ```bash
-   npm install -g eas-cli
-   ```
+The application will run on http://localhost:3000
 
-2. Start the app
+### Running Directly (without Docker)
 
-   ```bash
-    npx expo start
-   ```
-   Tunnel option:
-   ```bash
-    npx expo start --tunnel
-   ```
-3. eas build
-   login:
-   ```bash
-   eas login
-   ```
-   init eas configure (eas.json):
-   ```bash
-   eas build:configure
-   ```   
-   build (aab/apk):
-   --profile production
-   ```bash
-   eas build --platform android --profile production
-   ```
+1. Clone repository:
+```bash
+git clone <repository-url>
+cd FastDelivery
+```
 
-4. Refresh project
-   When you're ready, run:
+2. Install dependencies:
+```bash
+npm install
+```
 
-   ```bash
-   npm run reset-project
-   ```
+3. Create .env file from template and update environment variables:
+```bash
+cp .env.example .env
+```
 
-   This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+4. Run application:
+```bash
+npm start
+```
 
-In the output, you'll find options to open the app in a
+## API Endpoints
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### Authentication
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+#### 1. Start Authentication Process
+- **Endpoint**: `POST /api/auth/start`
+- **Description**: Start authentication process with phone number
+- **Request Body**:
+```json
+{
+    "phone": "+84123456789"
+}
+```
+- **Response**:
+```json
+{
+    "success": true,
+    "message": "OTP sent, please verify",
+    "nextStep": "verify_otp"
+}
+```
 
-## Learn more
+#### 2. Verify OTP
+- **Endpoint**: `POST /api/auth/verify-otp`
+- **Description**: Verify the sent OTP code
+- **Request Body**:
+```json
+{
+    "phone": "+84123456789",
+    "otp": "123456"
+}
+```
+- **Response**:
+```json
+{
+    "success": true,
+    "message": "OTP verified, please enter passcode",
+    "nextStep": "login"
+}
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+#### 3. Login
+- **Endpoint**: `POST /api/auth/login`
+- **Description**: Login with phone number and password
+- **Request Body**:
+```json
+{
+    "phone": "+84123456789",
+    "passcode": "123456"
+}
+```
+- **Response**:
+```json
+{
+    "success": true,
+    "message": "Login successful",
+    "accessToken": "jwt_token",
+    "refreshToken": "refresh_token",
+    "user": {
+        "id": 1,
+        "phone": "+84123456789",
+        "fullname": "User Name"
+    }
+}
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+#### 4. Register
+- **Endpoint**: `POST /api/auth/register`
+- **Description**: Register a new account
+- **Request Body**:
+```json
+{
+    "phone": "+84123456789",
+    "fullname": "User Name",
+    "gender": "male",
+    "email": "user@example.com",
+    "passcode": "123456"
+}
+```
+- **Response**:
+```json
+{
+    "success": true,
+    "message": "Registration successful",
+    "accessToken": "jwt_token",
+    "refreshToken": "refresh_token",
+    "user": {
+        "id": 1,
+        "phone": "+84123456789",
+        "fullname": "User Name"
+    }
+}
+```
 
-## Join the community
+#### 5. Refresh Access Token
+- **Endpoint**: `POST /api/auth/refresh-token`
+- **Description**: Refresh access token using refresh token
+- **Request Body**:
+```json
+{
+    "refreshToken": "refresh_token"
+}
+```
+- **Response**:
+```json
+{
+    "success": true,
+    "accessToken": "new_jwt_token"
+}
+```
 
-Join our community of developers creating universal apps.
+#### 6. Resend OTP
+- **Endpoint**: `POST /api/auth/resend-otp`
+- **Description**: Resend OTP code
+- **Request Body**:
+```json
+{
+    "phone": "+84123456789"
+}
+```
+- **Response**:
+```json
+{
+    "success": true,
+    "message": "OTP sent successfully",
+    "nextStep": "verify_otp"
+}
+```
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Environment Variables
 
+Create a `.env` file with the following variables:
+
+```env
+# Server
+PORT=3000
+NODE_ENV=development
+
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=fastdelivery
+DB_USER=postgres
+DB_PASSWORD=your_password
+
+# JWT
+ACCESS_TOKEN_SECRET=your_access_token_secret
+REFRESH_TOKEN_SECRET=your_refresh_token_secret
+
+# Redis
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+# SMS Service (Infobip)
+INFOBIP_API_KEY=your_infobip_api_key
+INFOBIP_SENDER=your_sender_id
+```
+
+## Security
+
+- All API endpoints use HTTPS
+- JWT is used for authentication
+- Refresh tokens are securely stored in Redis
+- Passwords are hashed before storing in the database
+
+## Logging
+
+The application uses Winston logger with the following log levels:
+- INFO: Normal operation information
+- WARN: Potential issues or warnings
+- ERROR: System errors
+
+Each log message has a prefix indicating its source (module):
+- [App]: Logs from the main application
+- [AuthController]: Logs from authentication controller
+- [TokenService]: Logs from token service
+- [OTPService]: Logs from OTP service
+- [AuthMiddleware]: Logs from authentication middleware
+- [ErrorMiddleware]: Logs from error handling middleware
+
+## License
+
+MIT 

@@ -3,6 +3,7 @@ const COLOR = {
     black : '#000000',
     transparent : 'transparent',
     blue_theme : '#28bebf',
+    blue70: '#81e4e4',
     grey90: '#e6e6e6',
     grey70: '#b3b3b3',
     grey50: '#808080',

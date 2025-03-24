@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image, TextInput } from "react-native";
+import { LinearGradient } from 'expo-linear-gradient';
 
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
@@ -8,6 +9,11 @@ import GLOBAL from "../../constants/GlobalStyles";
 const Location = () => {
     return (
         <View style = {[GLOBAL.container, {justifyContent: "space-between"}]}>
+            <LinearGradient
+                colors={[COLOR.blue70, COLOR.white]}
+                style = {styles.background}
+                locations={[0.25, 0.3]}
+            />
             <View style = {styles.header}>
                 <TouchableOpacity>
                     <Image 
@@ -51,7 +57,7 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 24,
         fontWeight: "bold",
-        paddingVertical: 30,
+        paddingVertical: 15,
     },
     locationInputView: {
         flexDirection: "row",
@@ -59,7 +65,7 @@ const styles = StyleSheet.create({
         justifyContent: "flex-start",
         borderRadius: 8,
         backgroundColor: COLOR.grey90,
-        marginVertical: "10%",  
+        marginVertical: "20%",  
         width: "100%",
     },
     small_icon: {
@@ -71,5 +77,12 @@ const styles = StyleSheet.create({
         fontSize: 16,
         height: 50,
         flex: 1,    
+    },
+    background: {
+        position:"absolute", 
+        left: 0,
+        right: 0,
+        top: 0,
+        height: "100%",
     },
 });

@@ -5,43 +5,33 @@
 
 ### Using Docker
 
-1. Clone repository:
-```bash
-git clone <repository-url>
-cd FastDelivery
-```
-
-2. Create .env file from template:
+1. Create .env file from template:
 ```bash
 cp .env.example .env
 ```
 
 3. Run application with Docker Compose:
 ```bash
-docker-compose up -d
+docker-compose up --build
 ```
 
 The application will run on http://localhost:3000
 
 ### Running Directly for dev (without Docker)
 
-1. Clone repository:
-```bash
-git clone <repository-url>
-cd FastDelivery
-```
-
-2. Install dependencies:
+1. Install dependencies:
 ```bash
 npm install
 ```
 
-3. Create .env file from template and update environment variables:
+2. Create .env file from template and update environment variables:
 ```bash
 cp .env.example .env
 ```
 
-4. Run application:
+2.1. Add local db password to .env
+
+3. Run application:
 ```bash
 npm start
 ```

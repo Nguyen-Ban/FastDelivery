@@ -6,15 +6,9 @@ import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 
 const RecipientInfo = () => {
-    return (
-        <View>
-
-        </View>
-    );
+  return <View></View>;
 };
 
 export default RecipientInfo;
 
-const styles = StyleSheet.create({
-
-});
+const styles = StyleSheet.create({});

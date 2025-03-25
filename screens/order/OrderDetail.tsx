@@ -7,15 +7,9 @@ import GLOBAL from "../../constants/GlobalStyles";
 import GlobalStyles from "../../constants/GlobalStyles";
 
 const OrderDetail = () => {
-    return (
-        <View style = {GLOBAL.container}>
-            
-        </View>
-    );
+  return <View style={GLOBAL.container}></View>;
 };
 
 export default OrderDetail;
 
-const styles = StyleSheet.create({
-
-});
+const styles = StyleSheet.create({});

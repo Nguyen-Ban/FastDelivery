@@ -1,0 +1,195 @@
+import React from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+
+import Button from "../../components/Button/ButtonComponent";
+import COLOR from "../../constants/Colors";
+import GLOBAL from "../../constants/GlobalStyles";
+
+const OrderDetail = () => {
+  const [amount, setAmount] = React.useState(0);
+  const [disabled, setDisabled] = React.useState(true);
+  const [origin, setOrigin] = React.useState("origin");
+  const [destination, setDestination] = React.useState("destination");
+  const [name_origin, setNameOrigin] = React.useState("name_origin");
+  const [name_destination, setNameDestination] =
+    React.useState("name_destination");
+  const [phone_origin, setPhoneOrigin] = React.useState("phone_origin");
+  const [phone_destination, setPhoneDestination] =
+    React.useState("phone_destination");
+  const [vihicle, setVihicle] = React.useState("bike");
+  const [date, setDate] = React.useState("date");
+  const [time, setTime] = React.useState("time");
+
+  return (
+    <View style={[GLOBAL.container, { justifyContent: "space-between" }]}>
+      <LinearGradient
+        colors={[COLOR.blue70, COLOR.white]}
+        style={styles.background}
+        locations={[0.12, 0.12]}
+      />
+      <View>
+        <View style={styles.header}>
+          <TouchableOpacity>
+            <Image
+              source={require("../../assets/images/back.png")}
+              style={styles.image}
+            ></Image>
+          </TouchableOpacity>
+          <Text style={styles.title}>Chi tiết đơn hàng</Text>
+        </View>
+        <View style={styles.detailCard}>
+          {/* Origin */}
+          <TouchableOpacity style={styles.detailOption}>
+            <Image
+              source={require("../../assets/images/origin.png")}
+              style={styles.icon}
+            ></Image>
+            <Text style={styles.option_text}>
+              {origin}
+              {"\n"}
+              <Text style={{ color: COLOR.grey70 }}>
+                {name_origin} - {phone_origin}
+              </Text>
+            </Text>
+          </TouchableOpacity>
+          {/* Destination */}
+          <TouchableOpacity style={styles.detailOption}>
+            <Image
+              source={require("../../assets/images/dest.png")}
+              style={styles.icon}
+            ></Image>
+            <Text style={styles.option_text}>
+              {destination}
+              {"\n"}
+              <Text style={{ color: COLOR.blue40 }}>
+                Thêm thông tin người nhận
+              </Text>
+              <Text style={{ color: COLOR.red55 }}>*</Text>
+            </Text>
+          </TouchableOpacity>
+          {/* Date time TODO: datetime select*/}
+          <TouchableOpacity style={styles.detailOption}>
+            <Image
+              source={require("../../assets/images/delivery.png")}
+              style={styles.icon}
+            ></Image>
+            <Text style={styles.option_text}>
+              <Text>Ngày giao hàng: {date}</Text>
+              {"\n"}
+              <Text style={{ color: COLOR.grey70 }}>
+                Thời gian giao hàng: {time}
+              </Text>
+            </Text>
+          </TouchableOpacity>
+          {/* Delivery Method */}
+          <TouchableOpacity style={styles.detailOption}>
+            <Image
+              source={require("../../assets/images/delivery-bike.png")}
+              style={styles.icon}
+            ></Image>
+            <Text style={styles.option_text}>
+              {vihicle}
+              {"\n"}
+              <Text style={{ color: COLOR.grey70 }}>
+                Đề xuất dựa trên chi tiết món hàng
+              </Text>
+            </Text>
+          </TouchableOpacity>
+          {/* Goods detail */}
+          <TouchableOpacity style={styles.detailOption}>
+            <Image
+              source={require("../../assets/images/package.png")}
+              style={styles.icon}
+            ></Image>
+            <Text style={styles.option_text}>
+              <Text style={{ color: COLOR.blue40 }}>
+                Thêm chi tiết món hàng
+              </Text>
+              <Text style={{ color: COLOR.red55 }}>*</Text>
+              {"\n"}
+              <Text style={{ color: COLOR.grey70 }}>Thông tin món hàng</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+      <View style={styles.footer}>
+        <View style={styles.amountView}>
+          <Text style={{ fontSize: 20 }}>Tổng cộng</Text>
+          <Text style={{ fontSize: 24, fontWeight: "bold" }}>
+            {amount}
+            <Text style={{ textDecorationLine: "underline" }}>đ</Text>
+          </Text>
+        </View>
+        <Button
+          title="Kiểm tra đơn hàng"
+          onPress={() => {}}
+          type="primary"
+          size="large"
+          disabled={disabled}
+        />
+      </View>
+    </View>
+  );
+};
+
+export default OrderDetail;
+
+const styles = StyleSheet.create({
+  background: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    height: "100%",
+  },
+  image: {
+    width: 30,
+    height: 30,
+  },
+  icon: {
+    width: 30,
+    height: 30,
+    marginLeft: 5,
+  },
+  option_text: {
+    fontSize: 16,
+    paddingLeft: 15,
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    paddingHorizontal: 30,
+  },
+  amountView: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  detailCard: {
+    boxShadow: "1px 2px 4px 4px rgba(0, 0, 0, 0.25)",
+    borderRadius: 8,
+    marginTop: 30,
+    backgroundColor: COLOR.white,
+  },
+  detailOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomColor: COLOR.grey90,
+    borderBottomWidth: 1,
+    marginHorizontal: 10,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  footer: {
+    paddingBottom: 20,
+    paddingTop: 5,
+    borderTopColor: COLOR.grey70,
+    borderTopWidth: 1,
+  },
+});

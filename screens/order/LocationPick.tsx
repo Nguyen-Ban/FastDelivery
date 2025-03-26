@@ -19,7 +19,7 @@ const Location = () => {
       <LinearGradient
         colors={[COLOR.blue70, COLOR.white]}
         style={styles.background}
-        locations={[0.25, 0.3]}
+        locations={[0.1, 0.2]}
       />
       <View style={styles.header}>
         <TouchableOpacity>

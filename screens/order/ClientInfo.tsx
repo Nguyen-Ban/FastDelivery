@@ -7,6 +7,7 @@ import {
   Image,
   TextInput,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
@@ -16,6 +17,11 @@ const ClientInfo = () => {
   const [disabled, setDisabled] = React.useState(true);
   return (
     <View style={[GLOBAL.container, { justifyContent: "space-between" }]}>
+      <LinearGradient
+        colors={[COLOR.blue70, COLOR.white]}
+        style={styles.background}
+        locations={[0.1, 0.2]}
+      />
       <View>
         <TouchableOpacity>
           <Image
@@ -93,5 +99,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
     paddingHorizontal: 10,
+  },
+  background: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    height: "100%",
   },
 });

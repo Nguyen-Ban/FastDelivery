@@ -1,12 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-  TextInput,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import Button from "../../components/Button/ButtonComponent";
@@ -31,7 +24,7 @@ const OrderDetail = () => {
   return (
     <View style={[GLOBAL.container, { justifyContent: "space-between" }]}>
       <LinearGradient
-        colors={[COLOR.blue_theme, COLOR.white]}
+        colors={[COLOR.blue70, COLOR.white]}
         style={styles.background}
         locations={[0.12, 0.12]}
       />
@@ -39,14 +32,15 @@ const OrderDetail = () => {
         <View style={styles.header}>
           <TouchableOpacity>
             <Image
-              source={require("../../assets/images/white-back.png")}
+              source={require("../../assets/images/back.png")}
               style={styles.image}
             ></Image>
           </TouchableOpacity>
           <Text style={styles.title}>Chi tiết đơn hàng</Text>
         </View>
         <View style={styles.detailCard}>
-          <View style={styles.detailOption}>
+          {/* Origin */}
+          <TouchableOpacity style={styles.detailOption}>
             <Image
               source={require("../../assets/images/origin.png")}
               style={styles.icon}
@@ -58,8 +52,9 @@ const OrderDetail = () => {
                 {name_origin} - {phone_origin}
               </Text>
             </Text>
-          </View>
-          <View style={styles.detailOption}>
+          </TouchableOpacity>
+          {/* Destination */}
+          <TouchableOpacity style={styles.detailOption}>
             <Image
               source={require("../../assets/images/dest.png")}
               style={styles.icon}
@@ -72,8 +67,9 @@ const OrderDetail = () => {
               </Text>
               <Text style={{ color: COLOR.red55 }}>*</Text>
             </Text>
-          </View>
-          <View style={styles.detailOption}>
+          </TouchableOpacity>
+          {/* Date time TODO: datetime select*/}
+          <TouchableOpacity style={styles.detailOption}>
             <Image
               source={require("../../assets/images/delivery.png")}
               style={styles.icon}
@@ -85,8 +81,9 @@ const OrderDetail = () => {
                 Thời gian giao hàng: {time}
               </Text>
             </Text>
-          </View>
-          <View style={styles.detailOption}>
+          </TouchableOpacity>
+          {/* Delivery Method */}
+          <TouchableOpacity style={styles.detailOption}>
             <Image
               source={require("../../assets/images/delivery-bike.png")}
               style={styles.icon}
@@ -98,8 +95,9 @@ const OrderDetail = () => {
                 Đề xuất dựa trên chi tiết món hàng
               </Text>
             </Text>
-          </View>
-          <View style={styles.detailOption}>
+          </TouchableOpacity>
+          {/* Goods detail */}
+          <TouchableOpacity style={styles.detailOption}>
             <Image
               source={require("../../assets/images/package.png")}
               style={styles.icon}
@@ -112,7 +110,7 @@ const OrderDetail = () => {
               {"\n"}
               <Text style={{ color: COLOR.grey70 }}>Thông tin món hàng</Text>
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
       <View style={styles.footer}>
@@ -161,7 +159,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    color: COLOR.white,
     paddingHorizontal: 30,
   },
   amountView: {

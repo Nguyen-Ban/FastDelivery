@@ -21,9 +21,9 @@ const OTPVerify = () => {
         style={styles.phoneImg}
       />
       <Text style={styles.subTitle}>
-        Nhập mã gồm 6 chữ số mà bạn đã nhận được qua Tin nhắn điện thoại
+        Nhập mã gồm 6 chữ số mà bạn đã nhận được qua Tin nhắn điện thoại{" "}
+        <Text style={styles.phoneNum}>+84xxxxxxxxx</Text>
       </Text>
-      <Text style={styles.phoneNum}>+84xxxxxxxxx</Text>
       <OtpInput
         numberOfDigits={6}
         focusColor={COLOR.blue_theme}

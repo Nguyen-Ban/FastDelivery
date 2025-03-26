@@ -36,8 +36,9 @@ const AuthMethod = () => {
         onBlur={() => setIsFocused(false)}
       />
       <Text style={styles.policy}>
-        Bằng cách nhấn nút Tiếp tục, bạn đã đồng ý với các Điều kiện và Điều
-        khoản cùa FastDelivery.
+        Bằng cách nhấn nút Tiếp tục, bạn đã đồng ý với các{" "}
+        <Text style={styles.policy_link}>Điều kiện và Điều khoản </Text> của
+        Fast Delivery.
       </Text>
       <Button
         title="Tiếp tục"
@@ -74,6 +75,11 @@ const styles = StyleSheet.create({
     color: COLOR.grey50,
     paddingVertical: 16,
     alignSelf: "flex-start",
+  },
+  policy_link: {
+    fontSize: 12,
+    color: COLOR.blue_theme,
+    textDecorationLine: "underline",
   },
   otherAuthText: {
     paddingVertical: 16,

@@ -12,7 +12,7 @@ import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 
-const RecipientInfo = () => {
+const ClientInfo = () => {
   const [disabled, setDisabled] = React.useState(true);
   return (
     <View style={[GLOBAL.container, { justifyContent: "space-between" }]}>
@@ -23,7 +23,7 @@ const RecipientInfo = () => {
             style={styles.image}
           ></Image>
         </TouchableOpacity>
-        <Text style={styles.title}>Người nhận</Text>
+        <Text style={styles.title}>Người nhận/gửi</Text>
         <Text style={styles.subtitle}>
           Địa chỉ <Text style={{ color: COLOR.red55 }}>*</Text>
         </Text>
@@ -62,7 +62,7 @@ const RecipientInfo = () => {
   );
 };
 
-export default RecipientInfo;
+export default ClientInfo;
 
 const styles = StyleSheet.create({
   image: {
@@ -71,6 +71,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
+    fontWeight: "bold",
     paddingVertical: 16,
   },
   subtitle: {

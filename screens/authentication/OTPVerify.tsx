@@ -21,7 +21,7 @@ const OTPVerify = () => {
         style={styles.phoneImg}
       />
       <Text style={styles.subTitle}>
-        Nhập mã gồm 6 chữ số mà bạn đã nhận được qua Tin nhắn điện thoại{" "}
+        Nhập mã gồm 6 chữ số mà bạn đã nhận được qua Tin nhắn điện thoại{"\n"}
         <Text style={styles.phoneNum}>+84xxxxxxxxx</Text>
       </Text>
       <OtpInput

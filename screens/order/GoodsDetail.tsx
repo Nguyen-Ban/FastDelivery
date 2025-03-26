@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   TextInput,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import RadioGroup, { RadioButtonProps } from "react-native-radio-buttons-group";
 
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
@@ -15,8 +16,32 @@ import GLOBAL from "../../constants/GlobalStyles";
 
 const GoodsDetail = () => {
   const [disabled, setDisabled] = React.useState(true);
-  const [selectedSize, setSelectedSize] = React.useState("S");
-  const sizes = ["S", "M", "L", "XL"];
+  const [selectedId, setSelectedId] = React.useState<string | undefined>();
+  const radioButtons: RadioButtonProps[] = useMemo(
+    () => [
+      {
+        id: "1", // acts as primary key, should be unique and non-empty string
+        label: "S",
+        value: "S",
+      },
+      {
+        id: "2",
+        label: "M",
+        value: "M",
+      },
+      {
+        id: "3",
+        label: "L",
+        value: "L",
+      },
+      {
+        id: "4",
+        label: "XL",
+        value: "XL",
+      },
+    ],
+    []
+  );
 
   return (
     <View style={[GLOBAL.container, { justifyContent: "space-between" }]}>
@@ -50,11 +75,25 @@ const GoodsDetail = () => {
               Kích cỡ<Text style={{ color: COLOR.red55 }}>*</Text>
             </Text>
             <View
-              style={{ flexDirection: "row", justifyContent: "space-between" }}
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+              }}
             >
-              {sizes.map((size) => (
-                <TouchableOpacity></TouchableOpacity>
-              ))}
+              <RadioGroup
+                radioButtons={radioButtons}
+                onPress={setSelectedId}
+                selectedId={selectedId}
+                layout="column"
+                containerStyle={{
+                  alignItems: "flex-start",
+                }}
+                labelStyle={{
+                  fontSize: 16,
+                  fontWeight: "bold",
+                  paddingVertical: 10,
+                }}
+              />
             </View>
           </View>
           <View>
@@ -114,7 +153,7 @@ const styles = StyleSheet.create({
   },
   sizePickerView: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
     paddingBottom: 30,
   },

@@ -66,12 +66,11 @@ const styles = StyleSheet.create({
   subTitle: {
     fontSize: 16,
     alignSelf: "flex-start",
-    paddingTop: 15,
+    paddingVertical: 16,
   },
   phoneNum: {
     fontSize: 16,
     fontWeight: "bold",
-    paddingBottom: 15,
   },
   resendAddStyles: {
     marginTop: 5,

@@ -37,8 +37,8 @@ const AuthMethod = () => {
       />
       <Text style={styles.policy}>
         Bằng cách nhấn nút Tiếp tục, bạn đã đồng ý với các{" "}
-        <Text style={styles.policy_link}>Điều kiện và Điều khoản </Text> của
-        Fast Delivery.
+        <Text style={styles.policy_link}>Điều kiện và Điều khoản</Text> của Fast
+        Delivery.
       </Text>
       <Button
         title="Tiếp tục"

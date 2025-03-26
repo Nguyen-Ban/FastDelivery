@@ -6,7 +6,8 @@ import UserInfo from "../screens/authentication/UserInfo";
 import Order from "../screens/order/Order";
 import LocationPick from "../screens/order/LocationPick";
 import RecipientInfo from "../screens/order/RecipientInfo";
+import OrderDetail from "../screens/order/OrderDetail";
 
 export default function App() {
-  return <RecipientInfo />;
+  return <OTPVerify />;
 }

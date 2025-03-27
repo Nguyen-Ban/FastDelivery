@@ -8,8 +8,8 @@ const userSchema = {
             'string.min': 'Full name must be at least 2 characters long',
             'string.max': 'Full name cannot exceed 100 characters'
         }),
-    dateOfBirth: Joi.date()
-        .messages({ 'date.base': 'Date of birth must be a valid date' }),
+    date_of_birth: Joi.date()
+        .messages({ 'date.base': 'Date of birth must be a valid date (YYYY-MM-DD)' }),
     gender: Joi.string().valid('MALE', 'FEMALE', 'OTHERS')
         .messages({ 'any.only': 'Gender must be one of MALE, FEMALE, or OTHERS' }),
     email: Joi.string().email()
@@ -23,7 +23,7 @@ const createUserSchema = Joi.object({
         .messages({ 'any.required': 'Phone number is required' }),
     fullname: userSchema.fullname.required()
         .messages({ 'any.required': 'Full name is required' }),
-    dateOfBirth: userSchema.dateOfBirth,
+    date_of_birth: userSchema.date_of_birth,
     gender: userSchema.gender,
     email: userSchema.email.required()
         .messages({ 'any.required': 'Email is required' }),
@@ -34,7 +34,7 @@ const createUserSchema = Joi.object({
 const updateUserSchema = Joi.object({
     phone: userSchema.phone,
     fullname: userSchema.fullname,
-    dateOfBirth: userSchema.dateOfBirth,
+    date_of_birth: userSchema.date_of_birth,
     gender: userSchema.gender,
     email: userSchema.email,
     passcode: userSchema.passcode

@@ -4,59 +4,68 @@ const logger = require('../config/logger');
 
 const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
 const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
-const ACCESS_TOKEN_EXPIRY = '15m'; // 15 m
+const ACCESS_TOKEN_EXPIRY = 15 * 60; // 15 minutes
 const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60; // 7 days
 
-const generateAccessToken = (user) => {
-    logger.info(`[TokenService] Generating access token for user ${user.id}`);
-    return jwt.sign({ userId: user.id }, ACCESS_TOKEN_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
-};
-
-const generateRefreshToken = async (user) => {
-    logger.info(`[TokenService] Generating refresh token for user ${user.id}`);
-    const token = jwt.sign({ userId: user.id }, REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
-    try {
-        await redisClient.setEx(`refresh_token:${user.id}`, REFRESH_TOKEN_EXPIRY, token);
-        logger.info(`[TokenService] Refresh token stored in Redis for user ${user.id}`);
-    } catch (error) {
-        logger.error(`[TokenService] Failed to store refresh token in Redis for user ${user.id}: ${error.message}`);
-        throw error;
-    }
+const generateAccessToken = async (userId) => {
+    logger.info(`[TokenService] Generating access token for user ${userId}`);
+    const token = jwt.sign({ userId: userId }, ACCESS_TOKEN_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
+    await redisClient.set(`access_token:${userId}`, token, 'EX', ACCESS_TOKEN_EXPIRY);
+    logger.info(`[TokenService] Access token stored in Redis for user ${userId}`);
     return token;
 };
 
-const verifyRefreshToken = async (userId) => {
-    logger.info(`[TokenService] Verifying refresh token for user ${userId}`);
-    try {
-        const token = await redisClient.get(`refresh_token:${userId}`);
-        if (!token) {
-            logger.warn(`[TokenService] No refresh token found in Redis for user ${userId}`);
-            return false;
-        }
-        jwt.verify(token, REFRESH_TOKEN_SECRET);
-        logger.info(`[TokenService] Refresh token verified successfully for user ${userId}`);
-        return true;
-    } catch (err) {
-        logger.warn(`[TokenService] Refresh token verification failed for user ${userId}: ${err.message}`);
-        return false;
+const generateRefreshToken = async (userId) => {
+    logger.info(`[TokenService] Generating refresh token for user ${userId}`);
+    const token = jwt.sign({ userId: userId }, REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
+    await redisClient.set(`refresh_token:${userId}`, token, 'EX', REFRESH_TOKEN_EXPIRY);
+    logger.info(`[TokenService] Refresh token stored in Redis for user ${userId}`);
+    return token;
+};
+
+const verifyRefreshToken = async (refreshToken) => {
+    logger.info(`[TokenService] Verify refresh token`);
+    const decoded = await decodeRefreshToken(refreshToken);
+    const storedToken = await redisClient.get(`refresh_token:${decoded.userId}`);
+    if (storedToken !== refreshToken) {
+        return null;
     }
+    return decoded;
+};
+
+const userHasRefreshToken = async (userId) => {
+    const storedToken = await redisClient.get(`refresh_token:${userId}`);
+    return storedToken !== null;
+};
+
+const decodeAccessToken = async (token) => {
+    logger.info(`[TokenService] Decode access token`);
+    return jwt.verify(token, ACCESS_TOKEN_SECRET);
+};
+
+const decodeRefreshToken = async (token) => {
+    logger.info(`[TokenService] Decode refresh token`);
+    return jwt.verify(token, REFRESH_TOKEN_SECRET);
+};
+
+const clearAccessToken = async (userId) => {
+    logger.info(`[TokenService] Clear access token for user ${userId}`);
+    await redisClient.del(`access_token:${userId}`);
 };
 
 const clearRefreshToken = async (userId) => {
-    logger.info(`[TokenService] Clearing refresh token for user ${userId}`);
-    try {
-        await redisClient.del(`refresh_token:${userId}`);
-        logger.info(`[TokenService] Refresh token cleared successfully for user ${userId}`);
-    } catch (error) {
-        logger.error(`[TokenService] Failed to clear refresh token for user ${userId}: ${error.message}`);
-        throw error;
-    }
+    logger.info(`[TokenService] Clear refresh token for user ${userId}`);
+    await redisClient.del(`refresh_token:${userId}`);
 };
 
 module.exports = {
     generateAccessToken,
     generateRefreshToken,
+    decodeAccessToken,
+    decodeRefreshToken,
     verifyRefreshToken,
+    userHasRefreshToken,
+    clearAccessToken,
     clearRefreshToken,
     ACCESS_TOKEN_SECRET,
     REFRESH_TOKEN_SECRET

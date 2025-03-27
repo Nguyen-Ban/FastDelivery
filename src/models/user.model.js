@@ -16,7 +16,6 @@ const User = sequelize.define('User', {
     },
     dateOfBirth: {
         type: DataTypes.DATE,
-        allowNull: true,
         field: 'date_of_birth'
     },
     gender: {
@@ -49,7 +48,6 @@ const User = sequelize.define('User', {
             const hashedPasscode = bcrypt.hashSync(value, 10);
             this.setDataValue('passcode', hashedPasscode);
         }
-
     }
 }, {
     tableName: 'user',
@@ -62,4 +60,4 @@ User.prototype.comparePasscode = async function (passcode) {
     return await bcrypt.compare(passcode, this.passcode);
 };
 
-module.exports = { User };
+module.exports = User;

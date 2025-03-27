@@ -1,5 +1,5 @@
 const Joi = require('joi');
-const { userSchema } = require('./user.validation');
+const { userSchema, createUserSchema } = require('./user.validation');
 
 const phoneSchema = Joi.object({
     phone: userSchema.phone.required()
@@ -18,20 +18,23 @@ const otpSchema = Joi.object({
         .messages({ 'string.length': 'OTP must be 6 digits' })
 });
 
-const registerSchema = Joi.object({
-    phone: userSchema.phone.required(),
-    fullname: userSchema.fullname.required()
-        .messages({ 'any.required': 'Full name is required' }),
-    gender: userSchema.gender,
-    email: userSchema.email.required()
-        .messages({ 'any.required': 'Email is required' }),
-    passcode: userSchema.passcode.required()
-        .messages({ 'any.required': 'Passcode is required' })
+const registerSchema = createUserSchema;
+
+const refreshTokenSchema = Joi.object({
+    refreshToken: Joi.string().required()
+        .messages({ 'any.required': 'Refresh token is required' })
+});
+
+const logoutSchema = Joi.object({
+    userId: Joi.string().required()
+        .messages({ 'any.required': 'User ID is required' })
 });
 
 module.exports = {
     phoneSchema,
     loginSchema,
     otpSchema,
-    registerSchema
+    registerSchema,
+    refreshTokenSchema,
+    logoutSchema
 };

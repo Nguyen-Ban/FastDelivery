@@ -3,10 +3,12 @@ const express = require('express');
 const cors = require('cors');
 const { sequelize } = require('./config/database');
 const logger = require('./config/logger');
+require('./models/index'); // Import associations
 
 const app = express();
-const authRoutes = require('./routes/auth.routes');
+const apiRouter = require('./routes/index');
 const errorHandler = require('./middleware/error.middleware');
+const redisClient = require('./config/redis');
 
 // Middleware
 app.use(cors());
@@ -19,7 +21,7 @@ app.get('/', (req, res) => {
     res.json({ message: 'Welcome to the API' });
 });
 
-app.use('/api/auth', authRoutes);
+app.use('/api', apiRouter);
 
 // Error handling
 app.use(errorHandler);
@@ -32,11 +34,14 @@ const startServer = async () => {
         await sequelize.authenticate();
         logger.info('[App] Database connection has been established successfully.');
 
-        await sequelize.sync({ alter: true }); // Use { force: true } to drop and recreate tables (for testing)
+        await sequelize.sync({ force: true }); // Use { force: true } to drop and recreate tables (for testing)
         logger.info('[App] Database synced successfully.');
 
+        await redisClient.flushall();
+        logger.info('[App] Redis flushed successfully.');
+
         app.listen(PORT, () => {
-            logger.info(`[App] Server is running on port ${PORT}`);
+            logger.info(`[App] Server is running on port ${PORT}...`);
         });
     } catch (error) {
         logger.error(`[App] Failed to start server: ${error.message}`);

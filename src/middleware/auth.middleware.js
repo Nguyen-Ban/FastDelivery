@@ -1,8 +1,7 @@
-const jwt = require('jsonwebtoken');
-const { ACCESS_TOKEN_SECRET } = require('../services/token.service');
 const logger = require('../config/logger');
+const { decodeAccessToken } = require('../services/token.service');
 
-const authenticateToken = (req, res, next) => {
+const authenticateToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
@@ -11,15 +10,15 @@ const authenticateToken = (req, res, next) => {
         return res.status(401).json({ success: false, message: 'Access token required' });
     }
 
-    jwt.verify(token, ACCESS_TOKEN_SECRET, (err, user) => {
-        if (err) {
-            logger.warn(`[AuthMiddleware] Authentication failed: Invalid or expired token - ${err.message}`);
-            return res.status(403).json({ success: false, message: 'Invalid or expired token' });
-        }
-        logger.info(`[AuthMiddleware] User ${user.id} authenticated successfully`);
+    try {
+        const user = await decodeAccessToken(token);
+        logger.info(`[AuthMiddleware] User ${user.userId} authenticated successfully`);
         req.user = user;
         next();
-    });
+    } catch (err) {
+        logger.warn(`[AuthMiddleware] Authentication failed: Invalid or expired token - ${err.message}`);
+        return res.status(403).json({ success: false, message: 'Invalid or expired token' });
+    }
 };
 
 module.exports = { authenticateToken };

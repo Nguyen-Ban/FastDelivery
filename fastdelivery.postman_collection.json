@@ -32,7 +32,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n\t\"phone\": \"+84987654321\",\n    \"fullname\": \"nguyen van user\",\n    \"email\": \"usernguyen@gmail.com\",\n    \"passcode\": \"654321\"\n}",
+							"raw": "{\n\t\"phone\": \"+84987654321\",\n    \"fullname\": \"nguyen van user\",\n    \"gender\": \"MALE\",\n    \"date_of_birth\": \"2004-01-01\",\n    \"email\": \"usernguyen@gmail.com\",\n    \"passcode\": \"654321\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -57,6 +57,16 @@
 				{
 					"name": "startAuth",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0MzAxNDgwOSwiZXhwIjoxNzQzNjE5NjA5fQ.6sIiF8AEis8brPkIaEizUh33ko9Xb-Sa1hI07_fccsA",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [],
 						"body": {
@@ -139,13 +149,13 @@
 					"response": []
 				},
 				{
-					"name": "resend otp",
+					"name": "refresh access token",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n\t\"phone\": \"+84987654321\"\r\n}",
+							"raw": "{\r\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0MzA3MDc3NSwiZXhwIjoxNzQzNjc1NTc1fQ.oCVNwd-aubrjLy2GharRhuWjd5U-KeZT5-CAt6cW8Mk\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -153,27 +163,37 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/api/auth/resend-otp",
+							"raw": "{{base_url}}/api/auth/refresh-access-token",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"api",
 								"auth",
-								"resend-otp"
+								"refresh-access-token"
 							]
 						}
 					},
 					"response": []
 				},
 				{
-					"name": "retrieve refresh token",
+					"name": "log out",
 					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0MzAxOTEyNywiZXhwIjoxNzQzMDIwMDI3fQ.k--cOp997DSb6ci58FC59asJUP0bCQmMrk0V-VnhxBk",
+									"type": "string"
+								}
+							]
+						},
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0Mjc4NjA5OSwiZXhwIjoxNzQzMzkwODk5fQ.Lo-Z_z3TYKl9iHcStuwJMKBD5P4WwKL3pZFNqJAAzBc\"\r\n}",
+							"raw": "{\r\n    \"userId\": \"1\"\r\n\r\n\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -181,14 +201,138 @@
 							}
 						},
 						"url": {
-							"raw": "{{base_url}}/api/auth/refresh-token",
+							"raw": "{{base_url}}/api/auth/logout",
 							"host": [
 								"{{base_url}}"
 							],
 							"path": [
 								"api",
 								"auth",
-								"refresh-token"
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "resend otp",
+					"request": {
+						"method": "POST",
+						"header": []
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "driver",
+			"item": [
+				{
+					"name": "register driver",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0MzA3MDI2MSwiZXhwIjoxNzQzMDcxMTYxfQ.d5nwiGXdUjBPNjx7oLvfE0EdUevawsUPTorIL6QiULo",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"license_number\": \"abd234\",\r\n    \"vehicle_type\": \"MOTORBIKE\",\r\n    \"vehicle_plate\": \"abc12\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/driver/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"driver",
+								"register"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "admin",
+			"item": [
+				{
+					"name": "get driver list",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/driver-list",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"driver-list"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get driver by id",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/admin/driver/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"driver",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "patch Driver Approval",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"approval_status\": \"APPROVED\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/admin/driver/1",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"admin",
+								"driver",
+								"1"
 							]
 						}
 					},

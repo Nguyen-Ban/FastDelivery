@@ -105,8 +105,11 @@ const GoodsDetail = () => {
                 style={{
                   backgroundColor: COLOR.grey90,
                   borderRadius: 8,
-                  minWidth: 80,
-                  textAlign: "center",
+                  width: 80,
+                  height: 40,
+                  textAlign: "left",
+                  paddingHorizontal: 10,
+                  marginVertical: 5,
                   fontSize: 16,
                 }}
                 keyboardType="numeric"

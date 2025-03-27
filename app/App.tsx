@@ -1,5 +1,5 @@
 import React from "react";
-import HomeScreen from "@/screens/Home";
+import HomeScreen from "@/screens/home/Home";
 import AuthMethod from "@/screens/authentication/AuthMethod";
 import OTPVerify from "@/screens/authentication/OTPVerify";
 import UserInfo from "@/screens/authentication/UserInfo";

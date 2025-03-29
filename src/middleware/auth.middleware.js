@@ -1,13 +1,13 @@
 const logger = require('../config/logger');
-const { decodeAccessToken } = require('../services/token.service');
+const { decodeAccessToken, isAccessTokenBlacklisted } = require('../services/token.service');
 
 const authenticateToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
 
-    if (!token) {
-        logger.warn('[AuthMiddleware] Authentication failed: No access token provided');
-        return res.status(401).json({ success: false, message: 'Access token required' });
+    if (!token || await isAccessTokenBlacklisted(token)) {
+        logger.warn('[AuthMiddleware] Authentication failed: Invalid or expired token');
+        return res.status(401).json({ success: false, message: 'Invalid or expired token' });
     }
 
     try {

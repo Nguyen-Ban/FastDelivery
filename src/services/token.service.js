@@ -53,6 +53,11 @@ const blacklistAccessToken = async (token) => {
     await redisClient.set(`blacklist_access_token:${token}`, 'true', 'EX', remainingTime);
 };
 
+const isAccessTokenBlacklisted = async (token) => {
+    const result = await redisClient.get(`blacklist_access_token:${token}`);
+    return result === 'true';
+};
+
 const clearRefreshToken = async (userId) => {
     logger.info(`[TokenService] Clear refresh token for user ${userId}`);
     await redisClient.del(`refresh_token:${userId}`);
@@ -66,6 +71,7 @@ module.exports = {
     verifyRefreshToken,
     userHasRefreshToken,
     blacklistAccessToken,
+    isAccessTokenBlacklisted,
     clearRefreshToken,
     ACCESS_TOKEN_SECRET,
     REFRESH_TOKEN_SECRET

@@ -1,5 +1,5 @@
 const { sendOTP, verifyOTP, resendOTP, isVerifiedPhoneNumber } = require('../services/otp.service');
-const { generateAccessToken, generateRefreshToken, verifyRefreshToken, clearRefreshToken, userHasRefreshToken } = require('../services/token.service');
+const { generateAccessToken, generateRefreshToken, verifyRefreshToken, clearRefreshToken, userHasRefreshToken, blacklistAccessToken } = require('../services/token.service');
 const logger = require('../config/logger');
 const { User } = require('../models/index');
 

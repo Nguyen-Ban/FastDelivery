@@ -155,7 +155,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0MzA3MDc3NSwiZXhwIjoxNzQzNjc1NTc1fQ.oCVNwd-aubrjLy2GharRhuWjd5U-KeZT5-CAt6cW8Mk\"\r\n}",
+							"raw": "{\r\n    \"refreshToken\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0MzIyMTA4MywiZXhwIjoxNzQzODI1ODgzfQ.oMxGS5anyeN9YQSOzTjhMlD9-OWkO531rHCUHX0GfaY\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -184,7 +184,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0MzAxOTEyNywiZXhwIjoxNzQzMDIwMDI3fQ.k--cOp997DSb6ci58FC59asJUP0bCQmMrk0V-VnhxBk",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0MzIyMjI5OCwiZXhwIjoxNzQzMjIzMTk4fQ.W19ltLmUbETaysk-w4qGeflwylLEZXYVKxmWMlXF2b4",
 									"type": "string"
 								}
 							]
@@ -193,7 +193,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"userId\": \"1\"\r\n\r\n\r\n}",
+							"raw": "",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -218,7 +218,27 @@
 					"name": "resend otp",
 					"request": {
 						"method": "POST",
-						"header": []
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n\t\"phone\": \"+84987654321\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/resend-otp",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"resend-otp"
+							]
+						}
 					},
 					"response": []
 				}
@@ -235,7 +255,7 @@
 							"bearer": [
 								{
 									"key": "token",
-									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0MzA3MDI2MSwiZXhwIjoxNzQzMDcxMTYxfQ.d5nwiGXdUjBPNjx7oLvfE0EdUevawsUPTorIL6QiULo",
+									"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImlhdCI6MTc0MzIyMjI5OCwiZXhwIjoxNzQzMjIzMTk4fQ.W19ltLmUbETaysk-w4qGeflwylLEZXYVKxmWMlXF2b4",
 									"type": "string"
 								}
 							]

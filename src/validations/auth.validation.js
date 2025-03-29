@@ -25,16 +25,10 @@ const refreshTokenSchema = Joi.object({
         .messages({ 'any.required': 'Refresh token is required' })
 });
 
-const logoutSchema = Joi.object({
-    userId: Joi.string().required()
-        .messages({ 'any.required': 'User ID is required' })
-});
-
 module.exports = {
     phoneSchema,
     loginSchema,
     otpSchema,
     registerSchema,
     refreshTokenSchema,
-    logoutSchema
 };

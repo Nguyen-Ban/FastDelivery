@@ -10,8 +10,6 @@ const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60; // 7 days
 const generateAccessToken = async (userId) => {
     logger.info(`[TokenService] Generating access token for user ${userId}`);
     const token = jwt.sign({ userId: userId }, ACCESS_TOKEN_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
-    await redisClient.set(`access_token:${userId}`, token, 'EX', ACCESS_TOKEN_EXPIRY);
-    logger.info(`[TokenService] Access token stored in Redis for user ${userId}`);
     return token;
 };
 
@@ -48,9 +46,11 @@ const decodeRefreshToken = async (token) => {
     return jwt.verify(token, REFRESH_TOKEN_SECRET);
 };
 
-const clearAccessToken = async (userId) => {
-    logger.info(`[TokenService] Clear access token for user ${userId}`);
-    await redisClient.del(`access_token:${userId}`);
+const blacklistAccessToken = async (token) => {
+    logger.info(`[TokenService] Blacklist access token`);
+    const decoded = await decodeAccessToken(token);
+    const remainingTime = decoded.exp - Math.floor(Date.now() / 1000);
+    await redisClient.set(`blacklist_access_token:${token}`, 'true', 'EX', remainingTime);
 };
 
 const clearRefreshToken = async (userId) => {
@@ -65,7 +65,7 @@ module.exports = {
     decodeRefreshToken,
     verifyRefreshToken,
     userHasRefreshToken,
-    clearAccessToken,
+    blacklistAccessToken,
     clearRefreshToken,
     ACCESS_TOKEN_SECRET,
     REFRESH_TOKEN_SECRET

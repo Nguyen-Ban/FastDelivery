@@ -1,7 +1,8 @@
 const logger = require("../config/logger");
-const { getDriverByUserId, createDriver } = require("../services/driver.service");
+const { Driver } = require("../models/index");
 
 const registerDriver = async (req, res) => {
+
     const {
         license_number,
         vehicle_type,
@@ -10,14 +11,12 @@ const registerDriver = async (req, res) => {
 
     // Assuming user is authenticated and user ID is available from middleware
     const userId = req.user.userId; // This assumes you have authentication middleware setting req.user
-
     logger.info(`[DriverController] Driver registration attempt for user: ${userId}`);
 
     try {
         // Check if user is already registered as driver
-        const existingDriver = await getDriverByUserId(userId);
+        const existingDriver = await Driver.findOne({ where: { user_id: userId } });
         if (existingDriver) {
-            logger.warn(`[DriverController] User is already registered as a driver: ${userId}`);
             return res.status(400).json({
                 success: false,
                 message: 'User is already registered as a driver'
@@ -25,14 +24,13 @@ const registerDriver = async (req, res) => {
         }
 
         // Create Driver record
-        const driver = await createDriver({
+        const driver = await Driver.create({
             userId,
             licenseNumber: license_number,
             vehicleType: vehicle_type,
             vehiclePlate: vehicle_plate,
         });
 
-        logger.info(`[DriverController] Driver registration successful for user ${userId}`);
         return res.status(201).json({
             success: true,
             message: 'Driver registration successful',

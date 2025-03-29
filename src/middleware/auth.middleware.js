@@ -14,6 +14,7 @@ const authenticateToken = async (req, res, next) => {
         const user = await decodeAccessToken(token);
         logger.info(`[AuthMiddleware] User ${user.userId} authenticated successfully`);
         req.user = user;
+        req.accessToken = token;
         next();
     } catch (err) {
         logger.warn(`[AuthMiddleware] Authentication failed: Invalid or expired token - ${err.message}`);

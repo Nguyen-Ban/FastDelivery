@@ -1,10 +1,10 @@
 const logger = require("../config/logger");
-const { getAllDrivers, getDriverById, updateDriverApprovalStatus } = require("../services/driver.service");
+const { Driver } = require("../models/index");
 
 const getDriverList = async (req, res) => {
     logger.info(`[AdminController] Getting driver list`);
     try {
-        const drivers = await getAllDrivers();
+        const drivers = await Driver.findAll();
         res.status(200).json({
             success: true,
             message: 'Driver list fetched successfully',
@@ -22,7 +22,7 @@ const getDriverList = async (req, res) => {
 const fetchDriverById = async (req, res) => {
     logger.info(`[AdminController] Getting driver by id: ${req.params.id}`);
     try {
-        const driver = await getDriverById(req.params.id);
+        const driver = await Driver.findOne({ where: { id: req.params.id } });
         res.status(200).json({
             success: true,
             message: 'Driver fetched successfully',
@@ -38,9 +38,12 @@ const fetchDriverById = async (req, res) => {
 };
 
 const patchDriverApprovalStatus = async (req, res) => {
-    logger.info(`[AdminController] Assessing driver registration: ${req.params.id}`);
+    const { id } = req.params;
+    const { approval_status } = req.body;
+    logger.info(`[AdminController] Assessing driver registration: ${id}`);
+
     try {
-        const driver = await updateDriverApprovalStatus(req.params.id, req.body.approval_status);
+        const driver = await Driver.update({ approval_status }, { where: { id } });
         if (!driver) {
             return res.status(400).json({
                 success: false,

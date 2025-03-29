@@ -1,4 +1,4 @@
-const { createOrder, createOrderDetailByOrderId, createOrderAddonByOrderId } = require("../services/order.service");
+const { Order, OrderDetail, OrderAddon } = require("../models/index");
 
 const placeOrder = async (req, res) => {
 
@@ -8,14 +8,14 @@ const placeOrder = async (req, res) => {
         orderDetail, orderAddon
     } = req.body;
     try {
-        const order = await createOrder({
+        const order = await Order.create({
             pickupAddress, dropoffAddress, pickupLat,
             pickupLng, dropoffLat, dropoffLng,
             price, status, customerId
         });
 
-        const orderDetail = await createOrderDetailByOrderId(order.id, orderDetail);
-        const orderAddon = await createOrderAddonByOrderId(order.id, orderAddon);
+        const orderDetail = await OrderDetail.create({ ...orderDetail, orderId: order.id });
+        const orderAddon = await OrderAddon.create({ ...orderAddon, orderId: order.id });
 
         return res.status(200).json({ message: "Order placed successfully", order, orderDetail, orderAddon });
 

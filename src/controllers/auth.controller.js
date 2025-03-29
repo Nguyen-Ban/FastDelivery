@@ -1,35 +1,22 @@
 const { sendOTP, verifyOTP, resendOTP, isVerifiedPhoneNumber } = require('../services/otp.service');
-const { generateAccessToken, generateRefreshToken, verifyRefreshToken, clearAccessToken, clearRefreshToken, userHasRefreshToken } = require('../services/token.service');
+const { generateAccessToken, generateRefreshToken, verifyRefreshToken, clearRefreshToken, userHasRefreshToken } = require('../services/token.service');
 const logger = require('../config/logger');
-const { getUserByPhoneNumber, comparePasscode, getUserById, createUser } = require('../services/user.service');
+const { User } = require('../models/index');
 
 const startAuth = async (req, res) => {
     const { phone } = req.body;
     logger.info(`[AuthController] Starting authentication process for phone: ${phone}`);
 
     try {
-        const user = await getUserByPhoneNumber(phone);
+        const user = await User.findOne({ where: { phone } });
 
         if (user) {
-            logger.info(`[AuthController] User ${user.id} found for phone: ${phone}`);
-            const hasRefreshToken = await userHasRefreshToken(user.id);
-            if (hasRefreshToken) {
-                return res.status(200).json({
-                    success: true,
-                    message: 'User exists with valid refresh token, please enter passcode',
-                    nextStep: 'login'
-                });
-            } else {
-                await sendOTP(phone);
-                return res.status(200).json({
-                    success: true,
-                    message: 'Refresh token expired, OTP sent, please verify',
-                    nextStep: 'verify_otp'
-                });
-            }
+            return res.status(200).json({
+                success: true,
+                message: 'Phone number already exists, please enter passcode',
+                nextStep: 'login'
+            });
         }
-
-        logger.info(`[AuthController] New user authentication started for phone: ${phone}`);
         await sendOTP(phone);
         return res.status(200).json({
             success: true,
@@ -52,23 +39,21 @@ const login = async (req, res) => {
     const { phone, passcode } = req.body;
     logger.info(`[AuthController] Login attempt for phone: ${phone}`);
 
+
     try {
-        const user = await getUserByPhoneNumber(phone);
+        const user = await User.findOne({ where: { phone } });
         if (!user) {
-            logger.warn(`[AuthController] Login failed: User not found for phone: ${phone}`);
             return res.status(404).json({ success: false, message: 'User not found' });
         }
 
-        const isPasscodeValid = await comparePasscode(user, passcode);
+        const isPasscodeValid = await user.comparePasscode(passcode);
         if (!isPasscodeValid) {
-            logger.warn(`[AuthController] Login failed: Invalid passcode for user ${user.id}`);
             return res.status(401).json({ success: false, message: 'Invalid passcode' });
         }
 
         const accessToken = await generateAccessToken(user.id);
         const refreshToken = await generateRefreshToken(user.id);
 
-        logger.info(`[AuthController] Login successful for user ${user.id}`);
         return res.status(200).json({
             success: true,
             message: 'Login successful',
@@ -94,30 +79,20 @@ const verifyOtp = async (req, res) => {
     const { phone, otp } = req.body;
     logger.info(`[AuthController] OTP verification attempt for phone: ${phone}`);
 
+
     try {
         const verifySuccess = await verifyOTP(phone, otp);
         if (!verifySuccess) {
-            logger.warn(`[AuthController] OTP verification failed for phone: ${phone}`);
             return res.status(400).json({
                 success: false,
                 message: 'Invalid OTP'
             });
         }
 
-        const user = await getUserByPhoneNumber(phone);
-        if (user) {
-            logger.info(`[AuthController] OTP verified for existing user ${user.id}`);
-            return res.status(200).json({
-                success: true,
-                message: 'OTP verified, please enter passcode',
-                nextStep: 'login'
-            });
-        }
-
         logger.info(`[AuthController] OTP verified for new user registration: ${phone}`);
         return res.status(200).json({
             success: true,
-            message: 'OTP verified, please complete registration',
+            message: 'OTP verified, please complete registration in 15 minutes',
             nextStep: 'register'
         });
     } catch (error) {
@@ -137,20 +112,16 @@ const register = async (req, res) => {
     try {
         const isVerified = await isVerifiedPhoneNumber(phone);
         if (!isVerified) {
-            logger.warn(`[AuthController] Phone number has not been verified for phone: ${phone}`);
             return res.status(403).json({
                 success: false,
                 message: 'Phone number must be verified before registration',
                 nextStep: 'verify_otp'
             });
         }
-        logger.info(`[AuthController] Phone number has been verified for phone: ${phone}`);
-
-        const user = await createUser({ phone, fullname, gender, dateOfBirth: date_of_birth, email, passcode });
+        const user = await User.create({ phone, fullname, gender, dateOfBirth: date_of_birth, email, passcode });
         const accessToken = await generateAccessToken(user.id);
         const refreshToken = await generateRefreshToken(user.id);
 
-        logger.info(`[AuthController] Registration successful for user ${user.id}`);
         return res.status(201).json({
             success: true,
             message: 'Registration successful',
@@ -173,10 +144,10 @@ const register = async (req, res) => {
 const refreshAccessToken = async (req, res) => {
     const { refreshToken } = req.body;
     logger.info(`[AuthController] Refresh access token for user ${refreshToken}`);
+
     try {
         const decoded = await verifyRefreshToken(refreshToken);
         const accessToken = await generateAccessToken(decoded.userId);
-        logger.info(`[AuthController] Access token refreshed successfully for user ${decoded.userId}`);
         return res.status(200).json({
             success: true,
             message: 'Access token refreshed successfully',
@@ -198,9 +169,10 @@ const resendOtp = async (req, res) => {
     const { phone } = req.body;
     logger.info(`[AuthController] OTP resend request for phone: ${phone}`);
 
+
+
     try {
         await resendOTP(phone);
-        logger.info(`[AuthController] OTP resent successfully for phone: ${phone}`);
         return res.status(200).json({
             success: true,
             message: "OTP resent successfully",
@@ -220,10 +192,13 @@ const resendOtp = async (req, res) => {
 };
 
 const logout = async (req, res) => {
-    const { userId } = req.body;
+    const userId = req.user.userId;
+    const accessToken = req.accessToken;
+    logger.info(`[AuthController] Logout attempt for user ${userId}`);
+
     try {
-        await clearAccessToken(userId);
-        logger.info(`[AuthController] User ${userId} logged out successfully`);
+        await blacklistAccessToken(accessToken);
+        await clearRefreshToken(userId);
         return res.status(200).json({
             success: true,
             message: 'Logged out successfully'

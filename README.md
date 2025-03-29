@@ -78,7 +78,7 @@ Import `fastdelivery.postman_collection.json` into Postman for detail setup
 
 #### 3. Login
 - **Endpoint**: `POST /api/auth/login`
-- **Description**: Login with phone number and password
+- **Description**: Login with phone number and passcode
 - **Request Body**:
   ```json
   {
@@ -175,7 +175,23 @@ Import `fastdelivery.postman_collection.json` into Postman for detail setup
   }
   ```
 
-#### 7. Driver Registration
+#### 7. Logout
+- **Endpoint**: `POST /api/auth/logout`
+- **Description**: Logout user and invalidate tokens
+- **Headers**:
+  ```
+  Authorization: Bearer your_access_token
+  ```
+- **Response**:
+  ```json
+  {
+    "success": true,
+    "message": "Logout successful"
+  }
+  ```
+- **Note**: Requires valid authentication token. This will invalidate both access and refresh tokens.
+
+#### 8. Driver Registration
 - **Endpoint**: `POST /api/driver/register`
 - **Description**: Register as a driver (requires authentication)
 - **Headers**:

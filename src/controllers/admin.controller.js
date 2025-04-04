@@ -43,7 +43,7 @@ const patchDriverApprovalStatus = async (req, res) => {
     logger.info(`[AdminController] Assessing driver registration: ${id}`);
 
     try {
-        const driver = await Driver.update({ approval_status }, { where: { id } });
+        const driver = await Driver.update({ approvalStatus: approval_status }, { where: { id } });
         if (!driver) {
             return res.status(400).json({
                 success: false,

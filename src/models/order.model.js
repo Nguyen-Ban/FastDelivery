@@ -8,6 +8,16 @@ const Order = sequelize.define('Order', {
         autoIncrement: true,
         field: 'id'
     },
+    customerId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        field: 'customer_id'
+    },
+    driverId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        field: 'driver_id'
+    },
     pickupAddress: {
         type: DataTypes.STRING,
         allowNull: false,

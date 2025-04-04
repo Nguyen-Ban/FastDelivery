@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 const orderSchema = Joi.object({
-    pickupAddress: Joi.string()
+    pickup_address: Joi.string()
         .required()
         .max(255)
         .messages({
@@ -9,7 +9,7 @@ const orderSchema = Joi.object({
             'any.required': 'Pickup address is required',
             'string.max': 'Pickup address cannot exceed 255 characters'
         }),
-    dropoffAddress: Joi.string()
+    dropoff_address: Joi.string()
         .required()
         .max(255)
         .messages({
@@ -17,7 +17,7 @@ const orderSchema = Joi.object({
             'any.required': 'Dropoff address is required',
             'string.max': 'Dropoff address cannot exceed 255 characters'
         }),
-    pickupLat: Joi.number()
+    pickup_lat: Joi.number()
         .required()
         .min(-90)
         .max(90)
@@ -29,7 +29,7 @@ const orderSchema = Joi.object({
             'number.max': 'Pickup latitude must be between -90 and 90',
             'number.precision': 'Pickup latitude must have no more than 6 decimal places'
         }),
-    pickupLng: Joi.number()
+    pickup_lng: Joi.number()
         .required()
         .min(-180)
         .max(180)
@@ -41,7 +41,7 @@ const orderSchema = Joi.object({
             'number.max': 'Pickup longitude must be between -180 and 180',
             'number.precision': 'Pickup longitude must have no more than 6 decimal places'
         }),
-    dropoffLat: Joi.number()
+    dropoff_lat: Joi.number()
         .required()
         .min(-90)
         .max(90)
@@ -53,7 +53,7 @@ const orderSchema = Joi.object({
             'number.max': 'Dropoff latitude must be between -90 and 90',
             'number.precision': 'Dropoff latitude must have no more than 6 decimal places'
         }),
-    dropoffLng: Joi.number()
+    dropoff_lng: Joi.number()
         .required()
         .min(-180)
         .max(180)
@@ -74,37 +74,35 @@ const orderSchema = Joi.object({
             'any.required': 'Price is required',
             'number.positive': 'Price must be a positive number',
             'number.precision': 'Price must have no more than 2 decimal places'
-        }),
-    status: Joi.string()
-        .required()
-        .valid('PENDING', 'ASSIGNED', 'PICKED_UP', 'DELIVERED', 'CANCELLED')
-        .default('PENDING')
-        .messages({
-            'any.only': 'Status must be one of PENDING, ASSIGNED, PICKED_UP, DELIVERED, CANCELLED'
-        }),
-    customerId: Joi.number().required(),
-    driverId: Joi.number().required(),
+        })
 });
 
 const orderDetailSchema = Joi.object({
-    packageType: Joi.string().required(),
-    weightKg: Joi.number().required(),
-    size: Joi.string().required(),
-    deliveryInsurance: Joi.boolean().required(),
+    package_type: Joi.string().valid('DOCUMENT', 'ELECTRONICS', 'FOOD', 'CLOTHING', 'FRAGILE', 'OTHERS').required(),
+    weight_kg: Joi.number().required(),
+    size: Joi.string().valid('SMALL', 'MEDIUM', 'LARGE', 'X-LARGE').required(),
+    delivery_insurance: Joi.string().valid('NO_INSURANCE', 'STANDARD', 'SILVER', 'GOLD').required(),
 });
 
 const orderAddonSchema = Joi.object({
-    doorToDoor: Joi.boolean().required(),
-    bulkyDelivery: Joi.boolean().required(),
+    door_to_door: Joi.boolean().required(),
+    bulky_delivery: Joi.boolean().required(),
 });
 
 const placeOrderValidation = Joi.object({
     order: orderSchema.required(),
-    orderDetail: orderDetailSchema.required(),
-    orderAddon: orderAddonSchema.required(),
+    order_detail: orderDetailSchema.required(),
+    order_addon: orderAddonSchema.required(),
 });
 
-module.exports = { placeOrderValidation };
+const getOrderListValidation = Joi.object({
+    pickup_lat: Joi.number().required(),
+    pickup_lng: Joi.number().required(),
+    dropoff_lat: Joi.number().required(),
+    dropoff_lng: Joi.number().required(),
+});
+
+module.exports = { placeOrderValidation, getOrderListValidation };
 
 
 

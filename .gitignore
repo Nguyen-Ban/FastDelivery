@@ -38,3 +38,6 @@ yarn-error.*
 
 app-example
 scripts
+
+# JetBrains IDEs
+.idea/

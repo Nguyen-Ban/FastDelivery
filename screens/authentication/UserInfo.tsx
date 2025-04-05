@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useRouter } from "expo-router";
 
 import {
   View,
@@ -50,6 +51,8 @@ const UserInfo = () => {
 
     return `${day}/${month}/${year}`;
   };
+
+  const navigation = useRouter();
 
   return (
     <View style={[GLOBAL.container, { justifyContent: "space-between" }]}>
@@ -114,6 +117,14 @@ const UserInfo = () => {
         type="primary"
         style={styles.addButton}
       />
+
+      <Button
+        title="Xác nhận"
+        onPress={() => navigation.push("../order/Order")}
+        size="large"
+        type="primary"
+      />
+      
     </View>
   );
 };

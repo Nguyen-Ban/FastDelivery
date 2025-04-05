@@ -1,16 +1,18 @@
 import React, { useRef, useState } from "react";
+import { useRouter } from "expo-router";
 
 import { View, Text, StyleSheet } from "react-native";
 import PhoneInput from "react-native-international-phone-number";
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
-
 const AuthMethod = () => {
   const phoneInput = useRef(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isDisabled, setIsDisabled] = useState(true);
+
+  const router = useRouter();
 
   const handlePhoneNumberChange = (formattedNumber: string) => {
     setPhoneNumber(formattedNumber);
@@ -59,6 +61,15 @@ const AuthMethod = () => {
         type="sub"
         leftImg={require("../../assets/images/google.png")}
       />
+
+      {/* Navigation to Home screen */}
+      <Button
+        title="Go to Home"
+        onPress={() => router.push("../order/Order")}
+        size="large"
+        type="primary"
+      />
+      
     </View>
   );
 };

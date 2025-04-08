@@ -6,7 +6,6 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  Image,
 } from "react-native";
 import DatePicker, {
   DateTimePickerEvent,
@@ -16,6 +15,8 @@ import DropdownPicker from "react-native-dropdown-picker";
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
+
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 const UserInfo = () => {
   const [phone, setPhone] = React.useState("");
@@ -78,10 +79,7 @@ const UserInfo = () => {
             <View style={styles.combineView}>
               <Text style={{ fontSize: 16 }}>{formatDate(date)}</Text>
               <TouchableOpacity onPress={() => setDateShow(true)}>
-                <Image
-                  source={require("../../assets/images/calendar.png")}
-                  style={styles.img}
-                />
+                <Ionicons name="calendar-outline" size={24} color="black" />
               </TouchableOpacity>
             </View>
           </View>

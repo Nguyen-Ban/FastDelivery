@@ -1,10 +1,11 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
+import { MaterialIcons } from "@expo/vector-icons";
 
 const Order = () => {
   return (
@@ -18,18 +19,12 @@ const Order = () => {
         <View style={styles.headerView}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <TouchableOpacity>
-              <Image
-                source={require("../../assets/images/back.png")}
-                style={styles.Image}
-              />
+              <MaterialIcons name="arrow-back" size={25} color="black" />
             </TouchableOpacity>
             <Text style={styles.title}>Giao hàng</Text>
           </View>
           <TouchableOpacity>
-            <Image
-              source={require("../../assets/images/note.png")}
-              style={styles.Image}
-            />
+            <MaterialIcons name="sticky-note-2" size={25} color="black" />
           </TouchableOpacity>
         </View>
         <View style={styles.locationPickCard}>
@@ -42,7 +37,9 @@ const Order = () => {
               styles.locationButton,
               { borderBottomLeftRadius: 0, borderBottomRightRadius: 0 },
             ]}
-            leftImg={require("../../assets/images/origin.png")}
+            leftImg={
+              <MaterialIcons name="location-on" size={24} color={COLOR.red55} />
+            }
           />
           <Button
             title="Giao đến đâu?"
@@ -53,7 +50,13 @@ const Order = () => {
               styles.locationButton,
               { borderTopLeftRadius: 0, borderTopRightRadius: 0 },
             ]}
-            leftImg={require("../../assets/images/dest.png")}
+            leftImg={
+              <MaterialIcons
+                name="location-on"
+                size={24}
+                color={COLOR.blue40}
+              />
+            }
           />
         </View>
       </View>

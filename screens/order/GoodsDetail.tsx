@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   TextInput,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -13,6 +12,9 @@ import RadioGroup, { RadioButtonProps } from "react-native-radio-buttons-group";
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
+
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Ionicons from "@expo/vector-icons/Ionicons";
 
 const GoodsDetail = () => {
   const [disabled, setDisabled] = React.useState(true);
@@ -34,11 +36,6 @@ const GoodsDetail = () => {
         label: "L",
         value: "L",
       },
-      {
-        id: "4",
-        label: "XL",
-        value: "XL",
-      },
     ],
     []
   );
@@ -53,10 +50,7 @@ const GoodsDetail = () => {
       <View>
         <View style={styles.header}>
           <TouchableOpacity>
-            <Image
-              source={require("../../assets/images/back.png")}
-              style={{ width: 30, height: 30 }}
-            ></Image>
+            <MaterialIcons name="arrow-back" size={25} color="black" />
           </TouchableOpacity>
           <Text style={styles.title}>Chi tiết món hàng</Text>
         </View>
@@ -123,7 +117,14 @@ const GoodsDetail = () => {
           onPress={() => {}}
           size="large"
           type="sub"
-          leftImg={require("../../assets/images/camera.png")}
+          leftImg={
+            <Ionicons
+              name="camera-outline"
+              size={25}
+              color="black"
+              style={{ paddingHorizontal: 5 }}
+            />
+          }
           style={styles.additionalButton}
         />
       </View>

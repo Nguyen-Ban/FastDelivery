@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   TextInput,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -12,6 +11,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
+import { MaterialIcons } from "@expo/vector-icons";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 const Location = () => {
   return (
@@ -23,17 +25,16 @@ const Location = () => {
       />
       <View style={styles.header}>
         <TouchableOpacity>
-          <Image
-            source={require("../../assets/images/back.png")}
-            style={styles.image}
-          ></Image>
+          <MaterialIcons name="arrow-back" size={25} color="black" />
         </TouchableOpacity>
         <Text style={styles.label}>Chọn điểm đến/đi</Text>
         <View style={styles.locationInputView}>
-          <Image
-            source={require("../../assets/images/location.png")}
-            style={styles.small_icon}
-          ></Image>
+          <Ionicons
+            name="location"
+            size={25}
+            color="black"
+            style={{ paddingHorizontal: 10 }}
+          />
           <TextInput
             style={styles.locationInput}
             placeholder="Nhập địa chỉ"
@@ -45,7 +46,14 @@ const Location = () => {
         onPress={() => {}}
         type="primary"
         size="large"
-        leftImg={require("../../assets/images/map.png")}
+        leftImg={
+          <FontAwesome6
+            name="map-location-dot"
+            size={25}
+            color="black"
+            style={{ paddingHorizontal: 10 }}
+          />
+        }
       />
     </View>
   );
@@ -54,10 +62,6 @@ const Location = () => {
 export default Location;
 
 const styles = StyleSheet.create({
-  image: {
-    width: 25,
-    height: 25,
-  },
   header: {
     alignItems: "flex-start",
   },

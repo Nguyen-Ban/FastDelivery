@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   TextInput,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -12,6 +11,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
+
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 const ClientInfo = () => {
   const [disabled, setDisabled] = React.useState(true);
@@ -24,10 +26,7 @@ const ClientInfo = () => {
       />
       <View>
         <TouchableOpacity>
-          <Image
-            source={require("../../assets/images/back.png")}
-            style={styles.image}
-          ></Image>
+          <MaterialIcons name="arrow-back" size={25} color="black" />
         </TouchableOpacity>
         <Text style={styles.title}>Người nhận/gửi</Text>
         <Text style={styles.subtitle}>
@@ -36,10 +35,7 @@ const ClientInfo = () => {
         <View style={styles.address_view}>
           <Text></Text>
           <TouchableOpacity>
-            <Image
-              source={require("../../assets/images/right-arrow.png")}
-              style={styles.image}
-            ></Image>
+            <FontAwesome6 name="angle-right" size={25} color="black" />
           </TouchableOpacity>
         </View>
         <Text style={styles.subtitle}>Số tầng, số tòa nhà</Text>

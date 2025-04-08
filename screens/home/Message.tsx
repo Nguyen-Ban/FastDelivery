@@ -13,14 +13,14 @@ import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 
-const Account = () => {
+const Message = () => {
   return (
     <View style={GLOBAL.container}>
-      <Text>Hello, World!</Text>
+      <Text>Account</Text>
     </View>
   );
 };
 
-export default Account;
+export default Message;
 
 const styles = StyleSheet.create({});

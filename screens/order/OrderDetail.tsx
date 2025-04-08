@@ -1,10 +1,13 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
+import { MaterialIcons } from "@expo/vector-icons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 
 const OrderDetail = () => {
   const [amount, setAmount] = React.useState(0);
@@ -31,20 +34,14 @@ const OrderDetail = () => {
       <View>
         <View style={styles.header}>
           <TouchableOpacity>
-            <Image
-              source={require("../../assets/images/back.png")}
-              style={styles.image}
-            ></Image>
+            <MaterialIcons name="arrow-back" size={25} color="black" />
           </TouchableOpacity>
           <Text style={styles.title}>Chi tiết đơn hàng</Text>
         </View>
         <View style={styles.detailCard}>
           {/* Origin */}
           <TouchableOpacity style={styles.detailOption}>
-            <Image
-              source={require("../../assets/images/origin.png")}
-              style={styles.icon}
-            ></Image>
+            <MaterialIcons name="location-on" size={25} color={COLOR.red55} />
             <Text style={styles.option_text}>
               {origin}
               {"\n"}
@@ -55,10 +52,7 @@ const OrderDetail = () => {
           </TouchableOpacity>
           {/* Destination */}
           <TouchableOpacity style={styles.detailOption}>
-            <Image
-              source={require("../../assets/images/dest.png")}
-              style={styles.icon}
-            ></Image>
+            <MaterialIcons name="location-on" size={25} color={COLOR.blue40} />
             <Text style={styles.option_text}>
               {destination}
               {"\n"}
@@ -70,10 +64,11 @@ const OrderDetail = () => {
           </TouchableOpacity>
           {/* Date time TODO: datetime select*/}
           <TouchableOpacity style={styles.detailOption}>
-            <Image
-              source={require("../../assets/images/delivery.png")}
-              style={styles.icon}
-            ></Image>
+            <MaterialCommunityIcons
+              name="calendar-clock"
+              size={30}
+              color="black"
+            />
             <Text style={styles.option_text}>
               <Text>Ngày giao hàng: {date}</Text>
               {"\n"}
@@ -84,10 +79,7 @@ const OrderDetail = () => {
           </TouchableOpacity>
           {/* Delivery Method */}
           <TouchableOpacity style={styles.detailOption}>
-            <Image
-              source={require("../../assets/images/delivery-bike.png")}
-              style={styles.icon}
-            ></Image>
+            <FontAwesome6 name="motorcycle" size={25} color="black" />
             <Text style={styles.option_text}>
               {vihicle}
               {"\n"}
@@ -98,10 +90,7 @@ const OrderDetail = () => {
           </TouchableOpacity>
           {/* Goods detail */}
           <TouchableOpacity style={styles.detailOption}>
-            <Image
-              source={require("../../assets/images/package.png")}
-              style={styles.icon}
-            ></Image>
+            <FontAwesome6 name="box" size={25} color="black" />
             <Text style={styles.option_text}>
               <Text style={{ color: COLOR.blue40 }}>
                 Thêm chi tiết món hàng

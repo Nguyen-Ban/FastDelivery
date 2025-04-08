@@ -6,19 +6,20 @@ import COLOR from "../../constants/Colors";
 import { OtpInput } from "react-native-otp-entry";
 import GLOBAL from "../../constants/GlobalStyles";
 
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+
 const OTPVerify = () => {
   return (
     <View style={GLOBAL.container}>
       <TouchableOpacity>
-        <Image
-          source={require("../../assets/images/back.png")}
-          style={styles.backImage}
-        />
+        <MaterialIcons name="arrow-back" size={25} color="black" />
       </TouchableOpacity>
       <Text style={styles.otpText}>Mã xác thực OTP</Text>
-      <Image
-        source={require("../../assets/images/message.png")}
-        style={styles.phoneImg}
+      <MaterialIcons
+        name="send-to-mobile"
+        size={100}
+        color="black"
+        style={{ alignSelf: "center" }}
       />
       <Text style={styles.subTitle}>
         Nhập mã gồm 6 chữ số mà bạn đã nhận được qua Tin nhắn điện thoại{"\n"}
@@ -48,20 +49,11 @@ const OTPVerify = () => {
 export default OTPVerify;
 
 const styles = StyleSheet.create({
-  backImage: {
-    width: 25,
-    height: 25,
-  },
   otpText: {
     fontSize: 24,
     fontWeight: "bold",
     paddingTop: 25,
     paddingBottom: 15,
-  },
-  phoneImg: {
-    width: 100,
-    height: 100,
-    alignSelf: "center",
   },
   subTitle: {
     fontSize: 16,

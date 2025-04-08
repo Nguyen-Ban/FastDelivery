@@ -29,7 +29,6 @@
     "expo-linking": "~7.0.5",
     "expo-permissions": "^14.4.0",
     "expo-router": "~4.0.19",
-    "expo-sms": "~13.0.1",
     "expo-splash-screen": "~0.29.22",
     "expo-status-bar": "~2.0.1",
     "expo-symbols": "~0.2.2",

@@ -6,6 +6,8 @@ import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 
+import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+
 const AuthMethod = () => {
   const phoneInput = useRef(null);
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -57,7 +59,14 @@ const AuthMethod = () => {
         onPress={() => {}}
         size="large"
         type="sub"
-        leftImg={require("../../assets/images/google.png")}
+        leftImg={
+          <FontAwesome5
+            name="google"
+            size={20}
+            color="black"
+            style={{ paddingHorizontal: 5 }}
+          />
+        }
       />
     </View>
   );

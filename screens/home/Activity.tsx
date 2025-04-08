@@ -16,7 +16,7 @@ import GLOBAL from "../../constants/GlobalStyles";
 const Activity = () => {
   return (
     <View style={GLOBAL.container}>
-      <Text>Hello, World!</Text>
+      <Text>Activity</Text>
     </View>
   );
 };

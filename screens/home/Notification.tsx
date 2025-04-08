@@ -16,7 +16,7 @@ import GLOBAL from "../../constants/GlobalStyles";
 const Notification = () => {
   return (
     <View style={GLOBAL.container}>
-      <Text>Hello, World!</Text>
+      <Text>Notification</Text>
     </View>
   );
 };

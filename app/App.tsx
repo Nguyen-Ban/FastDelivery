@@ -1,5 +1,8 @@
 import React from "react";
-import HomeScreen from "@/screens/home/Home";
+import Home from "@/screens/home/Home";
+import Activity from "@/screens/home/Activity";
+import Message from "@/screens/home/Message";
+import Notification from "@/screens/home/Notification";
 import AuthMethod from "@/screens/authentication/AuthMethod";
 import OTPVerify from "@/screens/authentication/OTPVerify";
 import UserInfo from "@/screens/authentication/UserInfo";
@@ -10,5 +13,5 @@ import OrderDetail from "@/screens/order/OrderDetail";
 import GoodsDetail from "@/screens/order/GoodsDetail";
 
 export default function App() {
-  return <GoodsDetail />;
+  return <OrderDetail />;
 }

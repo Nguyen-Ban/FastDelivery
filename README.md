@@ -1,16 +1,13 @@
 # Project Structure:
-- app: root component, entry point
-- assets: images, fonts,...
+
+- app: root component, entry point, pages
 - backend: backend server
-- components: react native components (Button, View,...)
+- components: custom components
 - context: context api
 - navigation: navigation setup
-- screens: pages of the app
 - hooks: react hooks
 - constants: const var (.env, .theme, ...)
 - services: api call
-
-
 
 # Welcome to your Expo app 👋
 
@@ -23,7 +20,9 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    ```bash
    npm install
    ```
+
    eas:
+
    ```bash
    npm install -g eas-cli
    ```
@@ -33,21 +32,29 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    ```bash
     npx expo start
    ```
+
    Tunnel option:
+
    ```bash
     npx expo start --tunnel
    ```
+
 3. eas build
    login:
+
    ```bash
    eas login
    ```
+
    init eas configure (eas.json):
+
    ```bash
    eas build:configure
-   ```   
+   ```
+
    build (aab/apk):
    --profile production
+
    ```bash
    eas build --platform android --profile production
    ```
@@ -83,4 +90,3 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
-

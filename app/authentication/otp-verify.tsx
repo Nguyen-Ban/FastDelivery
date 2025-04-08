@@ -1,6 +1,7 @@
 import React from "react";
 
 import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router";
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import { OtpInput } from "react-native-otp-entry";
@@ -9,6 +10,9 @@ import GLOBAL from "../../constants/GlobalStyles";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 const OTPVerify = () => {
+
+  const navigation = useRouter();
+
   return (
     <View style={GLOBAL.container}>
       <TouchableOpacity>
@@ -22,7 +26,7 @@ const OTPVerify = () => {
         style={{ alignSelf: "center" }}
       />
       <Text style={styles.subTitle}>
-        Nhập mã gồm 6 chữ số mà bạn đã nhận được qua Tin nhắn điện thoại{"\n"}
+        Nhập mã gồm 6 chữ số mà bạn đã nhận được qua tin nhắn điện thoại{"\n"}
         <Text style={styles.phoneNum}>+84xxxxxxxxx</Text>
       </Text>
       <OtpInput
@@ -32,11 +36,12 @@ const OTPVerify = () => {
       />
       <View style={styles.resendTimerView}>
         <Text style={styles.resendLabel}>Gửi lại mã sau:</Text>
-        <Text style={styles.timer}>30</Text>
+        {/* Set a timer for 30 seconds */}
+        <Text style={styles.timer}>00:30</Text>
       </View>
       <Button
         title="Gửi lại mã"
-        onPress={() => {}}
+        onPress={() => { }}
         size="small"
         type="primary"
         disabled={true}

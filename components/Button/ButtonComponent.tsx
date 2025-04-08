@@ -62,6 +62,7 @@ const Button: React.FC<ButtonProps> = ({
     size === "large" ? styles.textLarge : styles.textSmall,
     disabled && styles.disabledText,
     textStyle,
+    { paddingHorizontal: 5 },
   ];
   return (
     <TouchableOpacity style={buttonStyle} onPress={onPress} disabled={disabled}>

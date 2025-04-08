@@ -11,26 +11,27 @@ import { LinearGradient } from "expo-linear-gradient";
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
-import { MaterialIcons } from "@expo/vector-icons";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import { useRouter } from "expo-router";
 
 const Location = () => {
+  const router = useRouter();
+
   return (
     <View style={[GLOBAL.container, { justifyContent: "space-between" }]}>
       <LinearGradient
         colors={[COLOR.blue70, COLOR.white]}
         style={styles.background}
-        locations={[0.1, 0.2]}
+        locations={[0.15, 0.25]}
       />
       <View style={styles.header}>
-        <TouchableOpacity>
-          <MaterialIcons name="arrow-back" size={25} color="black" />
+        <TouchableOpacity onPress={() => router.back()}>
+          <FontAwesome6 name="arrow-left" size={30} color="black" />
         </TouchableOpacity>
-        <Text style={styles.label}>Chọn điểm đến/đi</Text>
+        <Text style={styles.label}>Chọn địa điểm</Text>
         <View style={styles.locationInputView}>
-          <Ionicons
-            name="location"
+          <FontAwesome6
+            name="location-dot"
             size={25}
             color="black"
             style={{ paddingHorizontal: 10 }}
@@ -47,12 +48,7 @@ const Location = () => {
         type="primary"
         size="large"
         leftImg={
-          <FontAwesome6
-            name="map-location-dot"
-            size={25}
-            color="black"
-            style={{ paddingHorizontal: 10 }}
-          />
+          <FontAwesome6 name="map-location-dot" size={25} color="black" />
         }
       />
     </View>

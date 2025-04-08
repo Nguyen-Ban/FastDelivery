@@ -12,10 +12,11 @@ import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import { useRouter } from "expo-router";
 
 const ClientInfo = () => {
+  const router = useRouter();
   const [disabled, setDisabled] = React.useState(true);
   return (
     <View style={[GLOBAL.container, { justifyContent: "space-between" }]}>
@@ -25,19 +26,26 @@ const ClientInfo = () => {
         locations={[0.1, 0.2]}
       />
       <View>
-        <TouchableOpacity>
-          <MaterialIcons name="arrow-back" size={25} color="black" />
+        <TouchableOpacity
+          onPress={() => {
+            router.back();
+          }}
+        >
+          <FontAwesome6 name="arrow-left" size={30} color="black" />
         </TouchableOpacity>
         <Text style={styles.title}>Người nhận/gửi</Text>
         <Text style={styles.subtitle}>
           Địa chỉ <Text style={{ color: COLOR.red55 }}>*</Text>
         </Text>
-        <View style={styles.address_view}>
+        <TouchableOpacity
+          style={styles.address_view}
+          onPress={() => {
+            router.push("../order/location-pick");
+          }}
+        >
           <Text></Text>
-          <TouchableOpacity>
-            <FontAwesome6 name="angle-right" size={25} color="black" />
-          </TouchableOpacity>
-        </View>
+          <FontAwesome6 name="angle-right" size={25} color="black" />
+        </TouchableOpacity>
         <Text style={styles.subtitle}>Số tầng, số tòa nhà</Text>
         <TextInput style={styles.text_input}></TextInput>
         <Text style={styles.subtitle}>
@@ -58,7 +66,7 @@ const ClientInfo = () => {
         type="primary"
         size="large"
         disabled={disabled}
-        style={{ marginBottom: 20 }}
+        style={{ marginBottom: 10 }}
       />
     </View>
   );

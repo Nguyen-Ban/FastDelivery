@@ -11,8 +11,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
-import { MaterialIcons } from "@expo/vector-icons";
-import Ionicons from "@expo/vector-icons/Ionicons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
 
@@ -28,12 +26,12 @@ const Location = () => {
       />
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <MaterialIcons name="arrow-back" size={25} color="black" />
+          <FontAwesome6 name="arrow-left" size={30} color="black" />
         </TouchableOpacity>
         <Text style={styles.label}>Chọn địa điểm</Text>
         <View style={styles.locationInputView}>
-          <Ionicons
-            name="location"
+          <FontAwesome6
+            name="location-dot"
             size={25}
             color="black"
             style={{ paddingHorizontal: 10 }}

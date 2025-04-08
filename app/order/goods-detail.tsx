@@ -13,10 +13,8 @@ import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import Ionicons from "@expo/vector-icons/Ionicons";
-
 import { useRouter } from "expo-router";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 const GoodsDetail = () => {
   const [disabled, setDisabled] = React.useState(true);
@@ -54,7 +52,7 @@ const GoodsDetail = () => {
       <View>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <MaterialIcons name="arrow-back" size={25} color="black" />
+            <FontAwesome6 name="arrow-left" size={30} color="black" />
           </TouchableOpacity>
           <Text style={styles.title}>Chi tiết món hàng</Text>
         </View>
@@ -122,8 +120,8 @@ const GoodsDetail = () => {
           size="large"
           type="sub"
           leftImg={
-            <Ionicons
-              name="camera-outline"
+            <FontAwesome6
+              name="camera"
               size={25}
               color="black"
               style={{ paddingHorizontal: 5 }}

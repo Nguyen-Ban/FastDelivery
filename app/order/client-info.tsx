@@ -12,7 +12,6 @@ import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
 
@@ -32,7 +31,7 @@ const ClientInfo = () => {
             router.back();
           }}
         >
-          <MaterialIcons name="arrow-back" size={25} color="black" />
+          <FontAwesome6 name="arrow-left" size={30} color="black" />
         </TouchableOpacity>
         <Text style={styles.title}>Người nhận/gửi</Text>
         <Text style={styles.subtitle}>

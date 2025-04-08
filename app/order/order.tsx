@@ -5,7 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
-import { MaterialIcons } from "@expo/vector-icons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
 
 const Order = () => {
@@ -32,12 +32,12 @@ const Order = () => {
                 router.back();
               }}
             >
-              <MaterialIcons name="arrow-back" size={25} color="black" />
+              <FontAwesome6 name="arrow-left" size={30} color="black" />
             </TouchableOpacity>
             <Text style={styles.title}>Giao hàng</Text>
           </View>
           <TouchableOpacity>
-            <MaterialIcons name="sticky-note-2" size={25} color="black" />
+            <FontAwesome6 name="clipboard" size={25} color="black" />
           </TouchableOpacity>
         </View>
         <View style={styles.locationPickCard}>
@@ -54,7 +54,7 @@ const Order = () => {
             ]}
             textStyle={{ color: COLOR.black }}
             leftImg={
-              <MaterialIcons name="location-on" size={24} color={COLOR.red55} />
+              <FontAwesome6 name="location-dot" size={24} color={COLOR.red55} />
             }
           />
           <Button
@@ -70,8 +70,8 @@ const Order = () => {
             ]}
             textStyle={{ color: COLOR.black }}
             leftImg={
-              <MaterialIcons
-                name="location-on"
+              <FontAwesome6
+                name="location-dot"
                 size={24}
                 color={COLOR.blue40}
               />

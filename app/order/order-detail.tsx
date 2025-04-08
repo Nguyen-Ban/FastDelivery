@@ -5,9 +5,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
-import { MaterialIcons } from "@expo/vector-icons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 
 const OrderDetail = () => {
@@ -37,7 +35,7 @@ const OrderDetail = () => {
       <View>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
-            <MaterialIcons name="arrow-back" size={25} color="black" />
+            <FontAwesome6 name="arrow-left" size={30} color="black" />
           </TouchableOpacity>
           <Text style={styles.title}>Chi tiết đơn hàng</Text>
         </View>

@@ -7,7 +7,7 @@ import COLOR from "../../constants/Colors";
 import { OtpInput, OtpInputRef } from "react-native-otp-entry";
 import GLOBAL from "../../constants/GlobalStyles";
 
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 const OTPVerify = () => {
   const router = useRouter();
@@ -32,11 +32,11 @@ const OTPVerify = () => {
           router.back();
         }}
       >
-        <MaterialIcons name="arrow-back" size={25} color="black" />
+        <FontAwesome6 name="arrow-left" size={30} color="black" />
       </TouchableOpacity>
       <Text style={styles.otpText}>Mã xác thực OTP</Text>
-      <MaterialIcons
-        name="send-to-mobile"
+      <FontAwesome6
+        name="comment-sms"
         size={100}
         color="black"
         style={{ alignSelf: "center" }}

@@ -6,7 +6,7 @@ import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 
-import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
 
 const AuthMethod = () => {
@@ -23,7 +23,7 @@ const AuthMethod = () => {
 
   const nextButtonHandler = () => {
     if (isDisabled === false) {
-      router.push("./authentication/otp-verify");
+      router.push("./otp-verify");
     }
   };
 
@@ -69,7 +69,7 @@ const AuthMethod = () => {
         onPress={() => {}}
         size="large"
         type="sub"
-        leftImg={<FontAwesome5 name="google" size={20} color="black" />}
+        leftImg={<FontAwesome6 name="google" size={20} color="black" />}
       />
     </View>
   );

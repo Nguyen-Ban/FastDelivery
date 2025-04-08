@@ -13,6 +13,7 @@ import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import { router } from "expo-router";
 
 const HomeScreen = () => {
   const [name, setName] = React.useState<string>("#name");
@@ -24,6 +25,17 @@ const HomeScreen = () => {
     { id: "5", name: "Chế độ tài xế", icon: "car-on" },
     { id: "6", name: "Trở thành tài xế", icon: "user-plus" },
   ];
+
+  type ServiceRoute = "/order/order" | "/home/home";
+
+  const getRouteById = (id: string): ServiceRoute => {
+    switch (id) {
+      case "1":
+        return "/order/order";
+      default:
+        return "/home/home";
+    }
+  };
 
   return (
     <View style={GLOBAL.container}>
@@ -50,7 +62,10 @@ const HomeScreen = () => {
         numColumns={4}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.service}>
+          <TouchableOpacity
+            style={styles.service}
+            onPress={() => router.push(getRouteById(item.id))}
+          >
             <FontAwesome6
               name={item.icon}
               size={30}

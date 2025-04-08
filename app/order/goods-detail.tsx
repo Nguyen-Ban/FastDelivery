@@ -16,6 +16,8 @@ import GLOBAL from "../../constants/GlobalStyles";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 
+import { useRouter } from "expo-router";
+
 const GoodsDetail = () => {
   const [disabled, setDisabled] = React.useState(true);
   const [selectedId, setSelectedId] = React.useState<string | undefined>();
@@ -40,6 +42,8 @@ const GoodsDetail = () => {
     []
   );
 
+  const router = useRouter();
+
   return (
     <View style={[GLOBAL.container, { justifyContent: "space-between" }]}>
       <LinearGradient
@@ -49,7 +53,7 @@ const GoodsDetail = () => {
       />
       <View>
         <View style={styles.header}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.back()}>
             <MaterialIcons name="arrow-back" size={25} color="black" />
           </TouchableOpacity>
           <Text style={styles.title}>Chi tiết món hàng</Text>

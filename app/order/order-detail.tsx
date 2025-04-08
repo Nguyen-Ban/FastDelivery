@@ -8,6 +8,7 @@ import GLOBAL from "../../constants/GlobalStyles";
 import { MaterialIcons } from "@expo/vector-icons";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useRouter } from "expo-router";
 
 const OrderDetail = () => {
   const [amount, setAmount] = React.useState(0);
@@ -24,6 +25,8 @@ const OrderDetail = () => {
   const [date, setDate] = React.useState("date");
   const [time, setTime] = React.useState("time");
 
+  const router = useRouter();
+
   return (
     <View style={[GLOBAL.container, { justifyContent: "space-between" }]}>
       <LinearGradient
@@ -33,15 +36,20 @@ const OrderDetail = () => {
       />
       <View>
         <View style={styles.header}>
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.back()}>
             <MaterialIcons name="arrow-back" size={25} color="black" />
           </TouchableOpacity>
           <Text style={styles.title}>Chi tiết đơn hàng</Text>
         </View>
         <View style={styles.detailCard}>
           {/* Origin */}
-          <TouchableOpacity style={styles.detailOption}>
-            <MaterialIcons name="location-on" size={25} color={COLOR.red55} />
+          <TouchableOpacity
+            style={styles.detailOption}
+            onPress={() => {
+              router.push("../order/location-pick");
+            }}
+          >
+            <FontAwesome6 name="location-dot" size={30} color={COLOR.red55} />
             <Text style={styles.option_text}>
               {origin}
               {"\n"}
@@ -51,8 +59,13 @@ const OrderDetail = () => {
             </Text>
           </TouchableOpacity>
           {/* Destination */}
-          <TouchableOpacity style={styles.detailOption}>
-            <MaterialIcons name="location-on" size={25} color={COLOR.blue40} />
+          <TouchableOpacity
+            style={styles.detailOption}
+            onPress={() => {
+              router.push("../order/client-info");
+            }}
+          >
+            <FontAwesome6 name="location-dot" size={30} color={COLOR.blue40} />
             <Text style={styles.option_text}>
               {destination}
               {"\n"}
@@ -64,11 +77,7 @@ const OrderDetail = () => {
           </TouchableOpacity>
           {/* Date time TODO: datetime select*/}
           <TouchableOpacity style={styles.detailOption}>
-            <MaterialCommunityIcons
-              name="calendar-clock"
-              size={30}
-              color="black"
-            />
+            <FontAwesome6 name="clock" size={30} color="black" />
             <Text style={styles.option_text}>
               <Text>Ngày giao hàng: {date}</Text>
               {"\n"}
@@ -79,7 +88,7 @@ const OrderDetail = () => {
           </TouchableOpacity>
           {/* Delivery Method */}
           <TouchableOpacity style={styles.detailOption}>
-            <FontAwesome6 name="motorcycle" size={25} color="black" />
+            <FontAwesome6 name="motorcycle" size={24} color="black" />
             <Text style={styles.option_text}>
               {vihicle}
               {"\n"}
@@ -89,8 +98,13 @@ const OrderDetail = () => {
             </Text>
           </TouchableOpacity>
           {/* Goods detail */}
-          <TouchableOpacity style={styles.detailOption}>
-            <FontAwesome6 name="box" size={25} color="black" />
+          <TouchableOpacity
+            style={styles.detailOption}
+            onPress={() => {
+              router.push("../order/goods-detail");
+            }}
+          >
+            <FontAwesome6 name="box" size={30} color="black" />
             <Text style={styles.option_text}>
               <Text style={{ color: COLOR.blue40 }}>
                 Thêm chi tiết món hàng
@@ -157,7 +171,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   detailCard: {
-    boxShadow: "1px 2px 4px 4px rgba(0, 0, 0, 0.25)",
+    boxShadow: "1px 2px 4px 4px rgba(0, 0, 0, 0.5)",
     borderRadius: 8,
     marginTop: 30,
     backgroundColor: COLOR.white,
@@ -176,9 +190,9 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   footer: {
-    paddingBottom: 20,
+    paddingBottom: 10,
     paddingTop: 5,
-    borderTopColor: COLOR.grey70,
+    borderTopColor: COLOR.grey50,
     borderTopWidth: 1,
   },
 });

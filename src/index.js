@@ -4,12 +4,13 @@ const cors = require('cors');
 const { sequelize } = require('./config/database');
 const logger = require('./config/logger');
 require('./models/index'); // Import associations
+const initWebSocket = require('./config/websocket');
 
 const app = express();
 const apiRouter = require('./routes/index');
 const errorHandler = require('./middleware/error.middleware');
 const redisClient = require('./config/redis');
-const WebSocketService = require('./services/websocket.service');
+
 
 // Middleware
 app.use(cors());
@@ -35,18 +36,19 @@ const startServer = async () => {
         await sequelize.authenticate();
         logger.info('[App] Database connection has been established successfully.');
 
-        await sequelize.sync({ alter: true }); // Use { force: true } to drop and recreate tables (for testing)
+        await sequelize.sync(); // Use { force: true } to drop and recreate tables (for testing)
         logger.info('[App] Database synced successfully.');
 
-        await redisClient.flushall();
-        logger.info('[App] Redis flushed successfully.');
+        // await redisClient.flushall();
+        // logger.info('[App] Redis flushed successfully.');
 
         const server = app.listen(PORT, () => {
             logger.info(`[App] Server is running on port ${PORT}...`);
         });
 
         // Initialize WebSocket service
-        new WebSocketService(server);
+        initWebSocket(server);
+
         logger.info('[App] WebSocket service initialized successfully.');
 
     } catch (error) {

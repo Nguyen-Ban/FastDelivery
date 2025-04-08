@@ -1,49 +1,42 @@
 const { Order, OrderDetail, OrderAddon } = require("../models/index");
 const { sequelize } = require("../config/database");
 const { logger } = require("../config/logger");
+const requests = new Map();
+
+// 
 
 const placeOrder = async (req, res) => {
+    const requestId = uuidv4();
+    const requestData = { request_id: requestId, ...req.body };
 
-    const t = await sequelize.transaction();
+    requests.set(requestId, requestData);
 
-    const { order, order_detail, order_addon } = req.body;
-    const customerId = req.user.userId;
-    try {
-        // find driver algo
-        const driverId = 1;
-        const newOrder = await Order.create({
-            pickupAddress: order.pickup_address, dropoffAddress: order.dropoff_address, pickupLat: order.pickup_lat,
-            pickupLng: order.pickup_lng, dropoffLat: order.dropoff_lat, dropoffLng: order.dropoff_lng,
-            price: order.price, customerId, driverId, status: 'ASSIGNED'
-        }, { transaction: t });
+    processOrderRequest(requestId);
 
-        const orderDetail = await OrderDetail.create({
-            packageType: order_detail.package_type,
-            weightKg: order_detail.weight_kg, size: order_detail.size, deliveryInsurance: order_detail.delivery_insurance,
-            orderId: newOrder.id
-        }, { transaction: t });
-        const orderAddon = await OrderAddon.create({
-            doorToDoor: order_addon.door_to_door,
-            bulkyDelivery: order_addon.bulky_delivery,
-            orderId: newOrder.id
-        }, { transaction: t });
+    return res.status(202).json({
+        status: 'accepted',
+        request_id: requestId,
+        websocket_url: `ws://${process.env.HOST}:${process.env.PORT}/status/${requestId}`
+    });
+}
 
-        await t.commit();
-        return res.status(200).json({
-            success: true,
-            message: "Order placed successfully",
-            data: { newOrder, orderDetail, orderAddon }
-        });
+const processOrderRequest = async (requestId) => {
+    const clientWebSocket = new ClientWebSocket();
+    if (!clientWebSocket) return;
 
-    } catch (error) {
-        await t.rollback();
-        return res.status(500).json({
-            success: false,
-            message: "Order placement failed",
-            error: error.message
-        });
-    }
-};
+    // find driver service
+
+    clientWebSocket.send(JSON.stringify({
+        status: 'success',
+        type: 'order_request',
+        request_id: requestId,
+        websocket_url: `ws://${process.env.HOST}:${process.env.PORT}/track/${requestId}`
+    }));
+    clientWebSocket.close();
+    requests.delete(requestId);
+}
+
+
 
 const getOrderList = async (req, res) => {
     const customerId = req.user.userId;

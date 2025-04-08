@@ -1,27 +1,42 @@
 const logger = require('../config/logger');
+const { Driver } = require('../models/index');
 const { decodeAccessToken, isAccessTokenBlacklisted } = require('../services/token.service');
+const { registerDriverSocket } = require('../services/websocket/driver');
 
 
 const authenticateSocket = async (socket, next) => {
     try {
-        const token = socket.handshake.auth.token;
+        const token = socket.handshake.headers.token;
 
         if (!token) {
-            logger.warn('[WebSocket] Authentication failed: No token provided');
+            logger.warn('[AuthMiddleware] Authentication failed: No token provided');
             return next(new Error('Authentication error: No token provided'));
         }
 
         if (await isAccessTokenBlacklisted(token)) {
-            logger.warn('[WebSocket] Authentication failed: Token is blacklisted');
+            logger.warn('[AuthMiddleware] Authentication failed: Token is blacklisted');
             return next(new Error('Authentication error: Token is blacklisted'));
         }
 
         const user = await decodeAccessToken(token);
+
+
+        const driver = await Driver.findOne({
+            where: { userId: user.userId }
+        });
+
         socket.user = user;
-        logger.info(`[WebSocket] User ${user.userId} authenticated successfully`);
+        logger.info(`[AuthMiddleware] User ${user.userId} authenticated successfully`);
+
+        if (driver) {
+            socket.driver = driver;
+            logger.info(`[AuthMiddleware] Driver ${driver.id} authenticated successfully`);
+            console.log(typeof driver.id);
+            registerDriverSocket(driver.id, socket);
+        }
         next();
     } catch (error) {
-        logger.error(`[WebSocket] Authentication error: ${error.message}`);
+        logger.error(`[AuthMiddleware] Authentication error: ${error.message}`);
         next(new Error('Authentication error: Invalid token'));
     }
 }

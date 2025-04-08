@@ -1,6 +1,12 @@
 const logger = require("../config/logger");
 const { Driver } = require("../models/index");
 
+const autoAcceptOrder = async (req, res) => {
+    const { request_id } = req.params;
+    const driverWebSocket = new DriverWebSocketService();
+
+}
+
 const registerDriver = async (req, res) => {
 
     const {

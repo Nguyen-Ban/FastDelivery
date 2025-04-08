@@ -7,16 +7,24 @@ import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 
 import FontAwesome5 from "@expo/vector-icons/FontAwesome5";
+import { useRouter } from "expo-router";
 
 const AuthMethod = () => {
   const phoneInput = useRef(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isDisabled, setIsDisabled] = useState(true);
+  const router = useRouter();
 
   const handlePhoneNumberChange = (formattedNumber: string) => {
     setPhoneNumber(formattedNumber);
     setIsDisabled(formattedNumber.length < 10);
+  };
+
+  const nextButtonHandler = () => {
+    if (isDisabled === false) {
+      router.push("./authentication/otp-verify");
+    }
   };
 
   return (
@@ -44,7 +52,9 @@ const AuthMethod = () => {
       </Text>
       <Button
         title="Tiếp tục"
-        onPress={() => {}}
+        onPress={() => {
+          nextButtonHandler();
+        }}
         size="large"
         type="primary"
         disabled={isDisabled}
@@ -59,14 +69,7 @@ const AuthMethod = () => {
         onPress={() => {}}
         size="large"
         type="sub"
-        leftImg={
-          <FontAwesome5
-            name="google"
-            size={20}
-            color="black"
-            style={{ paddingHorizontal: 5 }}
-          />
-        }
+        leftImg={<FontAwesome5 name="google" size={20} color="black" />}
       />
     </View>
   );

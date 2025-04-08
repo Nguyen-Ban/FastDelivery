@@ -1,21 +1,37 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 
-import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
-import { OtpInput } from "react-native-otp-entry";
+import { OtpInput, OtpInputRef } from "react-native-otp-entry";
 import GLOBAL from "../../constants/GlobalStyles";
 
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 const OTPVerify = () => {
+  const router = useRouter();
+  const [otp, setOtp] = useState("");
+  const [targetOTP, setTargetOTP] = useState("123456"); // Example target OTP 123456
+  const otpRef = useRef<OtpInputRef>(null);
 
-  const navigation = useRouter();
+  const OTPCheck = (otp: string) => {
+    setOtp(otp);
+    if (otp === targetOTP) {
+      router.push("../authentication/user-info");
+    } else {
+      Alert.alert("OTP is incorrect");
+      otpRef.current?.clear();
+    }
+  };
 
   return (
     <View style={GLOBAL.container}>
-      <TouchableOpacity>
+      <TouchableOpacity
+        onPress={() => {
+          router.back();
+        }}
+      >
         <MaterialIcons name="arrow-back" size={25} color="black" />
       </TouchableOpacity>
       <Text style={styles.otpText}>Mã xác thực OTP</Text>
@@ -33,15 +49,20 @@ const OTPVerify = () => {
         numberOfDigits={6}
         focusColor={COLOR.blue_theme}
         type="numeric"
+        autoFocus={true}
+        ref={otpRef}
+        onFilled={(otp: string) => {
+          OTPCheck(otp);
+        }}
       />
       <View style={styles.resendTimerView}>
         <Text style={styles.resendLabel}>Gửi lại mã sau:</Text>
         {/* Set a timer for 30 seconds */}
-        <Text style={styles.timer}>00:30</Text>
+        <Text style={styles.timer}>30</Text>
       </View>
       <Button
         title="Gửi lại mã"
-        onPress={() => { }}
+        onPress={() => {}}
         size="small"
         type="primary"
         disabled={true}

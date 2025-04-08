@@ -17,8 +17,10 @@ import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 
 import Ionicons from "@expo/vector-icons/Ionicons";
+import { useRouter } from "expo-router";
 
 const UserInfo = () => {
+  const router = useRouter();
   const [phone, setPhone] = React.useState("");
   const [name, setName] = React.useState("+84xxxxxxxxx");
   const [email, setEmail] = React.useState("");
@@ -42,6 +44,10 @@ const UserInfo = () => {
       setDate(selectedDate);
     }
     setDateShow(false);
+  };
+
+  const updateHandler = () => {
+    router.push("../home/home");
   };
 
   const formatDate = (date: Date): string => {
@@ -107,7 +113,9 @@ const UserInfo = () => {
       </View>
       <Button
         title="Cập nhật"
-        onPress={() => {}}
+        onPress={() => {
+          updateHandler();
+        }}
         size="large"
         type="primary"
         style={styles.addButton}
@@ -136,7 +144,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   addButton: {
-    marginBottom: 20,
+    marginBottom: 10,
   },
   textInput: {
     backgroundColor: COLOR.grey90,

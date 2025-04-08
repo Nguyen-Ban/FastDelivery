@@ -18,23 +18,28 @@ const HomeScreen = () => {
   const [name, setName] = React.useState<string>("#name");
   const services = [
     { id: "1", name: "Giao hàng", icon: "box" },
-    { id: "2", name: "Xe máy", icon: "motorcycle" },
-    { id: "3", name: "Xe tải", icon: "truck" },
+    { id: "2", name: "Lịch sử", icon: "sticky-note" },
+    { id: "3", name: "Đánh giá", icon: "star" },
+    { id: "4", name: "Chi tiêu", icon: "chart-simple" },
+    { id: "5", name: "Chế độ tài xế", icon: "car-on" },
+    { id: "6", name: "Trở thành tài xế", icon: "user-plus" },
   ];
 
   return (
     <View style={GLOBAL.container}>
       <LinearGradient
-        colors={[COLOR.blue70, COLOR.blue40, COLOR.white]}
+        colors={[COLOR.blue70, COLOR.white]}
         style={styles.background}
-        locations={[0.19, 0.2, 0.2]}
+        locations={[0.19, 0.2]}
       />
       <Text style={styles.title}>
         Fast Delivery {"\n"} <Text>#quote</Text>
       </Text>
 
       <View style={styles.content_view_1}>
-        <Text style={styles.greeting}>Xin chào, {name}</Text>
+        <Text style={styles.greeting}>
+          Xin chào {"\n"} {name}
+        </Text>
         <TouchableOpacity style={styles.user_img}>
           <FontAwesome6 name="user" size={30} color="black" />
         </TouchableOpacity>
@@ -49,12 +54,13 @@ const HomeScreen = () => {
             <FontAwesome6
               name={item.icon}
               size={30}
-              color={COLOR.green25}
+              color={COLOR.black}
             ></FontAwesome6>
             <Text style={styles.service_name}>{item.name}</Text>
           </TouchableOpacity>
         )}
-        columnWrapperStyle={styles.service_view}
+        columnWrapperStyle={{ paddingVertical: 5 }}
+        contentContainerStyle={styles.service_view}
       ></FlatList>
     </View>
   );
@@ -80,7 +86,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 30,
   },
-  greeting: { fontSize: 24 },
+  greeting: { fontSize: 27 },
   user_img: {
     borderRadius: 45,
     backgroundColor: COLOR.blue95,
@@ -92,7 +98,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   service_view: {
-    paddingVertical: 5,
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: COLOR.grey50,
+    borderStyle: "dashed",
   },
   service: {
     borderWidth: 1,

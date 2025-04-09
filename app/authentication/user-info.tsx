@@ -17,20 +17,20 @@ import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 const UserInfo = () => {
   const router = useRouter();
-  const [phone, setPhone] = React.useState("");
-  const [name, setName] = React.useState("+84xxxxxxxxx");
+  const { phoneNumber } = useLocalSearchParams<{ phoneNumber: string }>();
+  const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [date, setDate] = React.useState(new Date());
   const [gender, setGender] = React.useState("");
   const [dateShow, setDateShow] = React.useState(false);
   const [items, setItems] = useState([
-    { label: "Nam", value: "male" },
-    { label: "Nữ", value: "female" },
-    { label: "Khác", value: "other" },
+    { label: "Nam", value: "MALE" },
+    { label: "Nữ", value: "FEMALE" },
+    { label: "Khác", value: "OTHERS" },
   ]);
   const [value, setValue] = useState(null);
   const [label, setLabel] = useState(null);
@@ -47,7 +47,17 @@ const UserInfo = () => {
   };
 
   const updateHandler = () => {
-    router.push("../home");
+    router.push({
+      pathname: "../authentication/enter-passcode",
+      params: {
+        phoneNumber: phoneNumber as string,
+        fullName: name,
+        email,
+        gender: value,
+        dateOfBirth: formatDate(date),
+        flow: 'register'
+      }
+    });
   };
 
   const formatDate = (date: Date): string => {
@@ -63,12 +73,12 @@ const UserInfo = () => {
       <View>
         <Text style={styles.infoTitle}>Cập nhật thông tin</Text>
         <Text style={styles.subTitle}>Họ tên</Text>
-        <TextInput style={styles.textInput}></TextInput>
+        <TextInput style={styles.textInput} value={name} onChangeText={(text) => setName(text)}></TextInput>
         <Text style={styles.subTitle}>Số điện thoại</Text>
         <TextInput
           style={styles.textInput}
           editable={false}
-          value={name}
+          value={phoneNumber}
         ></TextInput>
         <View style={styles.contentView}>
           {dateShow && (
@@ -109,7 +119,7 @@ const UserInfo = () => {
           </View>
         </View>
         <Text style={styles.subTitle}>Email</Text>
-        <TextInput style={styles.textInput}></TextInput>
+        <TextInput style={styles.textInput} value={email} onChangeText={(text) => setEmail(text)}></TextInput>
       </View>
       <Button
         title="Cập nhật"

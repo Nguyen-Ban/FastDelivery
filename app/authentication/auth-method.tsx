@@ -1,29 +1,73 @@
 import React, { useRef, useState } from "react";
-
-import { View, Text, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import PhoneInput from "react-native-international-phone-number";
+import { useRouter } from "expo-router";
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
-
+import authService from "../../services/auth.service";
+import { parsePhoneNumber } from 'libphonenumber-js';
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import { useRouter } from "expo-router";
 
 const AuthMethod = () => {
   const phoneInput = useRef(null);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isDisabled, setIsDisabled] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
-  const handlePhoneNumberChange = (formattedNumber: string) => {
-    setPhoneNumber(formattedNumber);
-    setIsDisabled(formattedNumber.length < 10);
+  const handlePhoneNumberChange = (e: any) => {
+    const text = e.nativeEvent.text;
+    setPhoneNumber(text);
+    setIsDisabled(text.length < 10);
   };
 
-  const nextButtonHandler = () => {
-    if (isDisabled === false) {
-      router.push("./otp-verify");
+  const nextButtonHandler = async () => {
+    if (isDisabled) return;
+
+    try {
+      setIsLoading(true);
+      // Parse số điện thoại với mã quốc gia VN
+      const parsedNumber = parsePhoneNumber(phoneNumber, 'VN');
+      if (!parsedNumber?.isValid()) {
+        Alert.alert("Lỗi", "Số điện thoại không hợp lệ");
+        return;
+      }
+
+      const response = await authService.startAuth({ 
+        phoneNumber: parsedNumber.format('E.164') // Format E.164 chuẩn quốc tế
+      });
+
+      if (response.success) {
+        if (response.nextStep === 'login') {
+          router.push({
+            pathname: "./enter-passcode",
+            params: { 
+              phoneNumber: parsedNumber.format('E.164'),
+              flow: 'login'
+            }
+          });
+        } else if (response.nextStep === 'verify-otp') {
+          router.push({
+            pathname: "./otp-verify",
+            params: { phoneNumber: parsedNumber.format('E.164') }
+          });
+        }
+      } else {
+        Alert.alert("Lỗi", response.message || "Đã có lỗi xảy ra");
+      }
+    } catch (error) {
+      Alert.alert("Lỗi", "Không thể kết nối đến server");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -41,7 +85,7 @@ const AuthMethod = () => {
             borderWidth: 2,
           },
         }}
-        onChange={(e) => handlePhoneNumberChange(e.nativeEvent.text)}
+        onChange={handlePhoneNumberChange}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
       />
@@ -52,13 +96,18 @@ const AuthMethod = () => {
       </Text>
       <Button
         title="Tiếp tục"
-        onPress={() => {
-          nextButtonHandler();
-        }}
+        onPress={nextButtonHandler}
         size="large"
         type="primary"
-        disabled={isDisabled}
+        disabled={isDisabled || isLoading}
       />
+      {isLoading && (
+        <ActivityIndicator
+          style={styles.loading}
+          size="large"
+          color={COLOR.blue_theme}
+        />
+      )}
       <View style={styles.otherAuthContainer}>
         <View style={styles.line} />
         <Text style={styles.otherAuthText}>Hoặc đăng nhập bằng</Text>
@@ -108,6 +157,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
+  },
+  loading: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -15 }, { translateY: -15 }],
+
   },
 });
 

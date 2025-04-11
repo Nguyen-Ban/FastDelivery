@@ -1,6 +1,6 @@
 const socketIO = require('socket.io');
-const customerEvents = require('../listeners/customer.events');
-const driverEvents = require('../listeners/driver.events');
+const customerListener = require('../listeners/customer.listener');
+const driverListener = require('../listeners/driver.listener');
 const { authenticateSocket } = require('../middleware/auth.middleware');
 
 module.exports = (server) => {
@@ -17,7 +17,7 @@ module.exports = (server) => {
     customerNamespace.use((socket, next) => authenticateSocket(socket, next));
     customerNamespace.on('connection', (socket) => {
         console.log('[Socket] Customer connected:', socket.id);
-        customerEvents({ customerNamespace, driverNamespace }, socket);
+        customerListener({ customerNamespace, driverNamespace }, socket);
     });
 
     // Namespace cho tài xế
@@ -25,6 +25,6 @@ module.exports = (server) => {
     driverNamespace.use((socket, next) => authenticateSocket(socket, next));
     driverNamespace.on('connection', (socket) => {
         console.log('[Socket] Driver connected:', socket.id);
-        driverEvents({ driverNamespace, customerNamespace }, socket);
+        driverListener({ driverNamespace, customerNamespace }, socket);
     });
 };

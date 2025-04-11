@@ -8,7 +8,7 @@ const startAuth = async (req, res) => {
     logger.info(`[AuthController] Starting authentication process for phone: ${phoneNumber}`);
 
     try {
-        const user = await User.findOne({ where: { phone: phoneNumber } });
+        const user = await User.findOne({ where: { phoneNumber } });
 
         if (user) {
             return res.status(200).json({
@@ -41,7 +41,7 @@ const login = async (req, res) => {
 
 
     try {
-        const user = await User.findOne({ where: { phone: phoneNumber } });
+        const user = await User.findOne({ where: { phoneNumber } });
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
@@ -60,7 +60,7 @@ const login = async (req, res) => {
             data: {
                 accessToken,
                 refreshToken,
-                user: { id: user.id, phone: user.phone, fullname: user.fullname }
+                user: { id: user.id, phoneNumber: user.phoneNumber, fullName: user.fullName }
             }
         });
 
@@ -118,7 +118,7 @@ const register = async (req, res) => {
                 nextStep: 'verify_otp'
             });
         }
-        const user = await User.create({ phone: phoneNumber, fullname: fullName, gender, dateOfBirth, email, passcode });
+        const user = await User.create({ phoneNumber, fullName, gender, dateOfBirth, email, passcode, roles: ['CUSTOMER'] });
         const accessToken = await generateAccessToken(user.id);
         const refreshToken = await generateRefreshToken(user.id);
 
@@ -128,11 +128,11 @@ const register = async (req, res) => {
             data: {
                 accessToken,
                 refreshToken,
-                user: { id: user.id, phone: user.phone, fullname: user.fullname, gender: user.gender, dateOfBirth: user.dateOfBirth, email: user.email }
+                user: { id: user.id, phoneNumber: user.phoneNumber, fullName: user.fullName, gender: user.gender, dateOfBirth: user.dateOfBirth, email: user.email }
             }
         });
     } catch (error) {
-        logger.error(`[AuthController] Registration failed for phone ${phone}: ${error.message}`);
+        logger.error(`[AuthController] Registration failed for phone ${phoneNumber}: ${error.message}`);
         return res.status(500).json({
             success: false,
             message: 'Registration failed',
@@ -166,20 +166,18 @@ const refreshAccessToken = async (req, res) => {
 };
 
 const resendOtp = async (req, res) => {
-    const { phone } = req.body;
-    logger.info(`[AuthController] OTP resend request for phone: ${phone}`);
-
-
+    const { phoneNumber } = req.body;
+    logger.info(`[AuthController] OTP resend request for phone: ${phoneNumber}`);
 
     try {
-        await resendOTP(phone);
+        await resendOTP(phoneNumber);
         return res.status(200).json({
             success: true,
             message: "OTP resent successfully",
             nextStep: 'verify_otp'
         });
     } catch (error) {
-        logger.error(`[AuthController] OTP resend failed for phone ${phone}: ${error.message}`);
+        logger.error(`[AuthController] OTP resend failed for phone ${phoneNumber}: ${error.message}`);
 
         const statusCode = error.message.includes("Too many OTP requests") ? 429 : 400;
 

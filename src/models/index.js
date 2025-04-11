@@ -1,8 +1,9 @@
 const User = require('./user.model');
 const Driver = require('./driver.model');
 const Order = require('./order.model');
-const OrderDetail = require('./orderDetail.model');
-const OrderAddon = require('./orderAddon');
+const OrderDetail = require('./order.detail');
+const OrderAddon = require('./order.addon');
+const OrderLocation = require('./order.location');
 
 // User associations
 User.hasOne(Driver, {
@@ -60,6 +61,16 @@ Order.hasOne(OrderAddon, {
     as: 'addons'
 });
 
+// OrderLocation associations
+OrderLocation.belongsTo(Order, {
+    foreignKey: 'orderId',
+    as: 'order'
+});
+
+Order.hasOne(OrderLocation, {
+    foreignKey: 'orderId',
+    as: 'locations'
+});
 
 
 module.exports = {
@@ -67,5 +78,6 @@ module.exports = {
     Driver,
     Order,
     OrderDetail,
-    OrderAddon
+    OrderAddon,
+    OrderLocation
 }; 

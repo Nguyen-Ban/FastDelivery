@@ -2,18 +2,16 @@ const Joi = require('joi');
 const { userSchema, createUserSchema } = require('./user.validation');
 
 const phoneSchema = Joi.object({
-    phone: userSchema.phone.required()
-        .messages({ 'any.required': 'Phone number is required' })
+    phoneNumber: userSchema.phoneNumber.required()
 });
 
 const loginSchema = Joi.object({
-    phone: userSchema.phone.required(),
+    phoneNumber: userSchema.phoneNumber.required(),
     passcode: userSchema.passcode.required()
-        .messages({ 'any.required': 'Passcode is required' })
 });
 
 const otpSchema = Joi.object({
-    phone: userSchema.phone.required(),
+    phoneNumber: userSchema.phoneNumber.required(),
     otp: Joi.string().length(6).required()
         .messages({ 'string.length': 'OTP must be 6 digits' })
 });

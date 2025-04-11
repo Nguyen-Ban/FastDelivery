@@ -18,36 +18,7 @@ const Order = sequelize.define('Order', {
         allowNull: true,
         field: 'driver_id'
     },
-    pickupAddress: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        field: 'pickup_address'
-    },
-    dropoffAddress: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        field: 'dropoff_address'
-    },
-    pickupLat: {
-        type: DataTypes.DECIMAL(9, 6),
-        allowNull: false,
-        field: 'pickup_lat'
-    },
-    pickupLng: {
-        type: DataTypes.DECIMAL(9, 6),
-        allowNull: false,
-        field: 'pickup_lng'
-    },
-    dropoffLat: {
-        type: DataTypes.DECIMAL(9, 6),
-        allowNull: false,
-        field: 'dropoff_lat'
-    },
-    dropoffLng: {
-        type: DataTypes.DECIMAL(9, 6),
-        allowNull: false,
-        field: 'dropoff_lng'
-    },
+
     price: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,

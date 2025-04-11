@@ -4,11 +4,11 @@ const logger = require('../config/logger');
 const { User } = require('../models/index');
 
 const startAuth = async (req, res) => {
-    const { phone } = req.body;
-    logger.info(`[AuthController] Starting authentication process for phone: ${phone}`);
+    const { phoneNumber } = req.body;
+    logger.info(`[AuthController] Starting authentication process for phone: ${phoneNumber}`);
 
     try {
-        const user = await User.findOne({ where: { phone } });
+        const user = await User.findOne({ where: { phone: phoneNumber } });
 
         if (user) {
             return res.status(200).json({
@@ -17,11 +17,11 @@ const startAuth = async (req, res) => {
                 nextStep: 'login'
             });
         }
-        await sendOTP(phone);
+        await sendOTP(phoneNumber);
         return res.status(200).json({
             success: true,
             message: 'OTP sent, please verify',
-            nextStep: 'verify_otp'
+            nextStep: 'verify-otp'
         });
 
     } catch (error) {
@@ -36,12 +36,12 @@ const startAuth = async (req, res) => {
 
 
 const login = async (req, res) => {
-    const { phone, passcode } = req.body;
-    logger.info(`[AuthController] Login attempt for phone: ${phone}`);
+    const { phoneNumber, passcode } = req.body;
+    logger.info(`[AuthController] Login attempt for phone: ${phoneNumber}`);
 
 
     try {
-        const user = await User.findOne({ where: { phone } });
+        const user = await User.findOne({ where: { phone: phoneNumber } });
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
@@ -76,12 +76,12 @@ const login = async (req, res) => {
 
 
 const verifyOtp = async (req, res) => {
-    const { phone, otp } = req.body;
-    logger.info(`[AuthController] OTP verification attempt for phone: ${phone}`);
+    const { phoneNumber, otp } = req.body;
+    logger.info(`[AuthController] OTP verification attempt for phone: ${phoneNumber}`);
 
 
     try {
-        const verifySuccess = await verifyOTP(phone, otp);
+        const verifySuccess = await verifyOTP(phoneNumber, otp);
         if (!verifySuccess) {
             return res.status(400).json({
                 success: false,
@@ -89,14 +89,14 @@ const verifyOtp = async (req, res) => {
             });
         }
 
-        logger.info(`[AuthController] OTP verified for new user registration: ${phone}`);
+        logger.info(`[AuthController] OTP verified for new user registration: ${phoneNumber}`);
         return res.status(200).json({
             success: true,
             message: 'OTP verified, please complete registration in 15 minutes',
             nextStep: 'register'
         });
     } catch (error) {
-        logger.error(`[AuthController] OTP verification failed for phone: ${phone}: ${error.message}`);
+        logger.error(`[AuthController] OTP verification failed for phone: ${phoneNumber}: ${error.message}`);
         return res.status(400).json({
             success: false,
             message: "OTP verification failed",
@@ -106,11 +106,11 @@ const verifyOtp = async (req, res) => {
 };
 
 const register = async (req, res) => {
-    const { phone, fullname, gender, date_of_birth, email, passcode } = req.body;
-    logger.info(`[AuthController] Registration attempt for phone: ${phone}`);
+    const { phoneNumber, fullName, gender, dateOfBirth, email, passcode } = req.body;
+    logger.info(`[AuthController] Registration attempt for phone: ${phoneNumber}`);
 
     try {
-        const isVerified = await isVerifiedPhoneNumber(phone);
+        const isVerified = await isVerifiedPhoneNumber(phoneNumber);
         if (!isVerified) {
             return res.status(403).json({
                 success: false,
@@ -118,7 +118,7 @@ const register = async (req, res) => {
                 nextStep: 'verify_otp'
             });
         }
-        const user = await User.create({ phone, fullname, gender, dateOfBirth: date_of_birth, email, passcode });
+        const user = await User.create({ phone: phoneNumber, fullname: fullName, gender, dateOfBirth, email, passcode });
         const accessToken = await generateAccessToken(user.id);
         const refreshToken = await generateRefreshToken(user.id);
 

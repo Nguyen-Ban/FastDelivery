@@ -63,4 +63,32 @@ const authenticateToken = async (req, res, next) => {
     }
 };
 
-module.exports = { authenticateToken, authenticateSocket };
+const checkRole = (allowedRoles) => {
+    return async (req, res, next) => {
+      try {
+        const activeRole = req.headers['x-role'];
+  
+        if (!activeRole) {
+          return res.status(400).json({ message: 'Missing role in header (X-Role)' });
+        }
+  
+        const user = req.user; // đã được gán từ middleware authenticate
+  
+        if (!user.roles.includes(activeRole)) {
+          return res.status(403).json({ message: 'Role not assigned to user' });
+        }
+  
+        if (!allowedRoles.includes(activeRole)) {
+          return res.status(403).json({ message: 'You do not have permission with this role' });
+        }
+  
+        // Nếu hợp lệ, gán vào req để controller dùng nếu cần
+        req.activeRole = activeRole;
+        next();
+      } catch (err) {
+        res.status(500).json({ message: 'Internal Server Error' });
+      }
+    };
+  };
+  
+module.exports = { authenticateToken, authenticateSocket, checkRole };

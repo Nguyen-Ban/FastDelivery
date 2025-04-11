@@ -1,6 +1,6 @@
 const socketIO = require('socket.io');
-const customerEvents = require('../routes/events/customer.events');
-const driverEvents = require('../routes/events/driver.events');
+const customerEvents = require('../listeners/customer.events');
+const driverEvents = require('../listeners/driver.events');
 const { authenticateSocket } = require('../middleware/auth.middleware');
 
 module.exports = (server) => {

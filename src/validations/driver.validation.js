@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 const driverSchema = {
-    license_number: Joi.string()
+    licenseNumber: Joi.string()
         .min(6)
         .max(20)
         .pattern(/^[A-Za-z0-9-]+$/)
@@ -11,13 +11,13 @@ const driverSchema = {
             'string.pattern.base': 'License number can only contain letters, numbers, and hyphens'
         }),
 
-    vehicle_type: Joi.string()
+    vehicleType: Joi.string()
         .valid('MOTORBIKE', 'VAN')
         .messages({
             'any.only': 'Vehicle type must be one of MOTORBIKE or VAN'
         }),
 
-    vehicle_plate: Joi.string()
+    vehiclePlate: Joi.string()
         .min(5)
         .max(15)
         .pattern(/^[A-Za-z0-9-\s]+$/)
@@ -29,22 +29,22 @@ const driverSchema = {
 };
 
 const createDriverSchema = Joi.object({
-    license_number: driverSchema.license_number.required()
+    licenseNumber: driverSchema.licenseNumber.required()
         .messages({ 'any.required': 'License number is required' }),
-    vehicle_type: driverSchema.vehicle_type.required()
+    vehicleType: driverSchema.vehicleType.required()
         .messages({ 'any.required': 'Vehicle type is required' }),
-    vehicle_plate: driverSchema.vehicle_plate.required()
+    vehiclePlate: driverSchema.vehiclePlate.required()
         .messages({ 'any.required': 'Vehicle plate is required' })
 });
 
 const updateDriverSchema = Joi.object({
-    license_number: driverSchema.license_number,
-    vehicle_type: driverSchema.vehicle_type,
-    vehicle_plate: driverSchema.vehicle_plate
+    licenseNumber: driverSchema.licenseNumber,
+    vehicleType: driverSchema.vehicleType,
+    vehiclePlate: driverSchema.vehiclePlate
 });
 
-const patchDriverApprovalStatusSchema = Joi.object({
-    approval_status: Joi.string()
+const assessDriverRegisterSchema = Joi.object({
+    approvalStatus: Joi.string()
         .valid('APPROVED', 'REJECTED', 'BANNED')
         .required()
         .messages({ 'any.required': 'Approval status is required' })
@@ -54,5 +54,5 @@ module.exports = {
     driverSchema,
     createDriverSchema,
     updateDriverSchema,
-    patchDriverApprovalStatusSchema
+    assessDriverRegisterSchema
 };

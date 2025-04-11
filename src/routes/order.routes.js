@@ -1,15 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const { placeOrder, getOrderList } = require('../controllers/order.controller');
+const { getOrderList } = require('../controllers/order.controller');
 const validate = require('../validations/validate');
-const { placeOrderValidation, getOrderListValidation } = require('../validations/order.validation');
 const { authenticateToken } = require('../middleware/auth.middleware');
+const { checkRole } = require('../middleware/auth.middleware');
 
-router.post('/', authenticateToken, validate(placeOrderValidation), placeOrder);
-// router.put('/:id/cancel', authenticateToken, validate(cancelOrderValidation), cancelOrder);
-// router.post('/:id/review', authenticateToken, validate(reviewOrderValidation), reviewOrder);
-router.post('/list', authenticateToken, validate(getOrderListValidation), getOrderList);
 
+
+
+// router.post('/:id/review', authenticateToken, checkRole(['CUSTOMER']), validate(reviewOrderValidation), reviewOrder);
+router.get('/customer/list', authenticateToken, checkRole(['CUSTOMER']), getOrderList);
+// router.get('/customer/stats', authenticateToken, checkRole(['CUSTOMER']), getCustomerOrderStats);
+
+router.get('/driver/list', authenticateToken, checkRole(['DRIVER']), getOrderList);
+// router.get('/driver/stats', authenticateToken, checkRole(['DRIVER']), getDriverOrderStats);
 module.exports = router;
 
 

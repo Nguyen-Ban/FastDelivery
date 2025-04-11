@@ -5,6 +5,7 @@ const { sequelize } = require('./config/database');
 const logger = require('./config/logger');
 require('./models/index'); // Import associations
 const initWebSocket = require('./config/websocket');
+const { User } = require('./models/index');
 
 const app = express();
 const apiRouter = require('./routes/index');
@@ -30,15 +31,25 @@ app.use(errorHandler);
 
 // Database connection and server start
 const PORT = process.env.PORT || 3000;
-
+const SYSADMIN_PHONE_NUMBER = process.env.SYSADMIN_PHONE_NUMBER;
 const startServer = async () => {
     try {
         await sequelize.authenticate();
         logger.info('[App] Database connection has been established successfully.');
 
-        await sequelize.sync(); // Use { force: true } to drop and recreate tables (for testing)
+        await sequelize.sync({force: true}); // Use { force: true } to drop and recreate tables (for testing)
         logger.info('[App] Database synced successfully.');
 
+        await User.create({
+            fullName: 'SysAdmin',
+            phoneNumber: SYSADMIN_PHONE_NUMBER,
+            passcode: '123456',
+            email: 'sysadmin@gmail.com',
+            gender: 'MALE',
+            dateOfBirth: '1990-01-01',
+            roles: ['SYSADMIN']
+        });
+        
         // await redisClient.flushall();
         // logger.info('[App] Redis flushed successfully.');
 

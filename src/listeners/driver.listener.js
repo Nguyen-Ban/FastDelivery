@@ -1,4 +1,4 @@
-const redisClient = require('../../config/redis');
+const redisClient = require('../config/redis');
 
 module.exports = (io, socket) => {
     socket.on('location:update', async (data) => {

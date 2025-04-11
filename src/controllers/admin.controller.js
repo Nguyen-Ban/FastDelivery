@@ -37,7 +37,7 @@ const fetchDriverById = async (req, res) => {
     }
 };
 
-const patchDriverApprovalStatus = async (req, res) => {
+const assessDriverRegister = async (req, res) => {
     const { id } = req.params;
     const { approval_status } = req.body;
     logger.info(`[AdminController] Assessing driver registration: ${id}`);
@@ -64,4 +64,4 @@ const patchDriverApprovalStatus = async (req, res) => {
     }
 };
 
-module.exports = { getDriverList, fetchDriverById, patchDriverApprovalStatus };
+module.exports = { getDriverList, fetchDriverById, assessDriverRegister };

@@ -5,7 +5,7 @@ const { startAuth, login, verifyOtp, register, refreshAccessToken, resendOtp, lo
 const { authenticateToken } = require('../middleware/auth.middleware');
 const router = express.Router();
 
-router.post('/start', validate(phoneSchema), startAuth);
+router.post('/start-auth', validate(phoneSchema), startAuth);
 router.post('/login', validate(loginSchema), login);
 router.post('/verify-otp', validate(otpSchema), verifyOtp);
 router.post('/register', validate(registerSchema), register);

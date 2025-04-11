@@ -9,17 +9,23 @@ const OrderAddon = sequelize.define('OrderAddon', {
         allowNull: false,
         field: 'order_id'
     },
-    doorToDoor: {
+    handDelivery: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,
-        field: 'door_to_door'
+        field: 'hand_delivery'
     },
-    bulkyDelivery: {
+    fragileDelivery: {
         type: DataTypes.BOOLEAN,
         allowNull: false,
         defaultValue: false,
-        field: 'bulky_delivery'
+        field: 'fragile_delivery'
+    }, 
+    donateDriver: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        defaultValue: 0,
+        field: 'donate_driver'
     }
 }, {
     tableName: 'order_addon',

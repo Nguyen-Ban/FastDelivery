@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 const orderSchema = Joi.object({
-    pickup_address: Joi.string()
+    pickupAddress: Joi.string()
         .required()
         .max(255)
         .messages({
@@ -9,7 +9,7 @@ const orderSchema = Joi.object({
             'any.required': 'Pickup address is required',
             'string.max': 'Pickup address cannot exceed 255 characters'
         }),
-    dropoff_address: Joi.string()
+    dropoffAddress: Joi.string()
         .required()
         .max(255)
         .messages({
@@ -17,7 +17,7 @@ const orderSchema = Joi.object({
             'any.required': 'Dropoff address is required',
             'string.max': 'Dropoff address cannot exceed 255 characters'
         }),
-    pickup_lat: Joi.number()
+    pickupLat: Joi.number()
         .required()
         .min(-90)
         .max(90)

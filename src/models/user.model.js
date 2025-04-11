@@ -2,6 +2,9 @@ const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 const bcrypt = require('bcrypt');
 
+const ALLOWED_ROLES = ['CUSTOMER', 'DRIVER', 'ADMIN', 'SYSADMIN'];
+
+
 const User = sequelize.define('User', {
     id: {
         type: DataTypes.INTEGER,
@@ -9,7 +12,7 @@ const User = sequelize.define('User', {
         autoIncrement: true,
         field: 'id'
     },
-    fullname: {
+    fullName: {
         type: DataTypes.STRING,
         allowNull: false,
         field: 'full_name'
@@ -31,11 +34,11 @@ const User = sequelize.define('User', {
             isEmail: true
         }
     },
-    phone: {
+    phoneNumber: {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true,
-        field: 'phone',
+        field: 'phone_number',
         validate: {
             is: /^\+[0-9]{9,14}$/ // Bắt đầu bằng +, theo sau 9-14 số
         }
@@ -48,6 +51,23 @@ const User = sequelize.define('User', {
             const hashedPasscode = bcrypt.hashSync(value, 10);
             this.setDataValue('passcode', hashedPasscode);
         }
+    },
+    roles: {
+        type: DataTypes.JSON,
+        field: 'roles',
+        allowNull: false,
+        validate: {
+            isValidRoles(value) {
+              if (!Array.isArray(value)) {
+                throw new Error('Roles must be an array');
+              }
+              for (const role of value) {
+                if (!ALLOWED_ROLES.includes(role)) {
+                  throw new Error(`Invalid role: ${role}`);
+                }
+              }
+            }
+          }
     }
 }, {
     tableName: 'user',

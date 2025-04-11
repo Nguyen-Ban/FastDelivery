@@ -10,9 +10,9 @@ const autoAcceptOrder = async (req, res) => {
 const registerDriver = async (req, res) => {
 
     const {
-        license_number,
-        vehicle_type,
-        vehicle_plate
+        licenseNumber,
+        vehicleType,
+        vehiclePlate
     } = req.body;
 
     // Assuming user is authenticated and user ID is available from middleware
@@ -32,9 +32,9 @@ const registerDriver = async (req, res) => {
         // Create Driver record
         const driver = await Driver.create({
             userId,
-            licenseNumber: license_number,
-            vehicleType: vehicle_type,
-            vehiclePlate: vehicle_plate,
+            licenseNumber,
+            vehicleType,
+            vehiclePlate,
         });
 
         return res.status(201).json({
@@ -43,9 +43,9 @@ const registerDriver = async (req, res) => {
             data: {
                 driver: {
                     id: driver.id,
-                    license_number: driver.licenseNumber,
-                    vehicle_type: driver.vehicleType,
-                    vehicle_plate: driver.vehiclePlate,
+                    licenseNumber: driver.licenseNumber,
+                    vehicleType: driver.vehicleType,
+                    vehiclePlate: driver.vehiclePlate,
                     status: driver.status,
                     approvalStatus: driver.approvalStatus
                 }

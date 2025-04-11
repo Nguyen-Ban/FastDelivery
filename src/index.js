@@ -37,18 +37,23 @@ const startServer = async () => {
         await sequelize.authenticate();
         logger.info('[App] Database connection has been established successfully.');
 
-        await sequelize.sync({force: true}); // Use { force: true } to drop and recreate tables (for testing)
+        await sequelize.sync(); // Use { force: true } to drop and recreate tables (for testing)
         logger.info('[App] Database synced successfully.');
 
-        await User.create({
-            fullName: 'SysAdmin',
-            phoneNumber: SYSADMIN_PHONE_NUMBER,
-            passcode: '123456',
-            email: 'sysadmin@gmail.com',
-            gender: 'MALE',
-            dateOfBirth: '1990-01-01',
-            roles: ['SYSADMIN']
+        const sysadmin = await User.findOne({
+            where: { phoneNumber: SYSADMIN_PHONE_NUMBER }
         });
+        if (!sysadmin) {
+            await User.create({
+                fullName: 'SysAdmin',
+                phoneNumber: SYSADMIN_PHONE_NUMBER,
+                passcode: '123456',
+                email: 'sysadmin@gmail.com',
+                gender: 'MALE',
+                dateOfBirth: '1990-01-01',
+                roles: ['SYSADMIN']
+            });
+        }
         
         // await redisClient.flushall();
         // logger.info('[App] Redis flushed successfully.');

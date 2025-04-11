@@ -1,5 +1,5 @@
 const logger = require('../config/logger');
-const { Driver } = require('../models/index');
+const { Driver, User } = require('../models/index');
 const { decodeAccessToken, isAccessTokenBlacklisted } = require('../services/token.service');
 const { registerDriverSocket } = require('../services/websocket/driver');
 
@@ -67,13 +67,14 @@ const checkRole = (allowedRoles) => {
     return async (req, res, next) => {
       try {
         const activeRole = req.headers['x-role'];
+        console.log(req.headers['x-role'])
   
         if (!activeRole) {
-          return res.status(400).json({ message: 'Missing role in header (X-Role)' });
+          return res.status(400).json({ message: 'Missing role in header (x-role)' });
         }
   
-        const user = req.user; // đã được gán từ middleware authenticate
-  
+        const userId = req.user.userId; // đã được gán từ middleware authenticate
+        const user = await User.findOne({ where: { id: userId } });
         if (!user.roles.includes(activeRole)) {
           return res.status(403).json({ message: 'Role not assigned to user' });
         }
@@ -84,6 +85,7 @@ const checkRole = (allowedRoles) => {
   
         // Nếu hợp lệ, gán vào req để controller dùng nếu cần
         req.activeRole = activeRole;
+        console.log(req);
         next();
       } catch (err) {
         res.status(500).json({ message: 'Internal Server Error' });

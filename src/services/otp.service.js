@@ -72,6 +72,7 @@ const verifyOTP = async (phoneNumber, otp) => {
     logger.info(`[OTPService] Verify OTP for phone number: ${phoneNumber}`);
 
     const storedOTP = await redisClient.get(`otp:${phoneNumber}`);
+    console.log(storedOTP);
     if (!storedOTP || storedOTP !== otp) {
         logger.warn(`[OTPService] Invalid OTP attempt for phone number: ${phoneNumber}`);
         return false;

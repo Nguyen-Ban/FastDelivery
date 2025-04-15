@@ -10,16 +10,18 @@ const HomeLayout = () => {
       screenOptions={{
         headerShown: false,
         tabBarStyle: styles.tabs,
-        tabBarLabelStyle: { fontSize: 13 },
+        tabBarLabelStyle: { fontSize: 12, marginVertical: "auto" },
         tabBarInactiveTintColor: COLOR.black,
+        tabBarActiveTintColor: COLOR.blue40,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: "Trang chủ",
-          tabBarIcon: () => {
-            return <FontAwesome6 name="house" size={24} color="black" />;
+          tabBarIcon: ({ focused }) => {
+            const iconColor = focused ? COLOR.blue40 : COLOR.black;
+            return <FontAwesome6 name="house" size={24} color={iconColor} />;
           },
         }}
       />
@@ -27,17 +29,11 @@ const HomeLayout = () => {
         name="activity"
         options={{
           title: "Hoạt động",
-          tabBarIcon: () => {
-            return <FontAwesome6 name="clipboard" size={24} color="black" />;
-          },
-        }}
-      />
-      <Tabs.Screen
-        name="message"
-        options={{
-          title: "Tin nhắn",
-          tabBarIcon: () => {
-            return <FontAwesome6 name="envelope" size={24} color="black" />;
+          tabBarIcon: ({ focused }) => {
+            const iconColor = focused ? COLOR.blue40 : COLOR.black;
+            return (
+              <FontAwesome6 name="clipboard" size={24} color={iconColor} />
+            );
           },
         }}
       />
@@ -45,8 +41,19 @@ const HomeLayout = () => {
         name="notification"
         options={{
           title: "Thông báo",
-          tabBarIcon: () => {
-            return <FontAwesome6 name="bell" size={24} color="black" />;
+          tabBarIcon: ({ focused }) => {
+            const iconColor = focused ? COLOR.blue40 : COLOR.black;
+            return <FontAwesome6 name="bell" size={24} color={iconColor} />;
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="message"
+        options={{
+          title: "Tin nhắn",
+          tabBarIcon: ({ focused }) => {
+            const iconColor = focused ? COLOR.blue40 : COLOR.black;
+            return <FontAwesome6 name="envelope" size={24} color={iconColor} />;
           },
         }}
       />
@@ -59,6 +66,6 @@ export default HomeLayout;
 const styles = StyleSheet.create({
   tabs: {
     backgroundColor: COLOR.grey90,
-    height: "7%",
+    height: "8%",
   },
 });

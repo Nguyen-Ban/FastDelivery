@@ -11,8 +11,7 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import MapView, { Marker } from "react-native-maps";
-import DriverMenu from "./components/DriverMenu";
-import OrderDetails from "./components/OrderDetails";
+import { useRouter } from "expo-router";
 
 import GLOBAL from "../../constants/GlobalStyles";
 
@@ -20,6 +19,16 @@ const Driver = () => {
   const [online, setOnline] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isOrderVisible, setIsOrderVisible] = useState(false);
+  const [showEarningsModal, setShowEarningsModal] = useState(false);
+  const [autoReceive, setAutoReceive] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const showEarnings = router.canGoBack();
+    if (showEarnings) {
+      setShowEarningsModal(true);
+    }
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -45,7 +54,7 @@ const Driver = () => {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.menuButton}
-          onPress={() => setIsMenuVisible(true)}
+          onPress={() => router.push("/driver/menu")}
         >
           <Ionicons name="menu" size={24} color="#333" />
         </TouchableOpacity>
@@ -54,7 +63,7 @@ const Driver = () => {
       {/* Calendar Button with Notification */}
       <TouchableOpacity
         style={styles.calendarButton}
-        onPress={() => setIsOrderVisible(true)}
+        onPress={() => router.push("/driver/order-details")}
       >
         <View style={styles.calendarIconContainer}>
           <MaterialIcons name="event-note" size={24} color="#333" />
@@ -62,29 +71,27 @@ const Driver = () => {
         </View>
       </TouchableOpacity>
 
-      {/* Menu Modal */}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isMenuVisible}
-        onRequestClose={() => setIsMenuVisible(false)}
-      >
-        <DriverMenu
-          onClose={() => setIsMenuVisible(false)}
-          driverName="Tài xế"
-          rating={5.0}
-        />
-      </Modal>
 
-      {/* Order Details Modal */}
-      <OrderDetails
-        visible={isOrderVisible}
-        onClose={() => setIsOrderVisible(false)}
-        onAccept={() => {
-          setIsOrderVisible(false);
-          // Handle order acceptance here
-        }}
-      />
+      {/* Earnings Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showEarningsModal}
+        onRequestClose={() => setShowEarningsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.earningsTitle}>Thu nhập ròng</Text>
+            <Text style={styles.earningsAmount}>13.870đ</Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={() => setShowEarningsModal(false)}
+            >
+              <Text style={styles.modalButtonText}>Tuyệt vời</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Action buttons on map */}
       <View style={styles.mapButtons}>
@@ -125,17 +132,18 @@ const Driver = () => {
           <Text style={styles.navText}>Dịch vụ</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="location" size={22} color="#666" />
-          <Text style={styles.navText}>Chọn điểm đến</Text>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => setAutoReceive(!autoReceive)}
+        >
+          <MaterialIcons name="bolt" size={22} color={autoReceive ? "#00a651" : "#666"} />
+          <Text style={[styles.navText, autoReceive && { color: "#00a651" }]}>Tự động nhận đơn</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.navItem}>
-          <MaterialIcons name="bolt" size={22} color="#666" />
-          <Text style={styles.navText}>Tự động nhận đơn</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => router.push("/driver/delivery-settings")}
+        >
           <Ionicons name="ellipsis-horizontal" size={22} color="#666" />
           <Text style={styles.navText}>Cài đặt</Text>
         </TouchableOpacity>
@@ -253,33 +261,66 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: 'white',
+    marginLeft: 8,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginLeft: 10,
   },
   bottomNav: {
     position: 'absolute',
     bottom: 0,
-    width: '100%',
+    left: 0,
+    right: 0,
     backgroundColor: 'white',
     flexDirection: 'row',
     justifyContent: 'space-around',
     paddingVertical: 10,
     borderTopWidth: 1,
     borderTopColor: '#eee',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
   },
   navItem: {
     alignItems: 'center',
-    justifyContent: 'center',
   },
   navText: {
     fontSize: 12,
-    marginTop: 5,
+    marginTop: 4,
     color: '#666',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 24,
+    alignItems: 'center',
+    width: '80%',
+    maxWidth: 320,
+  },
+  earningsTitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 8,
+  },
+  earningsAmount: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 24,
+  },
+  modalButton: {
+    backgroundColor: '#00BFA5',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+    width: '100%',
+  },
+  modalButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 

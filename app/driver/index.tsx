@@ -7,19 +7,24 @@ import {
   Image,
   StatusBar,
   SafeAreaView,
+  Modal,
 } from "react-native";
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import MapView, { Marker } from "react-native-maps";
+import DriverMenu from "./components/DriverMenu";
+import OrderDetails from "./components/OrderDetails";
 
 import GLOBAL from "../../constants/GlobalStyles";
 
 const Driver = () => {
   const [online, setOnline] = useState(false);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [isOrderVisible, setIsOrderVisible] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
-      
+
       {/* Map View */}
       <MapView
         style={styles.map}
@@ -38,10 +43,48 @@ const Driver = () => {
 
       {/* Header with menu and profile buttons */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.menuButton}>
+        <TouchableOpacity
+          style={styles.menuButton}
+          onPress={() => setIsMenuVisible(true)}
+        >
           <Ionicons name="menu" size={24} color="#333" />
         </TouchableOpacity>
       </View>
+
+      {/* Calendar Button with Notification */}
+      <TouchableOpacity
+        style={styles.calendarButton}
+        onPress={() => setIsOrderVisible(true)}
+      >
+        <View style={styles.calendarIconContainer}>
+          <MaterialIcons name="event-note" size={24} color="#333" />
+          <View style={styles.notificationBadge} />
+        </View>
+      </TouchableOpacity>
+
+      {/* Menu Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isMenuVisible}
+        onRequestClose={() => setIsMenuVisible(false)}
+      >
+        <DriverMenu
+          onClose={() => setIsMenuVisible(false)}
+          driverName="Tài xế"
+          rating={5.0}
+        />
+      </Modal>
+
+      {/* Order Details Modal */}
+      <OrderDetails
+        visible={isOrderVisible}
+        onClose={() => setIsOrderVisible(false)}
+        onAccept={() => {
+          setIsOrderVisible(false);
+          // Handle order acceptance here
+        }}
+      />
 
       {/* Action buttons on map */}
       <View style={styles.mapButtons}>
@@ -64,7 +107,7 @@ const Driver = () => {
 
       {/* Bottom action button */}
       <View style={styles.actionButtonContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.actionButton}
           onPress={() => setOnline(!online)}
         >
@@ -81,17 +124,17 @@ const Driver = () => {
           <FontAwesome5 name="motorcycle" size={22} color="#00a651" />
           <Text style={styles.navText}>Dịch vụ</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.navItem}>
           <Ionicons name="location" size={22} color="#666" />
           <Text style={styles.navText}>Chọn điểm đến</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.navItem}>
           <MaterialIcons name="bolt" size={22} color="#666" />
           <Text style={styles.navText}>Tự động nhận đơn</Text>
         </TouchableOpacity>
-        
+
         <TouchableOpacity style={styles.navItem}>
           <Ionicons name="ellipsis-horizontal" size={22} color="#666" />
           <Text style={styles.navText}>Cài đặt</Text>
@@ -126,6 +169,33 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+  },
+  calendarButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 1,
+  },
+  calendarIconContainer: {
+    backgroundColor: 'white',
+    padding: 10,
+    borderRadius: 50,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: 5,
+    right: 5,
+    backgroundColor: '#e74c3c',
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    borderWidth: 2,
+    borderColor: 'white',
   },
   mapButtons: {
     position: 'absolute',

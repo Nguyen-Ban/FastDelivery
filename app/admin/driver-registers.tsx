@@ -1,24 +1,7 @@
 import React from "react";
-import { View, Text, StyleSheet, FlatList, Alert } from "react-native";
+import { View, Text, StyleSheet, FlatList, Alert, Platform, StatusBar } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native";
-
-const COLOR = {
-  containerBackground: "#f5f5f5",
-  surface: "#ffffff",
-  border: "#e0e0e0",
-  textPrimary: "#212121",
-  textSecondary: "#757575",
-  primary: "#2089dc",
-  success: "#4caf50",
-  error: "#f44336",
-  warning: "#ff9800",
-  white: "#ffffff",
-  grey50: "#9e9e9e",
-  grey70: "#757575",
-  cardBackground: "#ffffff"
-};
-
 
 interface DriverRegister {
   id: string;
@@ -43,7 +26,7 @@ const RegisterCard = ({
   <View style={styles.registerCard}>
     <View style={styles.registerHeader}>
       <View style={styles.userInfo}>
-        <FontAwesome5 name="user-circle" size={40} color={COLOR.grey50} />
+        <FontAwesome5 name="user-circle" size={40} color="#9e9e9e" />
         <View style={styles.nameContainer}>
           <Text style={styles.userName}>{register.name}</Text>
           <Text style={styles.userPhone}>{register.phone}</Text>
@@ -54,7 +37,7 @@ const RegisterCard = ({
 
     <View style={styles.detailsContainer}>
       <DetailItem
-        icon="car"
+        icon="motorcycle"
         label="Loại xe"
         value={register.vehicleType}
       />
@@ -88,7 +71,7 @@ const RegisterCard = ({
           styles.statusBadge,
           {
             backgroundColor:
-              register.status === "approved" ? COLOR.success : COLOR.error,
+              register.status === "approved" ? "#00BFA5" : "#FF6B6B",
           },
         ]}
       >
@@ -110,7 +93,7 @@ const DetailItem = ({
   value: string;
 }) => (
   <View style={styles.detailItem}>
-    <FontAwesome5 name={icon} size={16} color={COLOR.grey50} />
+    <FontAwesome5 name={icon} size={16} color="#666666" />
     <Text style={styles.detailLabel}>{label}:</Text>
     <Text style={styles.detailValue}>{value}</Text>
   </View>
@@ -195,7 +178,7 @@ export default function DriverRegistersScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Đăng ký tài xế</Text>
+        <Text style={styles.headerTitle}>Đăng ký tài xế</Text>
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>
@@ -237,25 +220,26 @@ export default function DriverRegistersScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLOR.containerBackground,
+    backgroundColor: "#ffffff",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   header: {
-    backgroundColor: COLOR.surface,
+    backgroundColor: "#ffffff",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLOR.border,
+    borderBottomColor: "#eee",
   },
-  title: {
-    fontSize: 24,
+  headerTitle: {
+    fontSize: 18,
     fontWeight: "bold",
-    color: COLOR.textPrimary,
+    color: "#000000",
     marginBottom: 16,
   },
   statsContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    backgroundColor: COLOR.containerBackground,
-    borderRadius: 8,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 12,
     padding: 16,
   },
   statItem: {
@@ -264,11 +248,11 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 20,
     fontWeight: "bold",
-    color: COLOR.primary,
+    color: "#00BFA5",
   },
   statLabel: {
     fontSize: 14,
-    color: COLOR.textSecondary,
+    color: "#666666",
     marginTop: 4,
   },
   listContainer: {
@@ -276,15 +260,17 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   registerCard: {
-    backgroundColor: COLOR.cardBackground,
-    borderRadius: 8,
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
     padding: 16,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#eee",
   },
   registerHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
+    marginBottom: 16,
   },
   userInfo: {
     flexDirection: "row",
@@ -294,22 +280,24 @@ const styles = StyleSheet.create({
     marginLeft: 12,
   },
   userName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
-    color: COLOR.textPrimary,
+    color: "#000000",
   },
   userPhone: {
     fontSize: 14,
-    color: COLOR.textSecondary,
+    color: "#666666",
     marginTop: 2,
   },
   date: {
     fontSize: 12,
-    color: COLOR.textSecondary,
+    color: "#666666",
   },
   detailsContainer: {
-    marginTop: 16,
-    gap: 8,
+    gap: 12,
+    backgroundColor: "#f9f9f9",
+    padding: 12,
+    borderRadius: 8,
   },
   detailItem: {
     flexDirection: "row",
@@ -318,11 +306,11 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-    color: COLOR.textSecondary,
+    color: "#666666",
   },
   detailValue: {
     fontSize: 14,
-    color: COLOR.textPrimary,
+    color: "#000000",
     fontWeight: "500",
   },
   actionButtons: {
@@ -334,27 +322,27 @@ const styles = StyleSheet.create({
   button: {
     paddingHorizontal: 20,
     paddingVertical: 8,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
   buttonText: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: "500",
   },
   rejectButton: {
-    backgroundColor: COLOR.white,
+    backgroundColor: "#ffffff",
     borderWidth: 1,
-    borderColor: COLOR.error,
+    borderColor: "#FF6B6B",
   },
   rejectButtonText: {
-    color: COLOR.error,
+    color: "#FF6B6B",
   },
   approveButton: {
-    backgroundColor: COLOR.primary,
+    backgroundColor: "#00BFA5",
   },
   approveButtonText: {
-    color: COLOR.white,
+    color: "#ffffff",
   },
   statusBadge: {
     alignSelf: "flex-start",
@@ -364,8 +352,8 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   statusText: {
-    color: COLOR.white,
+    color: "#ffffff",
     fontSize: 12,
-    fontWeight: "bold",
+    fontWeight: "500",
   },
 });

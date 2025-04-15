@@ -1,22 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet, FlatList, Image, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, FlatList, Platform, StatusBar } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-
-const COLOR = {
-  containerBackground: "#f5f5f5",
-  surface: "#ffffff",
-  border: "#e0e0e0",
-  textPrimary: "#212121",
-  textSecondary: "#757575",
-  primary: "#2089dc",
-  success: "#4caf50",
-  error: "#f44336",
-  warning: "#ff9800",
-  white: "#ffffff",
-  grey50: "#9e9e9e",
-  grey70: "#757575",
-  cardBackground: "#ffffff"
-};
 
 interface Driver {
   id: string;
@@ -31,13 +15,13 @@ const DriverCard = ({ driver }: { driver: Driver }) => (
   <View style={styles.driverCard}>
     <View style={styles.driverInfo}>
       <View style={styles.avatarContainer}>
-        <FontAwesome5 name="user-circle" size={50} color={COLOR.grey50} />
+        <FontAwesome5 name="user-circle" size={50} color="#9e9e9e" />
       </View>
       <View style={styles.details}>
         <Text style={styles.driverName}>{driver.name}</Text>
         <Text style={styles.driverPhone}>{driver.phone}</Text>
         <View style={styles.ratingContainer}>
-          <FontAwesome5 name="star" size={16} color={COLOR.warning} solid />
+          <FontAwesome5 name="star" size={16} color="#ffc107" solid />
           <Text style={styles.ratingText}>{driver.rating.toFixed(1)}</Text>
           <Text style={styles.tripsText}>({driver.totalTrips} chuyến)</Text>
         </View>
@@ -48,7 +32,7 @@ const DriverCard = ({ driver }: { driver: Driver }) => (
             styles.statusBadge,
             {
               backgroundColor:
-                driver.status === "active" ? COLOR.success : COLOR.grey70,
+                driver.status === "active" ? "#00BFA5" : "#757575",
             },
           ]}
         >
@@ -93,7 +77,7 @@ export default function DriversScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Danh sách tài xế</Text>
+        <Text style={styles.headerTitle}>Danh sách tài xế</Text>
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{drivers.length}</Text>
@@ -121,24 +105,25 @@ export default function DriversScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLOR.containerBackground,
+    backgroundColor: "#ffffff",
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
   },
   header: {
-    backgroundColor: COLOR.surface,
+    backgroundColor: "#ffffff",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLOR.border,
+    borderBottomColor: "#eee",
   },
-  title: {
-    fontSize: 24,
+  headerTitle: {
+    fontSize: 18,
     fontWeight: "bold",
-    color: COLOR.textPrimary,
+    color: "#000000",
     marginBottom: 16,
   },
   statsContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    backgroundColor: COLOR.containerBackground,
+    backgroundColor: "#f9f9f9",
     borderRadius: 8,
     padding: 16,
   },
@@ -148,11 +133,11 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 20,
     fontWeight: "bold",
-    color: COLOR.primary,
+    color: "#00BFA5",
   },
   statLabel: {
     fontSize: 14,
-    color: COLOR.textSecondary,
+    color: "#666666",
     marginTop: 4,
   },
   listContainer: {
@@ -160,10 +145,11 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   driverCard: {
-    backgroundColor: COLOR.cardBackground,
-    borderRadius: 8,
+    backgroundColor: "#ffffff",
+    borderRadius: 12,
     padding: 16,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#eee",
   },
   driverInfo: {
     flexDirection: "row",
@@ -176,13 +162,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   driverName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "bold",
-    color: COLOR.textPrimary,
+    color: "#000000",
   },
   driverPhone: {
     fontSize: 14,
-    color: COLOR.textSecondary,
+    color: "#666666",
     marginTop: 4,
   },
   ratingContainer: {
@@ -191,14 +177,14 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   ratingText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "bold",
-    color: COLOR.textPrimary,
+    color: "#000000",
     marginLeft: 8,
   },
   tripsText: {
     fontSize: 14,
-    color: COLOR.textSecondary,
+    color: "#666666",
     marginLeft: 8,
   },
   statusContainer: {
@@ -210,8 +196,8 @@ const styles = StyleSheet.create({
     borderRadius: 16,
   },
   statusText: {
-    color: COLOR.white,
+    color: "#ffffff",
     fontSize: 12,
-    fontWeight: "bold",
+    fontWeight: "500",
   },
 });

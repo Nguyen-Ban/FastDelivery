@@ -10,6 +10,7 @@ const GlobalStyles = StyleSheet.create({
     justifyContent: "flex-start",
     backgroundColor: COLOR.white,
   },
+  home_title: { fontSize: 24, fontWeight: "bold", alignSelf: "center" },
 });
 
 export default GlobalStyles;

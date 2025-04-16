@@ -41,6 +41,7 @@ const AuthMethod = () => {
         Alert.alert("Lỗi", "Số điện thoại không hợp lệ");
         return;
       }
+    
 
       const response = await authService.startAuth({ 
         phoneNumber: parsedNumber.format('E.164') // Format E.164 chuẩn quốc tế

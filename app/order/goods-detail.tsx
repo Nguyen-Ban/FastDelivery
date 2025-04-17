@@ -5,6 +5,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import RadioGroup, { RadioButtonProps } from "react-native-radio-buttons-group";
@@ -132,7 +134,9 @@ const GoodsDetail = () => {
       </View>
       <Button
         title="Xác nhận"
-        onPress={() => {}}
+        onPress={() => {
+          router.back();
+        }}
         size="large"
         type="primary"
         disabled={disabled}

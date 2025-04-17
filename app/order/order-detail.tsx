@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
 import Button from "../../components/Button/ButtonComponent";
+import InfoCard from "@/components/Button/InfoCard";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
@@ -41,77 +42,66 @@ const OrderDetail = () => {
         </View>
         <View style={styles.detailCard}>
           {/* Origin */}
-          <TouchableOpacity
+          <InfoCard
             style={styles.detailOption}
             onPress={() => {
               router.push("../order/location-pick");
             }}
-          >
-            <FontAwesome6 name="location-dot" size={30} color={COLOR.red55} />
-            <Text style={styles.option_text}>
-              {origin}
-              {"\n"}
-              <Text style={{ color: COLOR.grey70 }}>
-                {name_origin} - {phone_origin}
-              </Text>
-            </Text>
-          </TouchableOpacity>
+            title={origin}
+            subtitle={`${name_origin} - ${phone_origin}`}
+            icon={
+              <FontAwesome6 name="location-dot" size={24} color={COLOR.red55} />
+            }
+            iconContainerStyle={styles.additionalIconViewStyle}
+          ></InfoCard>
           {/* Destination */}
-          <TouchableOpacity
+          <InfoCard
             style={styles.detailOption}
             onPress={() => {
               router.push("../order/client-info");
             }}
-          >
-            <FontAwesome6 name="location-dot" size={30} color={COLOR.blue40} />
-            <Text style={styles.option_text}>
-              {destination}
-              {"\n"}
-              <Text style={{ color: COLOR.blue40 }}>
-                Thêm thông tin người nhận
-              </Text>
-              <Text style={{ color: COLOR.red55 }}>*</Text>
-            </Text>
-          </TouchableOpacity>
+            title={destination}
+            subtitle="Thêm thông tin người nhận"
+            icon={
+              <FontAwesome6
+                name="location-dot"
+                size={24}
+                color={COLOR.blue40}
+              />
+            }
+            iconContainerStyle={styles.additionalIconViewStyle}
+          ></InfoCard>
           {/* Date time TODO: datetime select*/}
-          <TouchableOpacity style={styles.detailOption}>
-            <FontAwesome6 name="clock" size={30} color="black" />
-            <Text style={styles.option_text}>
-              <Text>Ngày giao hàng: {date}</Text>
-              {"\n"}
-              <Text style={{ color: COLOR.grey70 }}>
-                Thời gian giao hàng: {time}
-              </Text>
-            </Text>
-          </TouchableOpacity>
+          <InfoCard
+            style={styles.detailOption}
+            onPress={() => {}}
+            title={`Ngày giao hàng: ${date}`}
+            subtitle={`Thời gian giao hàng: ${time}`}
+            icon={<FontAwesome6 name="clock" size={24} color={COLOR.black} />}
+            iconContainerStyle={styles.additionalIconViewStyle}
+          ></InfoCard>
           {/* Delivery Method */}
-          <TouchableOpacity style={styles.detailOption}>
-            <FontAwesome6 name="motorcycle" size={24} color="black" />
-            <Text style={styles.option_text}>
-              {vihicle}
-              {"\n"}
-              <Text style={{ color: COLOR.grey70 }}>
-                Đề xuất dựa trên chi tiết món hàng
-              </Text>
-            </Text>
-          </TouchableOpacity>
+          <InfoCard
+            style={styles.detailOption}
+            title={vihicle}
+            subtitle="Đề xuất dựa trên chi tiết món hàng"
+            onPress={() => {}}
+            icon={
+              <FontAwesome6 name="motorcycle" size={24} color={COLOR.black} />
+            }
+            iconContainerStyle={styles.additionalIconViewStyle}
+          ></InfoCard>
           {/* Goods detail */}
-          <TouchableOpacity
+          <InfoCard
             style={styles.detailOption}
             onPress={() => {
               router.push("../order/goods-detail");
             }}
-          >
-            <FontAwesome6 name="box" size={30} color="black" />
-            <Text style={styles.option_text}>
-              <Text style={{ color: COLOR.blue40 }}>
-                Thêm chi tiết món hàng
-              </Text>
-              <Text style={{ color: COLOR.red55 }}>*</Text>
-              {"\n"}
-              <Text style={{ color: COLOR.grey70 }}>Thông tin món hàng</Text>
-            </Text>
-          </TouchableOpacity>
+            title="Thông tin món hàng"
+            subtitle="Thêm chi tiết món hàng"
+            icon={<FontAwesome6 name="box" size={24} color={COLOR.black} />}
+            iconContainerStyle={styles.additionalIconViewStyle}
+          ></InfoCard>
         </View>
       </View>
       <View style={styles.footer}>
@@ -175,12 +165,13 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.white,
   },
   detailOption: {
-    flexDirection: "row",
-    alignItems: "center",
     paddingVertical: 10,
     borderBottomColor: COLOR.grey90,
     borderBottomWidth: 1,
     marginHorizontal: 10,
+  },
+  additionalIconViewStyle: {
+    width: "12%",
   },
   header: {
     flexDirection: "row",

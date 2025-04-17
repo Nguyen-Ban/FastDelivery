@@ -50,7 +50,7 @@ const HomeScreen = () => {
 
       <View style={styles.content_view_1}>
         <Text style={styles.greeting}>
-          Xin chào {"\n"} {name}
+          Xin chào, {"\n"} {name}
         </Text>
         <TouchableOpacity style={styles.user_img}>
           <FontAwesome6 name="user" size={30} color="black" />
@@ -132,5 +132,7 @@ const styles = StyleSheet.create({
   service_name: {
     fontWeight: "bold",
     fontSize: 14,
+    textAlign: "center",
+    paddingTop: 5,
   },
 });

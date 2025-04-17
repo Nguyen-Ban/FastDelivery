@@ -13,6 +13,7 @@ import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 import authService from "../../services/auth.service";
+import { useAuth } from "../../contexts/auth.context";
 
 const EnterPasscode = () => {
   const router = useRouter();
@@ -21,6 +22,7 @@ const EnterPasscode = () => {
   const [passcode, setPasscode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<TextInput>(null);
+  const { login } = useAuth();
 
   const handlePasscodeChange = (text: string) => {
     const newPasscode = text.replace(/[^0-9]/g, "").slice(0, 6);
@@ -46,19 +48,18 @@ const EnterPasscode = () => {
           dateOfBirth: new Date(dateOfBirth as string),
           passcode: passcode
         });
-      } else {
-        // Flow đăng nhập
-        response = await authService.login({
-          phoneNumber: phoneNumber as string,
-          passcode: passcode
-        });
-      }
 
-      if (response.success) {
-        router.push("../home");
+        if (response.success) {
+          // After registration, log in automatically
+          await login(phoneNumber as string, passcode);
+        } else {
+          Alert.alert("Lỗi", response.message || "Đăng ký không thành công");
+          setPasscode("");
+        }
       } else {
-        Alert.alert("Lỗi", response.message || "Mã không đúng");
-        setPasscode("");
+        // Flow đăng nhập - use the context login function
+        await login(phoneNumber as string, passcode);
+        // Router navigation is handled inside the login function in AuthContext
       }
     } catch (error) {
       Alert.alert("Lỗi", "Không thể kết nối đến server");

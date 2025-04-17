@@ -31,7 +31,7 @@ const OnDelivery = () => {
                 setDeliveryState(DELIVERY_STATES.DELIVERING);
                 break;
             case DELIVERY_STATES.DELIVERING:
-                router.push("/driver/complete-payment");
+                router.push("../driver/complete-payment");
                 break;
         }
     };

@@ -10,11 +10,11 @@ import { useRouter } from "expo-router";
 
 const Order = () => {
   const router = useRouter();
-  const orderDetailHandler = () => {
-    router.push("../order/order-detail");
-  };
+  // const orderDetailHandler = () => {
+  //   router.push("/order/order-detail");
+  // };
   const locationHandler = () => {
-    router.push("../order/location-pick");
+    router.push("/location/location-pick");
   };
 
   return (
@@ -79,7 +79,7 @@ const Order = () => {
           />
         </View>
       </View>
-      <Button
+      {/* <Button
         title="Chi tiết đơn hàng"
         size="large"
         type="primary"
@@ -87,7 +87,7 @@ const Order = () => {
           orderDetailHandler();
         }}
         style={{ marginVertical: 10 }}
-      />
+      /> */}
     </View>
   );
 };

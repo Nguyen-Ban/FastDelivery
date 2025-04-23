@@ -44,7 +44,7 @@ const OrderDetail = () => {
           <TouchableOpacity
             style={styles.detailOption}
             onPress={() => {
-              router.push("../order/location-pick");
+              router.push("/location/location-pick");
             }}
           >
             <FontAwesome6 name="location-dot" size={30} color={COLOR.red55} />
@@ -60,7 +60,7 @@ const OrderDetail = () => {
           <TouchableOpacity
             style={styles.detailOption}
             onPress={() => {
-              router.push("../order/client-info");
+              router.push("/order/client-info");
             }}
           >
             <FontAwesome6 name="location-dot" size={30} color={COLOR.blue40} />
@@ -99,7 +99,7 @@ const OrderDetail = () => {
           <TouchableOpacity
             style={styles.detailOption}
             onPress={() => {
-              router.push("../order/goods-detail");
+              router.push("/order/goods-detail");
             }}
           >
             <FontAwesome6 name="box" size={30} color="black" />

@@ -1,31 +1,47 @@
+const { default: axios } = require("axios");
 const redisClient = require("../config/redis");
 const { getDriverSocket } = require("./websocket/driver");
+const { Driver } = require("../models/index");
 
-const geoSearchNearbyDrivers = async (longitude, latitude) => {
-    const key = "drivers:locations";
-    const radius = 3; // km
+const HERE_API_KEY = process.env.HERE_API_KEY;
 
-    const results = await redisClient.send_command("GEOSEARCH", [
-        key,
-        "FROMLONLAT",
-        longitude,
-        latitude,
-        "BYRADIUS",
-        radius,
-        "km",
-        "WITHDIST",
-        "WITHCOORD",
-        "ASC",
-    ]);
+const getDurationBasedOnRoadRoute = async (transportMode, origin, destination) => {
+    try {
+        const res = await axios.get(`https://router.hereapi.com/v8/routes?transportMode=${transportMode}&origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&return=summary&apikey=${HERE_API_KEY}`);
+        return res.data.routes[0].sections[0].summary.duration;
+    } catch (error) {
+        console.error('Error getting driver to order duration:', error);
+        return null;
+    }
+}
 
-    return results;
-};
+const getAvailableNearestDrivers = async (transportType, orderPickUpLocation) => {
+    const driverKeys = await redisClient.zrange('drivers:locations', 0, -1); // lấy tất cả driver IDs
+
+    const driverLocations = await Promise.all(
+        driverKeys.map(id => redisClient.geopos('drivers:locations', id))
+    );
+
+    const transportMode = transportType === 'MOTORBIKE' ? 'scooter' : 'car'
+
+    const drivers = driverKeys.map((id, index) => ({
+        id,
+        duration: driverLocations[index][0] ? getDurationBasedOnRoadRoute(transportMode,
+            { lng: driverLocations[index][0][0], lat: driverLocations[index][0][1] }, orderPickUpLocation) : null,
+    }));
+
+    drivers.sort((a, b) => a.duration - b.duration);
+
+    return drivers; // [{id, lng, lat}]
+}
+
+
 
 const matchDriver = async (order) => {
     let resDriver = null;
-    const drivers = await geoSearchNearbyDrivers(order.pickup_location.lng, order.pickup_location.lat);
+    const drivers = await getAvailableNearestDrivers(order.transportType, order.pickupLocation)
     for (const driver of drivers) {
-        const socket = getDriverSocket(driver[0]);
+        const socket = getDriverSocket(driver.id);
         socket.emit('order:request', {
             success: true,
             message: 'Order request',
@@ -35,6 +51,13 @@ const matchDriver = async (order) => {
         console.log(response);
         if (response?.success) {
             resDriver = driver;
+            setImmediate(async () => {
+                const driverInstance = await Driver.findByPk(driver.id);
+                if (driverInstance) {
+                    await driverInstance.update({ status: 'BUSY' });
+                    console.log(`Driver ${driver.id} went busy.`);
+                }
+            });
             break;
         }
     }
@@ -57,4 +80,28 @@ const waitForDriverResponse = async (socket) => {
     });
 }
 
-module.exports = { matchDriver };
+const driverDirectionSupport = async (transportType, driverLocation, orderLocation) => {
+    const transportMode = transportType === 'MOTORBIKE' ? 'scooter' : 'car'
+    return await directRoute(transportMode, driverLocation, orderLocation);
+}
+
+const directRoute = async (transportMode, origin, destination) => {
+    try {
+        const res = await axios.get(`https://router.hereapi.com/v8/routes?transportMode=${transportMode}&origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&return=summary,polyline,actions,instructions&lang=vi&apikey=${HERE_API_KEY}`);
+
+        const section = res.data.routes[0].sections[0];
+        const actions = section.actions;
+        const polyline = section.polyline;
+
+        return {
+            actions,
+            polyline
+        };
+    } catch (error) {
+        console.error('Error getting route direction:', error);
+        return null;
+    }
+}
+
+
+module.exports = { matchDriver, driverDirectionSupport };

@@ -39,11 +39,11 @@ const fetchDriverById = async (req, res) => {
 
 const assessDriverRegister = async (req, res) => {
     const { id } = req.params;
-    const { approval_status } = req.body;
+    const { approvalStatus } = req.body;
     logger.info(`[AdminController] Assessing driver registration: ${id}`);
 
     try {
-        const driver = await Driver.update({ approvalStatus: approval_status }, { where: { id } });
+        const driver = await Driver.update({ approvalStatus }, { where: { id } });
         if (!driver) {
             return res.status(400).json({
                 success: false,

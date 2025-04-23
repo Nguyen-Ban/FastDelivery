@@ -1,3 +1,4 @@
+const redisClient = require('../config/redis');
 const { matchDriver } = require('../services/algo.service');
 module.exports = (io, socket) => {
     socket.on('order:create', async (data) => {
@@ -21,6 +22,27 @@ module.exports = (io, socket) => {
 
 
     });
+
+    socket.on('driver:location', async (data) => {
+        const driverPos = await redisClient.geopos('drivers:locations', data.driverId);
+        if (driverPos) {
+            socket.emit('driver:location', {
+                success: true,
+                message: 'Driver location updated successfully',
+                data: {
+                    driverPos: {
+                        lng: driverPos[0][0],
+                        lat: driverPos[0][1]
+                    }
+                }
+            });
+        } else {
+            socket.emit('driver:location', {
+                success: false,
+                message: 'Driver not found',
+            });
+        }
+    })
 }
 
 

@@ -7,10 +7,12 @@ require('./models/index'); // Import associations
 const initWebSocket = require('./config/websocket');
 const { User } = require('./models/index');
 
+
 const app = express();
 const apiRouter = require('./routes/index');
 const errorHandler = require('./middleware/error.middleware');
 const redisClient = require('./config/redis');
+const { sendNotification } = require('./services/notification.service');
 
 
 // Middleware
@@ -25,6 +27,11 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api', apiRouter);
+
+app.get('/get-ip', (req, res) => {
+    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+    res.json({ ip });
+});
 
 // Error handling
 app.use(errorHandler);
@@ -54,7 +61,7 @@ const startServer = async () => {
                 roles: ['SYSADMIN']
             });
         }
-        
+
         // await redisClient.flushall();
         // logger.info('[App] Redis flushed successfully.');
 

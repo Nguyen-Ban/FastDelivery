@@ -18,7 +18,11 @@ const Order = sequelize.define('Order', {
         allowNull: true,
         field: 'driver_id'
     },
-
+    transportType: {
+        type: DataTypes.ENUM('MOTORBIKE', 'CAR'),
+        allowNull: false,
+        field: 'transport_type'
+    },
     price: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,

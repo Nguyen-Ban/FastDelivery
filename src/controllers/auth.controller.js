@@ -60,7 +60,7 @@ const login = async (req, res) => {
             data: {
                 accessToken,
                 refreshToken,
-                user: { id: user.id, phoneNumber: user.phoneNumber, fullName: user.fullName }
+                user: { id: user.id, phoneNumber: user.phoneNumber, fullName: user.fullName, roles: user.roles }
             }
         });
 

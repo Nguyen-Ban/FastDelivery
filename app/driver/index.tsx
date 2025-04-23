@@ -54,7 +54,7 @@ const Driver = () => {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.menuButton}
-          onPress={() => router.push("/driver/menu")}
+          onPress={() => router.push("../driver/menu")}
         >
           <Ionicons name="menu" size={24} color="#333" />
         </TouchableOpacity>
@@ -63,7 +63,7 @@ const Driver = () => {
       {/* Calendar Button with Notification */}
       <TouchableOpacity
         style={styles.calendarButton}
-        onPress={() => router.push("/driver/order-details")}
+        onPress={() => router.push("../driver/order-details")}
       >
         <View style={styles.calendarIconContainer}>
           <MaterialIcons name="event-note" size={24} color="#333" />
@@ -142,7 +142,7 @@ const Driver = () => {
 
         <TouchableOpacity
           style={styles.navItem}
-          onPress={() => router.push("/driver/delivery-settings")}
+          onPress={() => router.push("../driver/delivery-settings")}
         >
           <Ionicons name="ellipsis-horizontal" size={22} color="#666" />
           <Text style={styles.navText}>Cài đặt</Text>

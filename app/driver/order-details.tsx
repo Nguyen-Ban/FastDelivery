@@ -92,7 +92,7 @@ const OrderDetails = () => {
                 {/* Accept Button */}
                 <TouchableOpacity
                     style={styles.acceptButton}
-                    onPress={() => router.push("/driver/on-delivery")}
+                    onPress={() => router.push("../driver/on-delivery")}
                 >
                     <Text style={styles.acceptButtonText}>Nhận chuyến</Text>
                     <View style={styles.timeContainer}>

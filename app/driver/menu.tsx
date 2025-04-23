@@ -39,7 +39,7 @@ const DriverMenu = () => {
                 <View style={styles.menuItems}>
                     <TouchableOpacity
                         style={styles.menuItem}
-                        onPress={() => router.push("/driver/my-wallet")}
+                        onPress={() => router.push("../driver/my-wallet")}
                     >
                         <Ionicons name="wallet-outline" size={24} color="#333" />
                         <Text style={styles.menuItemText}>Ví của tôi</Text>
@@ -48,7 +48,7 @@ const DriverMenu = () => {
 
                     <TouchableOpacity
                         style={styles.menuItem}
-                        onPress={() => router.push("/driver/delivery-history")}
+                        onPress={() => router.push("../driver/delivery-history")}
                     >
                         <MaterialIcons name="history" size={24} color="#333" />
                         <Text style={styles.menuItemText}>Lịch sử vận chuyển</Text>

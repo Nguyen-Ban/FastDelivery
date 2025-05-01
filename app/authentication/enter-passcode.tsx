@@ -59,7 +59,6 @@ const EnterPasscode = () => {
       } else {
         // Flow đăng nhập - use the context login function
         await login(phoneNumber as string, passcode);
-        // Router navigation is handled inside the login function in AuthContext
       }
     } catch (error) {
       Alert.alert("Lỗi", "Không thể kết nối đến server");

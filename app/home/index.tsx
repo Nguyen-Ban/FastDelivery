@@ -26,12 +26,14 @@ const HomeScreen = () => {
     { id: "6", name: "Trở thành tài xế", icon: "user-plus" },
   ];
 
-  type ServiceRoute = "/order/order" | "/home";
+  type ServiceRoute = "/location" | "/home" | "/driver";
 
   const getRouteById = (id: string): ServiceRoute => {
     switch (id) {
       case "1":
-        return "/order/order";
+        return "/location";
+      case "5":
+        return "/driver";
       default:
         return "/home";
     }

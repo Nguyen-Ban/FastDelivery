@@ -3,6 +3,8 @@ import { useRouter } from 'expo-router'; // Dùng với Expo Router
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import authService from '../services/auth.service'; // Dịch vụ xác thực
 import { AuthContextType, AuthState, User } from './types';
+import { useNotification } from '@/hooks/useNotification';
+
 
 const initialState = {
     user: null,
@@ -13,6 +15,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const { registerForPushNotificationsAsync } = useNotification();
+
     const [state, setState] = useState<AuthState>(initialState);
     const router = useRouter();
 
@@ -43,7 +47,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     isAuthenticated: true
                 });
                 if (response.data.user.roles.includes('ADMIN') || response.data.user.roles.includes('SYSADMIN')) router.push('/admin')
-                else router.push('/home'); // Điều hướng về trang chủ
+                else router.push("/home"); // Điều hướng về trang chủ
+                // Register for push notifications
+                await registerForPushNotificationsAsync(response.data.user.id);
             }
         } catch (error) {
             console.error('Login error:', error);

@@ -40,7 +40,7 @@ const ClientInfo = () => {
         <TouchableOpacity
           style={styles.address_view}
           onPress={() => {
-            router.push("../order/location-pick");
+            router.push("/location/location-pick");
           }}
         >
           <Text></Text>

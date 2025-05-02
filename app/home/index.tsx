@@ -28,7 +28,7 @@ const HomeScreen = () => {
     { id: "1", name: "Giao hàng", icon: "box" },
     { id: "2", name: "Lịch sử", icon: "sticky-note" },
     { id: "3", name: "Chi tiêu", icon: "chart-simple" },
-    { id: "4", name: "Tài xế", icon: "car-on" },
+    { id: "4", name: "Nhận đơn", icon: "car-on" },
     { id: "5", name: "Trở thành tài xế", icon: "user-plus" },
   ];
   const ads = [
@@ -37,14 +37,26 @@ const HomeScreen = () => {
     require("../../assets/ad_3.png"),
   ];
 
-  type ServiceRoute = "/location" | "/home" | "/driver";
+  type ServiceRoute =
+    | "/location"
+    | "/home"
+    | "/driver"
+    | "/user/spending"
+    | "/user/events"
+    | "/user/driver-form";
 
   const getRouteById = (id: string): ServiceRoute => {
     switch (id) {
       case "1":
         return "/location";
+      case "2":
+        return "/user/events";
+      case "3":
+        return "/user/spending";
       case "4":
         return "/driver";
+      case "5":
+        return "/user/driver-form";
       default:
         return "/home";
     }
@@ -74,10 +86,13 @@ const HomeScreen = () => {
       </View>
       <View style={styles.content_view_1}>
         <Text style={styles.greeting}>
-          Xin chào, {"\n"}
+          Xin chào,{"\n"}
           {name}
         </Text>
-        <TouchableOpacity style={styles.user_img}>
+        <TouchableOpacity
+          style={styles.user_img}
+          onPress={() => router.push("/user/profile")}
+        >
           <FontAwesome6
             name="user"
             size={25}
@@ -114,7 +129,7 @@ const HomeScreen = () => {
       >
         {ads.map((ad, i) => (
           <TouchableOpacity key={i} onPress={() => {}}>
-            <Image source={ad} style={styles.ad} resizeMode="center" />
+            <Image source={ad} style={styles.ad} resizeMode="cover" />
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -182,5 +197,5 @@ const styles = StyleSheet.create({
   scroll_view: {
     alignContent: "center",
   },
-  ad: { width: 200, height: 200 },
+  ad: { width: 200, height: 200, borderRadius: 8, marginHorizontal: 5 },
 });

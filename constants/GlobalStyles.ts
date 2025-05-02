@@ -12,7 +12,7 @@ const GlobalStyles = StyleSheet.create({
   },
   home_title: { fontSize: 24, fontWeight: "bold", alignSelf: "center" },
   home_container: {
-    height: "100%",
+    flex: 1,
     flexDirection: "column",
     alignContent: "center",
     justifyContent: "flex-start",

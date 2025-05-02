@@ -39,7 +39,7 @@ const Message = () => {
             iconContainerStyle={{
               paddingRight: 20,
             }}
-            style={{ paddingVertical: 15 }}
+            style={styles.card}
           />
         )}
         style={{
@@ -55,4 +55,14 @@ const Message = () => {
 
 export default Message;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  card: {
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    marginTop: 10,
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: COLOR.blue40,
+    backgroundColor: COLOR.blue95,
+  },
+});

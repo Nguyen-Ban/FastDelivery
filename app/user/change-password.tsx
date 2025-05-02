@@ -1,12 +1,12 @@
 import React from "react";
 import {
   View,
-  Text,
   StyleSheet,
   TouchableOpacity,
   TextInput,
   FlatList,
   Image,
+  Text,
   Dimensions,
 } from "react-native";
 
@@ -21,6 +21,10 @@ const { width } = Dimensions.get("window");
 
 const ChangePasswordScreen = () => {
   const router = useRouter();
+  const [oldPassword, setOldPassword] = React.useState<string>("");
+  const [newPassword, setNewPassword] = React.useState<string>("");
+  const [confirmPassword, setConfirmPassword] = React.useState<string>("");
+
   return (
     <View style={GLOBAL.home_container}>
       <View style={styles.header}>
@@ -41,15 +45,27 @@ const ChangePasswordScreen = () => {
       </View>
       <View style={styles.content_view}>
         <Text style={styles.label}>Nhập mật khẩu cũ (6 chữ số)</Text>
-        <TextInput style={styles.text_input} keyboardType="numeric"></TextInput>
+        <TextInput
+          style={styles.text_input}
+          keyboardType="numeric"
+          value={oldPassword}
+        ></TextInput>
       </View>
       <View style={styles.content_view}>
         <Text style={styles.label}>Nhập mật khẩu mới (6 chữ số)</Text>
-        <TextInput style={styles.text_input} keyboardType="numeric"></TextInput>
+        <TextInput
+          style={styles.text_input}
+          keyboardType="numeric"
+          value={newPassword}
+        ></TextInput>
       </View>
       <View style={styles.content_view}>
         <Text style={styles.label}>Nhập lại mật khẩu mới </Text>
-        <TextInput style={styles.text_input} keyboardType="numeric"></TextInput>
+        <TextInput
+          style={styles.text_input}
+          keyboardType="numeric"
+          value={confirmPassword}
+        ></TextInput>
       </View>
       <View style={{ flex: 1, justifyContent: "flex-end", padding: 16 }}>
         <Button
@@ -83,13 +99,13 @@ const styles = StyleSheet.create({
     justifyContent: "flex-start",
     alignItems: "center",
   },
-  content_view: { paddingHorizontal: 16 },
-  label: { fontSize: 16, paddingTop: 16 },
+  content_view: { paddingHorizontal: 16, paddingTop: 16 },
+  label: { fontSize: 16 },
   text_input: {
     backgroundColor: COLOR.grey90,
     fontSize: 16,
     borderRadius: 5,
-    paddingVertical: 16,
+    paddingVertical: 10,
     marginTop: 8,
     borderWidth: 1,
     borderColor: COLOR.grey70,

@@ -12,7 +12,7 @@ import {
 
 import GLOBAL from "../../constants/GlobalStyles";
 import COLOR from "../../constants/Colors";
-
+import Button from "../../components/Button/ButtonComponent";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
@@ -39,6 +39,28 @@ const ChangePasswordScreen = () => {
           <Text style={styles.title}>Đổi mật khẩu</Text>
         </LinearGradient>
       </View>
+      <View style={styles.content_view}>
+        <Text style={styles.label}>Nhập mật khẩu cũ (6 chữ số)</Text>
+        <TextInput style={styles.text_input} keyboardType="numeric"></TextInput>
+      </View>
+      <View style={styles.content_view}>
+        <Text style={styles.label}>Nhập mật khẩu mới (6 chữ số)</Text>
+        <TextInput style={styles.text_input} keyboardType="numeric"></TextInput>
+      </View>
+      <View style={styles.content_view}>
+        <Text style={styles.label}>Nhập lại mật khẩu mới </Text>
+        <TextInput style={styles.text_input} keyboardType="numeric"></TextInput>
+      </View>
+      <View style={{ flex: 1, justifyContent: "flex-end", padding: 16 }}>
+        <Button
+          title="Đổi mật khẩu"
+          size="large"
+          type="primary"
+          onPress={() => {
+            router.back();
+          }}
+        />
+      </View>
     </View>
   );
 };
@@ -60,5 +82,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     alignItems: "center",
+  },
+  content_view: { paddingHorizontal: 16 },
+  label: { fontSize: 16, paddingTop: 16 },
+  text_input: {
+    backgroundColor: COLOR.grey90,
+    fontSize: 16,
+    borderRadius: 5,
+    paddingVertical: 16,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: COLOR.grey70,
   },
 });

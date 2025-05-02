@@ -77,7 +77,7 @@ const HomeScreen = () => {
           <Text
             style={{
               fontSize: 30,
-              fontFamily: "Cascadia-Bold",
+              fontWeight: "bold",
             }}
           >
             Fast{"\n"}Delivery

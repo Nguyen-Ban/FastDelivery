@@ -18,56 +18,61 @@ import GLOBAL from "../../constants/GlobalStyles";
 
 const SAMPLE_LOCATIONS = [
   {
-    id: '1',
-    name: 'Công viên Hòa Bình',
-    address: 'Đường Hoàng Quốc Việt, Cầu Giấy, Hà Nội',
-    latitude: '21.046459',
-    longitude: '105.791688'
+    id: "1",
+    name: "Công viên Hòa Bình",
+    address: "Đường Hoàng Quốc Việt, Cầu Giấy, Hà Nội",
+    latitude: "21.046459",
+    longitude: "105.791688",
   },
   {
-    id: '2',
-    name: 'The Dewey Schools',
-    address: 'Tây Hồ Tây, Hà Nội',
-    latitude: '21.045789',
-    longitude: '105.792567'
+    id: "2",
+    name: "The Dewey Schools",
+    address: "Tây Hồ Tây, Hà Nội",
+    latitude: "21.045789",
+    longitude: "105.792567",
   },
   {
-    id: '3',
-    name: 'Khu đô thị Resco',
-    address: 'Đường Trần Cung, Cổ Nhuế, Từ Liêm, Hà Nội',
-    latitude: '21.047123',
-    longitude: '105.790345'
+    id: "3",
+    name: "Khu đô thị Resco",
+    address: "Đường Trần Cung, Cổ Nhuế, Từ Liêm, Hà Nội",
+    latitude: "21.047123",
+    longitude: "105.790345",
   },
-]
+];
 
 const Location = () => {
   const router = useRouter();
-  const [searchText, setSearchText] = useState('');
+  const [searchText, setSearchText] = useState("");
   const [filteredLocations, setFilteredLocations] = useState(SAMPLE_LOCATIONS);
 
   const handleSearch = (text: string) => {
     setSearchText(text);
-    const filtered = SAMPLE_LOCATIONS.filter(location =>
-      location.name.toLowerCase().includes(text.toLowerCase()) ||
-      location.address.toLowerCase().includes(text.toLowerCase())
+    const filtered = SAMPLE_LOCATIONS.filter(
+      (location) =>
+        location.name.toLowerCase().includes(text.toLowerCase()) ||
+        location.address.toLowerCase().includes(text.toLowerCase())
     );
     setFilteredLocations(filtered);
   };
 
-  const handleLocationSelect = (location: typeof SAMPLE_LOCATIONS[0]) => {
+  const handleLocationSelect = (location: (typeof SAMPLE_LOCATIONS)[0]) => {
     router.push({
-      pathname: '/location/location-picked',
+      pathname: "/location/location-picked",
       params: {
         address: location.address,
         latitude: location.latitude,
-        longitude: location.longitude
-      }
+        longitude: location.longitude,
+      },
     });
   };
 
-  const renderLocationItem = ({ item }: { item: typeof SAMPLE_LOCATIONS[0] }) => (
-    <TouchableOpacity 
-      style={styles.locationItem} 
+  const renderLocationItem = ({
+    item,
+  }: {
+    item: (typeof SAMPLE_LOCATIONS)[0];
+  }) => (
+    <TouchableOpacity
+      style={styles.locationItem}
       onPress={() => handleLocationSelect(item)}
     >
       <FontAwesome6 name="location-dot" size={20} color={COLOR.blue_theme} />
@@ -81,12 +86,15 @@ const Location = () => {
   return (
     <View style={[GLOBAL.container, { padding: 0 }]}>
       <LinearGradient
-        colors={[COLOR.blue70, COLOR.white]}
+        colors={[COLOR.blue70, COLOR.orange70, COLOR.white]}
         style={styles.background}
-        locations={[0.15, 0.25]}
+        locations={[0, 0.22, 0.3]}
       />
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
           <FontAwesome6 name="arrow-left" size={24} color={COLOR.black} />
         </TouchableOpacity>
         <Text style={styles.label}>Chọn địa điểm</Text>
@@ -112,7 +120,7 @@ const Location = () => {
       <FlatList
         data={filteredLocations}
         renderItem={renderLocationItem}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
         style={styles.locationList}
         contentContainerStyle={styles.locationListContent}
       />
@@ -120,11 +128,15 @@ const Location = () => {
       <View style={styles.footer}>
         <Button
           title="Chọn trên bản đồ"
-          onPress={() => router.push('/location/location-map-pick')}
+          onPress={() => router.push("/location/location-map-pick")}
           type="primary"
           size="large"
           leftImg={
-            <FontAwesome6 name="map-location-dot" size={24} color={COLOR.white} />
+            <FontAwesome6
+              name="map-location-dot"
+              size={24}
+              color={COLOR.white}
+            />
           }
         />
       </View>
@@ -143,8 +155,8 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: 16,
     paddingTop: 20,
   },
@@ -180,12 +192,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLOR.white,
   },
   locationListContent: {
-    padding: 16,
-    paddingTop: 0,
+    paddingHorizontal: 16,
+    marginTop: 16,
   },
   locationItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     padding: 12,
     borderRadius: 8,
     backgroundColor: COLOR.blue95,
@@ -197,7 +209,7 @@ const styles = StyleSheet.create({
   },
   locationName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     color: COLOR.blue_theme,
     marginBottom: 4,
   },

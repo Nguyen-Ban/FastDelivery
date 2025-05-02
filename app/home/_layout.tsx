@@ -66,6 +66,5 @@ export default HomeLayout;
 const styles = StyleSheet.create({
   tabs: {
     backgroundColor: COLOR.grey90,
-    height: "8%",
   },
 });

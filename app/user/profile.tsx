@@ -51,11 +51,7 @@ const ProfileScreen = () => {
       </View>
       <View style={styles.content_view}>
         <Text style={styles.label}>Số điện thoại</Text>
-        <TextInput
-          style={styles.text_input}
-          keyboardType="numeric"
-          value={phoneNumber}
-        ></TextInput>
+        <TextInput style={styles.text_input} keyboardType="numeric"></TextInput>
       </View>
       <View style={styles.content_view}>
         <Text style={styles.label}>Địa chỉ</Text>

@@ -11,36 +11,122 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 
 import Button from "../../components/Button/ButtonComponent";
-import InfoCard from "../../components/Button/InfoCard";
+import InfoCard from "../../components/InfoCard";
+import EventCard from "../../components/EventCard";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 const Activity = () => {
   //hard code
-  const activities = [
-    { id: "1", title: "Title1", subtitle: "Subtitle1" },
-    { id: "2", title: "Title2", subtitle: "Subtitle2" },
-    { id: "3", title: "Title3", subtitle: "Subtitle3" },
+  const deliveries = [
+    {
+      date: "03/04/2024",
+      items: [
+        {
+          amount: "56.000đ",
+          time: "15:13",
+          vehicleType: "MOTORCYCLE",
+          packageType: "Bưu kiện nhỏ",
+          pickup: "300/23/21 Nguyễn Văn Linh P.Bình Thuận",
+          dropoff: "Morin Milk Tea - Coffee 64/20 Võ Oanh",
+          status: "Hoàn thành",
+        },
+        {
+          amount: "20.000đ",
+          time: "14:38",
+          vehicleType: "MOTORCYCLE",
+          packageType: "Bưu kiện nhỏ",
+          pickup: "Eddie's New York Deli & Diner",
+          dropoff: "Chung Cư Khánh Hội 3",
+          status: "Hoàn thành",
+        },
+        {
+          amount: "48.000đ",
+          time: "14:02",
+          vehicleType: "CAR",
+          packageType: "Bưu kiện vừa",
+          pickup: "6 Tân Trào 6 Tan Trao St.",
+          dropoff: "140 Nguyễn Văn Thủ P.Da Kao",
+          status: "Hoàn thành",
+        },
+        {
+          amount: "20.000đ",
+          time: "13:44",
+          vehicleType: "MOTORCYCLE",
+          packageType: "Bưu kiện nhỏ",
+          pickup: "Q7 Saigon Riverside Complex - Cổng Chính D...",
+          dropoff: "GO! Nguyễn Thị Thập - Cổng Phụ 99 Nguyen...",
+          status: "Hoàn thành",
+        },
+        {
+          amount: "35.000đ",
+          time: "15:30",
+          vehicleType: "MOTORCYCLE",
+          packageType: "Bưu kiện nhỏ",
+          pickup: "Sample Address",
+          dropoff: "Sample Destination",
+          status: "Bị hủy",
+        },
+      ],
+    },
+    {
+      date: "04/04/2024",
+      items: [
+        {
+          amount: "35.000đ",
+          time: "15:30",
+          vehicleType: "MOTORCYCLE",
+          packageType: "Bưu kiện nhỏ",
+          pickup: "Sample Address",
+          dropoff: "Sample Destination",
+          status: "Hoàn thành",
+        },
+      ],
+    },
+    {
+      date: "04/05/2025",
+      items: [
+        {
+          amount: "35.000đ",
+          time: "15:30",
+          vehicleType: "MOTORCYCLE",
+          packageType: "Bưu kiện nhỏ",
+          pickup: "Sample Address",
+          dropoff: "Sample Destination",
+          status: "Đang giao hàng",
+        },
+      ],
+    },
   ];
 
   return (
     <View style={GLOBAL.container}>
       <Text style={GLOBAL.home_title}>Hoạt động</Text>
       <FlatList
-        data={activities}
-        keyExtractor={(item) => item.id}
+        data={deliveries}
+        keyExtractor={(item) => item.date}
         renderItem={({ item }) => (
-          <InfoCard
-            title={item.title}
-            subtitle={item.subtitle}
-            onPress={() => {}}
-            style={{ paddingVertical: 10 }}
-          />
+          <FlatList
+            data={item.items}
+            keyExtractor={(item) => item.time}
+            renderItem={({ item: details }) => (
+              <EventCard
+                amount={details.amount}
+                date={item.date}
+                time={details.time}
+                vehicleType={details.vehicleType}
+                pickup={details.pickup}
+                dropoff={details.dropoff}
+                status={details.status}
+                onPress={() => {}}
+                container_style={{ paddingBottom: 10 }}
+              ></EventCard>
+            )}
+          ></FlatList>
         )}
         style={{
-          marginTop: 10,
-          paddingTop: 10,
+          marginVertical: 5,
           borderTopColor: COLOR.grey70,
           borderTopWidth: 1,
         }}

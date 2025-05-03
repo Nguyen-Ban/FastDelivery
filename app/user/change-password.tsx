@@ -45,27 +45,15 @@ const ChangePasswordScreen = () => {
       </View>
       <View style={styles.content_view}>
         <Text style={styles.label}>Nhập mật khẩu cũ (6 chữ số)</Text>
-        <TextInput
-          style={styles.text_input}
-          keyboardType="numeric"
-          value={oldPassword}
-        ></TextInput>
+        <TextInput style={styles.text_input} keyboardType="numeric"></TextInput>
       </View>
       <View style={styles.content_view}>
         <Text style={styles.label}>Nhập mật khẩu mới (6 chữ số)</Text>
-        <TextInput
-          style={styles.text_input}
-          keyboardType="numeric"
-          value={newPassword}
-        ></TextInput>
+        <TextInput style={styles.text_input} keyboardType="numeric"></TextInput>
       </View>
       <View style={styles.content_view}>
         <Text style={styles.label}>Nhập lại mật khẩu mới </Text>
-        <TextInput
-          style={styles.text_input}
-          keyboardType="numeric"
-          value={confirmPassword}
-        ></TextInput>
+        <TextInput style={styles.text_input} keyboardType="numeric"></TextInput>
       </View>
       <View style={{ flex: 1, justifyContent: "flex-end", padding: 16 }}>
         <Button

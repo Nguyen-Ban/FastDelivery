@@ -11,7 +11,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 
 import Button from "../../components/Button/ButtonComponent";
-import InfoCard from "@/components/Button/InfoCard";
+import InfoCard from "@/components/InfoCard";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 import { FontAwesome6 } from "@expo/vector-icons";

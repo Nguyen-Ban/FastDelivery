@@ -13,7 +13,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
-import InfoCard from "@/components/Button/InfoCard";
+import InfoCard from "@/components/InfoCard";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 const Message = () => {

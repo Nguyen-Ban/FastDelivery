@@ -4,18 +4,26 @@ const { driverDirectionSupport } = require('../services/algo.service');
 
 module.exports = (io, socket) => {
     socket.on('location:update', async (data) => {
-        await redisClient.geoadd(
-            'drivers:locations',
-            data.lng,
-            data.lat,
-            socket.driver.id
-        );
+        try {
+            await redisClient.geoadd(
+                'drivers:locations',
+                data.lng,
+                data.lat,
+                socket.driverId
+            );
 
-        io.driverNamespace.to(socket.id).emit('location:update', {
-            success: true,
-            message: 'Location updated successfully',
-            data: data
-        });
+            io.driverNamespace.to(socket.id).emit('location:update', {
+                success: true,
+                message: 'Location updated successfully',
+                data: data
+            });
+        } catch (error) {
+            io.driverNamespace.to(socket.id).emit('location:update', {
+                success: false,
+                message: 'Location update failed',
+                error: error.message
+            });
+        }
     });
 
     socket.on('order:route', async (data) => {
@@ -39,7 +47,7 @@ module.exports = (io, socket) => {
     });
 
     socket.on('disconnect', async () => {
-        const driverId = socket.driver?.id;
+        const driverId = socket.driverId;
         if (!driverId) return;
 
         // Xóa driver khỏi Redis GEO ngay lập tức (coi như offline)

@@ -16,6 +16,8 @@ const getDurationBasedOnRoadRoute = async (transportMode, origin, destination) =
 }
 
 const getAvailableNearestDrivers = async (transportType, orderPickUpLocation) => {
+    const { pickupLat: lat, pickupLng: lng } = orderPickUpLocation;
+
     const driverKeys = await redisClient.zrange('drivers:locations', 0, -1); // lấy tất cả driver IDs
 
     const driverLocations = await Promise.all(
@@ -27,7 +29,7 @@ const getAvailableNearestDrivers = async (transportType, orderPickUpLocation) =>
     const drivers = driverKeys.map((id, index) => ({
         id,
         duration: driverLocations[index][0] ? getDurationBasedOnRoadRoute(transportMode,
-            { lng: driverLocations[index][0][0], lat: driverLocations[index][0][1] }, orderPickUpLocation) : null,
+            { lng: driverLocations[index][0][0], lat: driverLocations[index][0][1] }, { lat, lng }) : null,
     }));
 
     drivers.sort((a, b) => a.duration - b.duration);
@@ -37,18 +39,17 @@ const getAvailableNearestDrivers = async (transportType, orderPickUpLocation) =>
 
 
 
-const matchDriver = async (order) => {
+const matchDriver = async (transportType, orderPickUpLocation, orderDetail) => {
     let resDriver = null;
-    const drivers = await getAvailableNearestDrivers(order.transportType, order.pickupLocation)
+    const drivers = await getAvailableNearestDrivers(transportType, orderPickUpLocation)
     for (const driver of drivers) {
         const socket = getDriverSocket(driver.id);
         socket.emit('order:request', {
             success: true,
             message: 'Order request',
-            data: { order }
+            data: orderDetail
         });
         const response = await waitForDriverResponse(socket);
-        console.log(response);
         if (response?.success) {
             resDriver = driver;
             setImmediate(async () => {
@@ -58,9 +59,14 @@ const matchDriver = async (order) => {
                     console.log(`Driver ${driver.id} went busy.`);
                 }
             });
+            console.log('1', resDriver)
+
             break;
         }
+        console.log('2', resDriver)
+
     }
+    console.log('3', resDriver)
     return resDriver;
 }
 

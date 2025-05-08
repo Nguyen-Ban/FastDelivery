@@ -1,7 +1,7 @@
 const socketIO = require('socket.io');
-const customerListener = require('../listeners/customer.listener');
-const driverListener = require('../listeners/driver.listener');
-const { authenticateSocket } = require('../middleware/auth.middleware');
+const customerListener = require('../listeners/order.listener');
+const driverListener = require('../listeners/location.listener');
+const { authenticateSocket, checkSocketRole } = require('../middleware/auth.middleware');
 
 module.exports = (server) => {
     const io = socketIO(server, {
@@ -14,7 +14,8 @@ module.exports = (server) => {
 
     // Namespace cho khách hàng
     const customerNamespace = io.of('/customer');
-    customerNamespace.use((socket, next) => authenticateSocket(socket, next));
+    customerNamespace.use(authenticateSocket);
+    customerNamespace.use(checkSocketRole(['CUSTOMER']))
     customerNamespace.on('connection', (socket) => {
         console.log('[Socket] Customer connected:', socket.id);
         customerListener({ customerNamespace, driverNamespace }, socket);
@@ -22,7 +23,8 @@ module.exports = (server) => {
 
     // Namespace cho tài xế
     const driverNamespace = io.of('/driver');
-    driverNamespace.use((socket, next) => authenticateSocket(socket, next));
+    driverNamespace.use(authenticateSocket);
+    driverNamespace.use(checkSocketRole(['DRIVER']))
     driverNamespace.on('connection', (socket) => {
         console.log('[Socket] Driver connected:', socket.id);
         driverListener({ driverNamespace, customerNamespace }, socket);

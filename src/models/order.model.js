@@ -29,8 +29,8 @@ const Order = sequelize.define('Order', {
         field: 'price'
     },
     status: {
-        type: DataTypes.ENUM('PENDING', 'ASSIGNED', 'PICKED_UP', 'DELIVERED', 'CANCELLED'),
-        defaultValue: 'PENDING',
+        type: DataTypes.ENUM('ASSIGNED', 'PICKED_UP', 'DELIVERED', 'CANCELLED'),
+        defaultValue: 'ASSIGNED',
         field: 'status'
     }
 }, {

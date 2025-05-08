@@ -1,6 +1,6 @@
 const { User } = require("../models/index");
 const getProfile = async (req, res) => {
-    const userId = req.user.userId;
+    const userId = req.userId;
     const user = await User.findByPk(userId);
     if (!user) {
         return res.status(404).json({
@@ -17,7 +17,7 @@ const getProfile = async (req, res) => {
 };
 
 const updateProfile = async (req, res) => {
-    const userId = req.user.userId;
+    const userId = req.userId;
     const { fullName, dateOfBirth, gender, email } = req.body;
     const user = await User.findByPk(userId);
     if (!user) {
@@ -40,7 +40,7 @@ const updateProfile = async (req, res) => {
 };
 
 const changePasscode = async (req, res) => {
-    const userId = req.user.userId;
+    const userId = req.userId;
     const { passcode } = req.body;
     const user = await User.findByPk(userId);
     if (!user) {

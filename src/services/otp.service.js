@@ -15,49 +15,49 @@ const sendOTP = async (phoneNumber) => {
 
         await checkOTPAttempts(phoneNumber);
 
-        // const otp = '123456'; // for testing
-        const otp = generateOTP();
+        const otp = '123456'; // for testing
+        // const otp = generateOTP();
 
-        const message = `[Fast Delivery] Your OTP is: ${otp}. Valid for 5 minutes.`;
-        const normalizedPhone = normalizePhoneNumber(phoneNumber);
-        const postData = JSON.stringify({
-            messages: [
-                {
-                    destinations: [{ to: normalizedPhone }],
-                    from: infobipSender,
-                    text: message,
-                },
-            ],
-        });
+        // const message = `[Fast Delivery] Your OTP is: ${otp}. Valid for 5 minutes.`;
+        // const normalizedPhone = normalizePhoneNumber(phoneNumber);
+        // const postData = JSON.stringify({
+        //     messages: [
+        //         {
+        //             destinations: [{ to: normalizedPhone }],
+        //             from: infobipSender,
+        //             text: message,
+        //         },
+        //     ],
+        // });
 
-        const options = {
-            method: 'POST',
-            hostname: infobipBaseUrl,
-            path: '/sms/2/text/advanced',
-            headers: {
-                Authorization: infobipApiKey,
-                'Content-Type': 'application/json',
-                Accept: 'application/json',
-            },
-            maxRedirects: 20,
-        };
+        // const options = {
+        //     method: 'POST',
+        //     hostname: infobipBaseUrl,
+        //     path: '/sms/2/text/advanced',
+        //     headers: {
+        //         Authorization: infobipApiKey,
+        //         'Content-Type': 'application/json',
+        //         Accept: 'application/json',
+        //     },
+        //     maxRedirects: 20,
+        // };
 
-        const response = await new Promise((resolve, reject) => {
-            const req = https.request(options, (res) => {
-                let data = [];
-                res.on('data', (chunk) => data.push(chunk));
-                res.on('end', () => resolve(Buffer.concat(data).toString()));
-            });
+        // const response = await new Promise((resolve, reject) => {
+        //     const req = https.request(options, (res) => {
+        //         let data = [];
+        //         res.on('data', (chunk) => data.push(chunk));
+        //         res.on('end', () => resolve(Buffer.concat(data).toString()));
+        //     });
 
-            req.on('error', (e) => reject(new Error(`Request failed: ${e.message}`)));
-            req.write(postData);
-            req.end();
-        });
+        //     req.on('error', (e) => reject(new Error(`Request failed: ${e.message}`)));
+        //     req.write(postData);
+        //     req.end();
+        // });
 
-        const result = JSON.parse(response);
-        if (!result.messages || result.messages[0].status.groupId !== 1) {
-            throw new Error(`Failed to send SMS: ${JSON.stringify(result)}`);
-        }
+        // const result = JSON.parse(response);
+        // if (!result.messages || result.messages[0].status.groupId !== 1) {
+        //     throw new Error(`Failed to send SMS: ${JSON.stringify(result)}`);
+        // }
 
         // Store OTP in Redis with 5-minute expiration
         await redisClient.set(`otp:${phoneNumber}`, otp, 'EX', 5 * 60);

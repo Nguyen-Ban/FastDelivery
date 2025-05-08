@@ -119,15 +119,11 @@ const register = async (req, res) => {
             });
         }
         const user = await User.create({ phoneNumber, fullName, gender, dateOfBirth, email, passcode, roles: ['CUSTOMER'] });
-        const accessToken = await generateAccessToken(user.id);
-        const refreshToken = await generateRefreshToken(user.id);
 
         return res.status(201).json({
             success: true,
             message: 'Registration successful',
             data: {
-                accessToken,
-                refreshToken,
                 user: { id: user.id, phoneNumber: user.phoneNumber, fullName: user.fullName, gender: user.gender, dateOfBirth: user.dateOfBirth, email: user.email }
             }
         });
@@ -190,7 +186,7 @@ const resendOtp = async (req, res) => {
 };
 
 const logout = async (req, res) => {
-    const userId = req.user.userId;
+    const userId = req.userId;
     const accessToken = req.accessToken;
     logger.info(`[AuthController] Logout attempt for user ${userId}`);
 

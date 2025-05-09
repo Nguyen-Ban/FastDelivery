@@ -1,14 +1,14 @@
-const driverSocketMap = new Map();
+const socketMap = new Map();
 
-const registerDriverSocket = (driverId, socket) => {
-    driverSocketMap.set(driverId, socket);
+const registerSocket = (userId, socket) => {
+    socketMap.set(userId, socket);
 }
 
-const getDriverSocket = (driverId) => {
-    return driverSocketMap.get(Number(driverId)) || null;
+const getSocket = (userId) => {
+    return socketMap.get(Number(userId)) || null;
 }
 
 module.exports = {
-    registerDriverSocket,
-    getDriverSocket,
+    registerSocket,
+    getSocket,
 }

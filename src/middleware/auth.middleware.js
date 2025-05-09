@@ -1,7 +1,7 @@
 const logger = require('../config/logger');
 const { Driver, User } = require('../models/index');
 const { decodeAccessToken, isAccessTokenBlacklisted } = require('../services/token.service');
-const { registerDriverSocket } = require('../services/websocket/driver');
+const { registerSocket } = require('../services/websocket/driver');
 
 const authenticateToken = async (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -48,8 +48,6 @@ const checkRole = (allowedRoles) => {
         return res.status(403).json({ message: 'Role not assigned to user' });
       }
 
-
-
       // Nếu hợp lệ, gán vào req để controller dùng nếu cần
       req.activeRole = activeRole;
       next();
@@ -75,12 +73,8 @@ const authenticateSocket = async (socket, next) => {
 
     const { userId } = await decodeAccessToken(token);
 
-
     socket.userId = userId;
     logger.info(`[AuthMiddleware] User Id ${userId} socket authenticated successfully`);
-
-
-
 
     next();
   } catch (error) {
@@ -113,6 +107,7 @@ const checkSocketRole = (allowedRoles) => {
         return next(new Error('Role not assigned to user'));
       }
 
+
       if (activeRole == 'DRIVER') {
         const driver = await Driver.findOne({
           where: { userId }
@@ -127,7 +122,10 @@ const checkSocketRole = (allowedRoles) => {
           status: 'AVAILABLE'
         });
         logger.info(`[AuthMiddleware] Driver ${driver.id} authenticated successfully`);
-        registerDriverSocket(driver.id, socket);
+        registerSocket(driver.id, socket);
+      } else {
+        registerSocket(userId, socket);
+
       }
 
       // Gắn activeRole vào socket để dùng trong listener nếu cần

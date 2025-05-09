@@ -32,7 +32,11 @@ const Order = sequelize.define('Order', {
         type: DataTypes.ENUM('ASSIGNED', 'PICKED_UP', 'DELIVERED', 'CANCELLED'),
         defaultValue: 'ASSIGNED',
         field: 'status'
-    }
+    },
+    cancelledBy: {
+        type: DataTypes.ENUM('CUSTOMER', 'DRIVER'),
+        field: 'cancelled_by'
+    },
 }, {
     tableName: 'order',
     timestamps: true,

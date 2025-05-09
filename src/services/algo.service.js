@@ -1,6 +1,6 @@
 const { default: axios } = require("axios");
 const redisClient = require("../config/redis");
-const { getDriverSocket } = require("./websocket/driver");
+const { getSocket } = require("./websocket/driver");
 const { Driver } = require("../models/index");
 
 const HERE_API_KEY = process.env.HERE_API_KEY;
@@ -43,7 +43,7 @@ const matchDriver = async (transportType, orderPickUpLocation, orderDetail) => {
     let resDriver = null;
     const drivers = await getAvailableNearestDrivers(transportType, orderPickUpLocation)
     for (const driver of drivers) {
-        const socket = getDriverSocket(driver.id);
+        const socket = getSocket(driver.id);
         socket.emit('order:request', {
             success: true,
             message: 'Order request',

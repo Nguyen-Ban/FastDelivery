@@ -104,73 +104,28 @@ const fetchDriverById = async (req, res) => {
     }
 };
 
-const approveDriverRegister = async (req, res) => {
+const assessDriverAuth = async (req, res) => {
     const { id: driverId } = req.params;
-    logger.info(`[DriverController] Approving register of driver id: ${driverId}`);
+    const { action } = req.query;
+    logger.info(`[DriverController] Assess authorization of driver id: ${driverId}`);
 
     try {
         const driver = await Driver.findByPk(driverId);
-        await driver.update({ approvalStatus: "APPROVED" });
+        if (action == 'approve') approvalStatus = "APPROVED"
+        else if (action == 'reject') approvalStatus = "REJECTED"
+        else if (action == 'ban') approvalStatus = "BANNED"
+        await driver.update({ approvalStatus });
         res.status(200).json({
             success: true,
-            message: 'Driver Registration approved'
+            message: 'Assess driver authorization successfully',
+            data: {
+                approvalStatus: driver.approvalStatus
+            }
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Driver Registration Approval failed',
-            error: error.message
-        });
-    }
-};
-
-const rejectDriverRegister = async (req, res) => {
-    const { id: driverId } = req.params;
-    logger.info(`[DriverController] Rejecting register of driver id: ${driverId}`);
-
-    try {
-        const driver = await Driver.update({ approvalStatus: 'REJECTED' }, { where: { id: driverId } });
-        if (!driver) {
-            return res.status(400).json({
-                success: false,
-                message: 'Driver Registration Reject failed',
-                error: 'Driver not found'
-            });
-        }
-        res.status(200).json({
-            success: true,
-            message: 'Driver Registration rejected'
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Driver Registration Reject failed',
-            error: error.message
-        });
-    }
-};
-
-const banDriver = async (req, res) => {
-    const { id: driverId } = req.params;
-    logger.info(`[DriverController] Banning driver id: ${driverId}`);
-
-    try {
-        const driver = await Driver.update({ approvalStatus: 'BANNED' }, { where: { id: driverId } });
-        if (!driver) {
-            return res.status(400).json({
-                success: false,
-                message: 'Driver Banning failed',
-                error: 'Driver not found'
-            });
-        }
-        res.status(200).json({
-            success: true,
-            message: 'Driver Banned'
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message: 'Driver Banning failed',
+            message: 'Assess driver authorization failed',
             error: error.message
         });
     }
@@ -180,7 +135,5 @@ module.exports = {
     registerDriver,
     getDriverList,
     fetchDriverById,
-    approveDriverRegister,
-    rejectDriverRegister,
-    banDriver
+    assessDriverAuth
 };

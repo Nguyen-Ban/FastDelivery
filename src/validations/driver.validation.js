@@ -38,8 +38,25 @@ const updateDriverSchema = Joi.object({
     vehiclePlate: driverSchema.vehiclePlate
 });
 
+const reviewDriverSchema = Joi.object({
+    orderId: Joi.number()
+        .integer()
+        .required(),
+
+    rating: Joi.number()
+        .integer()
+        .min(1)
+        .max(5)
+        .required(),
+
+    comment: Joi.string()
+        .max(500)
+        .allow('')
+});
+
 module.exports = {
     driverSchema,
     createDriverSchema,
-    updateDriverSchema
+    updateDriverSchema,
+    reviewDriverSchema
 };

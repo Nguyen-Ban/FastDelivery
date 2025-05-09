@@ -1,11 +1,33 @@
 const logger = require("../config/logger");
-const { Driver, User } = require("../models/index");
+const { Driver, User, Review, Order } = require("../models/index");
 const { sequelize } = require("../config/database");
+const { messaging } = require("firebase-admin");
 
-const autoAcceptOrder = async (req, res) => {
-    const { request_id } = req.params;
-    const driverWebSocket = new DriverWebSocketService();
 
+const reviewDriver = async (req, res) => {
+    const { orderId, rating, comment } = req.body;
+    logger.info(`Reviewing driver with order id: ${orderId}`);
+    try {
+        const order = await Order.findByPk(orderId);
+        if (order.status !== 'DELIVERED') {
+            throw new Error('Order has not been completed yet!');
+        }
+        const review = await Review.create({ orderId, rating, comment });
+        return res.status(200).json({
+            success: true,
+            message: "Review driver successfully",
+            data: {
+                rating: review.rating,
+                comment: review.comment
+            }
+        })
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: "Review driver failed",
+            error: error.message
+        })
+    }
 }
 
 const registerDriver = async (req, res) => {
@@ -132,6 +154,7 @@ const assessDriverAuth = async (req, res) => {
 };
 
 module.exports = {
+    reviewDriver,
     registerDriver,
     getDriverList,
     fetchDriverById,

@@ -17,7 +17,7 @@ module.exports = (io, socket) => {
         } catch (error) {
             socket.emit('chat:message', {
                 success: false,
-                message: 'Message sent failed',
+                message: 'Message sent failed ',
                 error: error.message
             })
         }

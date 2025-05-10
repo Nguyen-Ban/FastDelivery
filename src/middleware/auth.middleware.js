@@ -107,6 +107,7 @@ const checkSocketRole = (allowedRoles) => {
         return next(new Error('Role not assigned to user'));
       }
 
+      registerSocket(userId, socket);
 
       if (activeRole == 'DRIVER') {
         const driver = await Driver.findOne({
@@ -117,17 +118,11 @@ const checkSocketRole = (allowedRoles) => {
           return next(new Error('Driver not found'));
         }
 
-        socket.driverId = driver.id;
         await driver.update({
           status: 'AVAILABLE'
         });
-        logger.info(`[AuthMiddleware] Driver ${driver.id} authenticated successfully`);
-        registerSocket(driver.id, socket);
-      } else {
-        registerSocket(userId, socket);
-
+        logger.info(`[AuthMiddleware] Driver ${driver.userId} authenticated successfully`);
       }
-
       // Gắn activeRole vào socket để dùng trong listener nếu cần
       socket.activeRole = activeRole;
 

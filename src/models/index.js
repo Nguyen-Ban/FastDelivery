@@ -102,6 +102,7 @@ Order.hasOne(OrderAddon, {
     as: 'addon'
 });
 
+
 // OrderLocation associations
 OrderLocation.belongsTo(Order, {
     foreignKey: 'orderId',

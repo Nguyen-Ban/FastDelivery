@@ -9,7 +9,7 @@ module.exports = (io, socket) => {
                 'drivers:locations',
                 data.lng,
                 data.lat,
-                socket.driverId
+                socket.userId
             );
 
             io.driverNamespace.to(socket.id).emit('location:update', {

@@ -33,9 +33,8 @@ module.exports = (io, socket) => {
             }
 
             socket.emit('order:create', payload)
-            const driverSocket = getDriverSocket(driverId);
+            const driverSocket = getSocket(driverId);
             driverSocket.emit('order:create', payload)
-
         } catch (error) {
             await t.rollback(); // rollback nếu có lỗi
 

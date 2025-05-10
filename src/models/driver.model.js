@@ -2,16 +2,11 @@ const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 
 const Driver = sequelize.define('Driver', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        field: 'id'
-    },
     userId: {
         type: DataTypes.INTEGER,
         unique: true,
         allowNull: false,
+        primaryKey: true,
         field: 'user_id'
     },
     licenseNumber: {

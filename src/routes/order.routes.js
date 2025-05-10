@@ -9,10 +9,10 @@ const { checkRole } = require('../middleware/auth.middleware');
 
 
 // router.post('/:id/review', authenticateToken, checkRole(['CUSTOMER']), validate(reviewOrderValidation), reviewOrder);
-router.get('/customer/list', authenticateToken, checkRole(['CUSTOMER']), getOrderList);
+router.get('/customer/:id/list', authenticateToken, checkRole(['CUSTOMER']), getOrderList);
 // router.get('/customer/stats', authenticateToken, checkRole(['CUSTOMER']), getCustomerOrderStats);
 
-router.get('/driver/list', authenticateToken, checkRole(['DRIVER']), getOrderList);
+router.get('/driver/:id/list', authenticateToken, checkRole(['DRIVER']), getOrderList);
 // router.get('/driver/stats', authenticateToken, checkRole(['DRIVER']), getDriverOrderStats);
 module.exports = router;
 

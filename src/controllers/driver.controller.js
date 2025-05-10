@@ -68,7 +68,6 @@ const registerDriver = async (req, res) => {
             message: 'Driver registration successful',
             data: {
                 driver: {
-                    id: driver.id,
                     licenseNumber: driver.licenseNumber,
                     vehicleType: driver.vehicleType,
                     vehiclePlate: driver.vehiclePlate,
@@ -111,7 +110,7 @@ const fetchDriverById = async (req, res) => {
     const { id: driverId } = req.params;
     logger.info(`[DriverController] Getting driver by id: ${driverId}`);
     try {
-        const driver = await Driver.findOne({ where: { id: driverId } });
+        const driver = await Driver.findOne({ where: { userId: driverId } });
         res.status(200).json({
             success: true,
             message: 'Driver fetched successfully',

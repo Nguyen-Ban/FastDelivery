@@ -11,4 +11,20 @@ const suggestLocation = async (userLocation, query) => {
     }
 }
 
-module.exports = { suggestLocation }
+const reverseGeocode = async (lat, lng) => {
+    try {
+        const res = await axios.get(`https://revgeocode.search.hereapi.com/v1/revgeocode`, {
+            params: {
+                at: `${lat},${lng}`,
+                lang: 'vi',
+                apiKey: HERE_API_KEY
+            }
+        });
+        return res.data.items[0];
+    } catch (error) {
+        console.error('Error getting address from coordinates:', error);
+        return null;
+    }
+};
+
+module.exports = { suggestLocation, reverseGeocode }

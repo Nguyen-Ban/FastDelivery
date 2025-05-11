@@ -1,8 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
-import COLOR from "../../constants/Colors";
-import GLOBAL from "../../constants/GlobalStyles";
+import COLOR from "../constants/Colors";
+import GLOBAL from "../constants/GlobalStyles";
 
 interface InfoCardProps {
   title: string;

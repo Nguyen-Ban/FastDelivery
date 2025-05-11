@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   TextInput,
   FlatList,
+  Image,
+  Dimensions,
+  ScrollView,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -14,48 +17,87 @@ import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { router } from "expo-router";
+import { useFonts } from "expo-font";
 
 const HomeScreen = () => {
-  const [name, setName] = React.useState<string>("#name");
+  const [Cascadia] = useFonts({
+    "Cascadia-Bold": require("../../assets/font/CascadiaCode-Bold.ttf"),
+  });
+  const [name, setName] = React.useState<string>("User");
   const services = [
     { id: "1", name: "Giao hàng", icon: "box" },
     { id: "2", name: "Lịch sử", icon: "sticky-note" },
-    { id: "3", name: "Đánh giá", icon: "star" },
-    { id: "4", name: "Chi tiêu", icon: "chart-simple" },
-    { id: "5", name: "Chế độ tài xế", icon: "car-on" },
-    { id: "6", name: "Trở thành tài xế", icon: "user-plus" },
+    { id: "3", name: "Chi tiêu", icon: "chart-simple" },
+    { id: "4", name: "Nhận đơn", icon: "car-on" },
+    { id: "5", name: "Trở thành tài xế", icon: "user-plus" },
+  ];
+  const ads = [
+    require("../../assets/ad_1.png"),
+    require("../../assets/ad_2.png"),
+    require("../../assets/ad_3.png"),
   ];
 
-  type ServiceRoute = "/location" | "/home" | "/driver";
+  type ServiceRoute =
+    | "/location"
+    | "/home"
+    | "/driver"
+    | "/user/spending"
+    | "/user/events"
+    | "/user/driver-form";
 
   const getRouteById = (id: string): ServiceRoute => {
     switch (id) {
       case "1":
         return "/location";
-      case "5":
+      case "2":
+        return "/user/events";
+      case "3":
+        return "/user/spending";
+      case "4":
         return "/driver";
+      case "5":
+        return "/user/driver-form";
       default:
         return "/home";
     }
   };
 
   return (
-    <View style={GLOBAL.container}>
-      <LinearGradient
-        colors={[COLOR.blue70, COLOR.white]}
-        style={styles.background}
-        locations={[0.19, 0.2]}
-      />
-      <Text style={styles.title}>
-        Fast Delivery {"\n"} <Text>#quote</Text>
-      </Text>
-
+    <View style={GLOBAL.home_container}>
+      <View style={styles.banner}>
+        <LinearGradient
+          colors={[COLOR.blue70, COLOR.orange70]}
+          locations={[0.1, 1]}
+          style={styles.gradient}
+        >
+          <Image
+            source={require("../../assets/logo.png")}
+            style={{ width: 120, height: 120 }}
+          />
+          <Text
+            style={{
+              fontSize: 30,
+              fontWeight: "bold",
+            }}
+          >
+            Fast{"\n"}Delivery
+          </Text>
+        </LinearGradient>
+      </View>
       <View style={styles.content_view_1}>
         <Text style={styles.greeting}>
-          Xin chào, {"\n"} {name}
+          Xin chào,{"\n"}
+          {name}
         </Text>
-        <TouchableOpacity style={styles.user_img}>
-          <FontAwesome6 name="user" size={30} color="black" />
+        <TouchableOpacity
+          style={styles.user_img}
+          onPress={() => router.push("/user/profile")}
+        >
+          <FontAwesome6
+            name="user"
+            size={25}
+            color={COLOR.black}
+          ></FontAwesome6>
         </TouchableOpacity>
       </View>
 
@@ -79,6 +121,18 @@ const HomeScreen = () => {
         columnWrapperStyle={{ paddingVertical: 5 }}
         contentContainerStyle={styles.service_view}
       ></FlatList>
+
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={true}
+        persistentScrollbar={true}
+      >
+        {ads.map((ad, i) => (
+          <TouchableOpacity key={i} onPress={() => {}}>
+            <Image source={ad} style={styles.ad} resizeMode="cover" />
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
     </View>
   );
 };
@@ -86,14 +140,15 @@ const HomeScreen = () => {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-  background: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    top: 0,
-    height: "100%",
+  banner: {
+    height: "15%",
   },
-
+  gradient: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+  },
   title: { fontSize: 30, height: "20%" },
   subtitle: {},
   content_view_1: {
@@ -102,6 +157,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 10,
     paddingBottom: 30,
+    paddingHorizontal: 16,
   },
   greeting: { fontSize: 27 },
   user_img: {
@@ -119,6 +175,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderColor: COLOR.grey50,
     borderStyle: "dashed",
+    marginHorizontal: 16,
   },
   service: {
     borderWidth: 1,
@@ -137,4 +194,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingTop: 5,
   },
+  scroll_view: {
+    alignContent: "center",
+  },
+  ad: { width: 200, height: 200, borderRadius: 8, marginHorizontal: 5 },
 });

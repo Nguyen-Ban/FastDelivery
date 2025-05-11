@@ -11,7 +11,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 
 import Button from "../../components/Button/ButtonComponent";
-import InfoCard from "@/components/Button/InfoCard";
+import InfoCard from "@/components/InfoCard";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 import { FontAwesome6 } from "@expo/vector-icons";
@@ -42,7 +42,7 @@ const Notification = () => {
               paddingRight: 20,
               justifyContent: "flex-start",
             }}
-            style={{ paddingVertical: 10 }}
+            style={styles.card}
           />
         )}
         style={{
@@ -58,4 +58,14 @@ const Notification = () => {
 
 export default Notification;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  card: {
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    marginTop: 10,
+    borderWidth: 1,
+    borderRadius: 8,
+    borderColor: COLOR.blue40,
+    backgroundColor: COLOR.blue95,
+  },
+});

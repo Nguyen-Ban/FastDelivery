@@ -11,6 +11,13 @@ const GlobalStyles = StyleSheet.create({
     backgroundColor: COLOR.white,
   },
   home_title: { fontSize: 24, fontWeight: "bold", alignSelf: "center" },
+  home_container: {
+    flex: 1,
+    flexDirection: "column",
+    alignContent: "center",
+    justifyContent: "flex-start",
+    backgroundColor: COLOR.white,
+  },
 });
 
 export default GlobalStyles;

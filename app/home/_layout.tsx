@@ -31,9 +31,7 @@ const HomeLayout = () => {
           title: "Hoạt động",
           tabBarIcon: ({ focused }) => {
             const iconColor = focused ? COLOR.blue40 : COLOR.black;
-            return (
-              <FontAwesome6 name="clipboard" size={24} color={iconColor} />
-            );
+            return <FontAwesome6 name="clock" size={24} color={iconColor} />;
           },
         }}
       />
@@ -66,6 +64,5 @@ export default HomeLayout;
 const styles = StyleSheet.create({
   tabs: {
     backgroundColor: COLOR.grey90,
-    height: "8%",
   },
 });

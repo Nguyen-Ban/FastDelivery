@@ -20,9 +20,9 @@ const Order = () => {
   return (
     <View style={[GLOBAL.container, { justifyContent: "space-between" }]}>
       <LinearGradient
-        colors={[COLOR.blue70, COLOR.white]}
+        colors={[COLOR.blue70, COLOR.orange70, COLOR.white]}
         style={styles.background}
-        locations={[0.28, 0.3]}
+        locations={[0.05, 0.29, 0.3]}
       />
       <View>
         <View style={styles.headerView}>

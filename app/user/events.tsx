@@ -4,21 +4,22 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   TextInput,
   FlatList,
+  Image,
+  Dimensions,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
-import Button from "../../components/Button/ButtonComponent";
-import InfoCard from "../../components/InfoCard";
-import EventCard from "../../components/EventCard";
-import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
+import COLOR from "../../constants/Colors";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
+import EventCard from "@/components/EventCard";
 
-const Activity = () => {
-  //hard code
+const { width } = Dimensions.get("window");
+
+const EventsScreen = () => {
   const deliveries = [
     {
       date: "03/04/2024",
@@ -99,10 +100,25 @@ const Activity = () => {
       ],
     },
   ];
-
+  const router = useRouter();
   return (
-    <View style={GLOBAL.container}>
-      <Text style={GLOBAL.home_title}>Hoạt động</Text>
+    <View style={GLOBAL.home_container}>
+      <View style={styles.header}>
+        <LinearGradient
+          colors={[COLOR.blue70, COLOR.orange70]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.gradient}
+        >
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{ padding: 16 }}
+          >
+            <FontAwesome6 name="arrow-left" size={30} color="black" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Lịch sử</Text>
+        </LinearGradient>
+      </View>
       <FlatList
         data={deliveries}
         keyExtractor={(item) => item.date}
@@ -127,14 +143,30 @@ const Activity = () => {
         )}
         style={{
           marginVertical: 5,
-          borderTopColor: COLOR.grey70,
-          borderTopWidth: 1,
+          paddingHorizontal: 15,
         }}
       ></FlatList>
     </View>
   );
 };
 
-export default Activity;
+export default EventsScreen;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  title: {
+    paddingLeft: 16,
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  gradient: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+  },
+});

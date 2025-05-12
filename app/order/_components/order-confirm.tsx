@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Image } from "react-native";
 import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import COLOR from "../../../constants/Colors";
+import { useRouter } from "expo-router";
 
 const PaymentMethods = [
   {
@@ -68,10 +69,18 @@ const AllPaymentMethods = [...PaymentMethods, ...CashMethods];
 const OrderConfirm = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState('sendercash');
+  const router = useRouter();
 
   const handleSelectPayment = (id: string) => {
     setSelectedMethod(id);
     setModalVisible(false);
+  };
+
+  const handlePlaceOrder = () => {
+    // Navigate to in-delivery screen component
+    router.push({
+      pathname: "/order/delivery",
+    });
   };
 
   // Find the selected payment method
@@ -108,7 +117,10 @@ const OrderConfirm = () => {
         <Text style={styles.totalAmount}>đ132.000</Text>
       </View>
 
-      <TouchableOpacity style={styles.orderButton}>
+      <TouchableOpacity
+        style={styles.orderButton}
+        onPress={handlePlaceOrder}
+      >
         <Text style={styles.orderButtonText}>Đặt đơn</Text>
       </TouchableOpacity>
 
@@ -275,7 +287,7 @@ const styles = StyleSheet.create({
     color: COLOR.orange50,
   },
   orderButton: {
-    backgroundColor: "#e8e8e8",
+    backgroundColor: COLOR.orange50,
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
@@ -283,7 +295,7 @@ const styles = StyleSheet.create({
   orderButtonText: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#aaa",
+    color: "#fff",
   },
 
   // Modal styles

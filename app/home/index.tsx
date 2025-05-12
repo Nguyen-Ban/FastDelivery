@@ -18,12 +18,13 @@ import GLOBAL from "../../constants/GlobalStyles";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { router } from "expo-router";
 import { useFonts } from "expo-font";
+import { useAuth } from "../../contexts/auth.context";
 
 const HomeScreen = () => {
   const [Cascadia] = useFonts({
     "Cascadia-Bold": require("../../assets/font/CascadiaCode-Bold.ttf"),
   });
-  const [name, setName] = React.useState<string>("User");
+  const { user } = useAuth();
   const services = [
     { id: "1", name: "Giao hàng", icon: "box" },
     { id: "2", name: "Lịch sử", icon: "sticky-note" },
@@ -87,7 +88,7 @@ const HomeScreen = () => {
       <View style={styles.content_view_1}>
         <Text style={styles.greeting}>
           Xin chào,{"\n"}
-          {name}
+          {user?.fullName || "User"}
         </Text>
         <TouchableOpacity
           style={styles.user_img}
@@ -128,7 +129,7 @@ const HomeScreen = () => {
         persistentScrollbar={true}
       >
         {ads.map((ad, i) => (
-          <TouchableOpacity key={i} onPress={() => {}}>
+          <TouchableOpacity key={i} onPress={() => { }}>
             <Image source={ad} style={styles.ad} resizeMode="cover" />
           </TouchableOpacity>
         ))}

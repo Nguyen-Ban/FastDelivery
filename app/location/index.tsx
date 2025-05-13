@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -7,9 +7,31 @@ import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
+import mapService from "../../services/map.service";
+import { useLocation } from "../../contexts/location.context";
 
 const Order = () => {
   const router = useRouter();
+  const [homeAddress, setHomeAddress] = useState("Nhà");
+  const { location } = useLocation();
+
+  useEffect(() => {
+    const fetchHomeAddress = async () => {
+      try {
+        if (location && location.latitude && location.longitude) {
+          const response = await mapService.getAddressFromLocation(location.longitude, location.latitude);
+          if (response.success) {
+            setHomeAddress(response.data.title);
+          }
+        }
+      } catch (error) {
+        console.log("Error fetching home address:", error);
+      }
+    };
+
+    fetchHomeAddress();
+  }, [location]);
+
   // const orderDetailHandler = () => {
   //   router.push("/order/order-detail");
   // };
@@ -42,7 +64,7 @@ const Order = () => {
         </View>
         <View style={styles.locationPickCard}>
           <Button
-            title="Nhà"
+            title={homeAddress}
             onPress={() => {
               locationHandler();
             }}

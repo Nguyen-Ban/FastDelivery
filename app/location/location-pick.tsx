@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   TextInput,
   ScrollView,
   FlatList,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -15,61 +16,81 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
+import mapService from "../../services/map.service";
+import { useLocation } from "../../contexts/location.context";
 
-const SAMPLE_LOCATIONS = [
-  {
-    id: "1",
-    name: "Công viên Hòa Bình",
-    address: "Đường Hoàng Quốc Việt, Cầu Giấy, Hà Nội",
-    latitude: "21.046459",
-    longitude: "105.791688",
-  },
-  {
-    id: "2",
-    name: "The Dewey Schools",
-    address: "Tây Hồ Tây, Hà Nội",
-    latitude: "21.045789",
-    longitude: "105.792567",
-  },
-  {
-    id: "3",
-    name: "Khu đô thị Resco",
-    address: "Đường Trần Cung, Cổ Nhuế, Từ Liêm, Hà Nội",
-    latitude: "21.047123",
-    longitude: "105.790345",
-  },
-];
+
+interface SuggestedLocation {
+  id: string;
+  title: string;
+  address: string;
+  distance: number; // in meters
+  position: {
+    lat: number;
+    lng: number;
+  }
+}
 
 const Location = () => {
   const router = useRouter();
   const [searchText, setSearchText] = useState("");
-  const [filteredLocations, setFilteredLocations] = useState(SAMPLE_LOCATIONS);
+  const [suggestedLocations, setSuggestedLocations] = useState<SuggestedLocation[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { location } = useLocation();
 
-  const handleSearch = (text: string) => {
+
+  const handleSearch = async (text: string) => {
     setSearchText(text);
-    const filtered = SAMPLE_LOCATIONS.filter(
-      (location) =>
-        location.name.toLowerCase().includes(text.toLowerCase()) ||
-        location.address.toLowerCase().includes(text.toLowerCase())
-    );
-    setFilteredLocations(filtered);
+
+    if (text.trim().length < 2) {
+      setSuggestedLocations([]);
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await mapService.getSuggestPlaces(text, { userLocation: { lat: location?.latitude as number, lng: location?.longitude as number } });
+      if (response.success && response.data) {
+        setSuggestedLocations(response.data);
+      } else {
+        setSuggestedLocations([]);
+        setError("Không tìm thấy địa điểm");
+      }
+    } catch (error) {
+      console.log("Error fetching suggested locations:", error);
+      setError("Có lỗi xảy ra khi tìm kiếm địa điểm");
+      setSuggestedLocations([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleLocationSelect = (location: (typeof SAMPLE_LOCATIONS)[0]) => {
+  const handleLocationSelect = (location: SuggestedLocation) => {
     router.push({
       pathname: "/location/location-picked",
       params: {
         address: location.address,
-        latitude: location.latitude,
-        longitude: location.longitude,
+        latitude: location.position.lat.toString(),
+        longitude: location.position.lng.toString(),
       },
     });
+  };
+
+  // Format distance to km if ≥ 1000m, otherwise show in meters
+  const formatDistance = (meters: number): string => {
+    if (meters >= 1000) {
+      return `${(meters / 1000).toFixed(1)} km`;
+    }
+    return `${Math.round(meters)} m`;
   };
 
   const renderLocationItem = ({
     item,
   }: {
-    item: (typeof SAMPLE_LOCATIONS)[0];
+    item: SuggestedLocation;
   }) => (
     <TouchableOpacity
       style={styles.locationItem}
@@ -77,8 +98,11 @@ const Location = () => {
     >
       <FontAwesome6 name="location-dot" size={20} color={COLOR.blue_theme} />
       <View style={styles.locationInfo}>
-        <Text style={styles.locationName}>{item.name}</Text>
+        <Text style={styles.locationName}>{item.title}</Text>
         <Text style={styles.locationAddress}>{item.address}</Text>
+        {item.distance && (
+          <Text style={styles.locationDistance}>{formatDistance(item.distance)}</Text>
+        )}
       </View>
     </TouchableOpacity>
   );
@@ -114,15 +138,29 @@ const Location = () => {
             value={searchText}
             onChangeText={handleSearch}
           />
+          {isLoading && (
+            <ActivityIndicator size="small" color={COLOR.blue_theme} />
+          )}
         </View>
       </View>
 
+      {error && (
+        <Text style={styles.errorText}>{error}</Text>
+      )}
+
       <FlatList
-        data={filteredLocations}
+        data={suggestedLocations}
         renderItem={renderLocationItem}
         keyExtractor={(item) => item.id}
         style={styles.locationList}
         contentContainerStyle={styles.locationListContent}
+        ListEmptyComponent={
+          !isLoading && searchText.length > 1 ? (
+            <Text style={styles.noResultsText}>
+              Không tìm thấy địa điểm nào
+            </Text>
+          ) : null
+        }
       />
 
       <View style={styles.footer}>
@@ -217,8 +255,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLOR.grey50,
   },
+  locationDistance: {
+    fontSize: 12,
+    color: COLOR.grey50,
+    marginTop: 4,
+  },
   footer: {
     padding: 16,
     backgroundColor: COLOR.white,
+  },
+  errorText: {
+    color: COLOR.red55,
+    textAlign: "center",
+    padding: 16,
+  },
+  noResultsText: {
+    textAlign: "center",
+    padding: 16,
+    color: COLOR.grey50,
   },
 });

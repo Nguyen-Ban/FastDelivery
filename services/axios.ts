@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ApiResponse } from './types';
 
 const tokenAxios = axios.create({
-    baseURL: 'http://192.168.17.110:3000/api',
+    baseURL: 'http://192.168.31.110:3000/api',
     headers: {
         'Content-Type': 'application/json',
     },

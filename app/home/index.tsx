@@ -9,8 +9,12 @@ import {
   Image,
   Dimensions,
   ScrollView,
+  Alert,
+  Modal,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
@@ -19,12 +23,63 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { router } from "expo-router";
 import { useFonts } from "expo-font";
 import { useAuth } from "../../contexts/auth.context";
+import { useLocation } from "../../contexts/location.context";
 
 const HomeScreen = () => {
   const [Cascadia] = useFonts({
     "Cascadia-Bold": require("../../assets/font/CascadiaCode-Bold.ttf"),
   });
   const { user } = useAuth();
+  const {
+    hasLocationPermission,
+    requestLocationPermission,
+    isLoading,
+    error,
+    location,
+    getCurrentLocation
+  } = useLocation();
+  const [permissionModalVisible, setPermissionModalVisible] = useState(false);
+
+  // Check location permission when component mounts
+  useEffect(() => {
+    // console.log('HomeScreen - Current location data:', location);
+    // console.log('HomeScreen - Location permission status:', hasLocationPermission);
+
+    const checkLocationPermission = async () => {
+      if (hasLocationPermission && !location) {
+        // console.log('HomeScreen - Permission granted but no location, getting current location');
+        const currentLocation = await getCurrentLocation();
+        // console.log('HomeScreen - Fetched current location:', currentLocation);
+      }
+
+      if (!hasLocationPermission) {
+        // console.log('HomeScreen - No location permission, showing modal');
+        setPermissionModalVisible(true);
+      }
+    };
+
+    checkLocationPermission();
+  }, [hasLocationPermission, location]);
+
+  const handleRequestPermission = async () => {
+    // console.log('HomeScreen - Requesting location permission');
+    const granted = await requestLocationPermission();
+    // console.log('HomeScreen - Permission granted:', granted);
+
+    if (granted) {
+      setPermissionModalVisible(false);
+    } else {
+      Alert.alert(
+        "Cần quyền truy cập vị trí",
+        "Ứng dụng cần quyền truy cập vị trí để hiển thị các dịch vụ gần bạn. Vui lòng cấp quyền trong cài đặt thiết bị của bạn.",
+        [
+          { text: "Để sau", onPress: () => setPermissionModalVisible(false) },
+          { text: "OK", onPress: () => setPermissionModalVisible(false) }
+        ]
+      );
+    }
+  };
+
   const services = [
     { id: "1", name: "Giao hàng", icon: "box" },
     { id: "2", name: "Lịch sử", icon: "sticky-note" },
@@ -60,6 +115,26 @@ const HomeScreen = () => {
         return "/user/driver-form";
       default:
         return "/home";
+    }
+  };
+
+  // Function to directly check location in AsyncStorage
+  const checkAsyncStorageLocation = async () => {
+    try {
+      const locationJson = await AsyncStorage.getItem('userLocation');
+      // console.log('AsyncStorage userLocation:', locationJson);
+      if (locationJson) {
+        const locationData = JSON.parse(locationJson);
+        Alert.alert(
+          "Location in AsyncStorage",
+          `Latitude: ${locationData.latitude}\nLongitude: ${locationData.longitude}`
+        );
+      } else {
+        Alert.alert("No Location Found", "No location data found in AsyncStorage");
+      }
+    } catch (err) {
+      console.error('Error reading from AsyncStorage:', err);
+      Alert.alert("Error", "Failed to read location from AsyncStorage");
     }
   };
 
@@ -134,6 +209,47 @@ const HomeScreen = () => {
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      {/* Location Permission Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={permissionModalVisible}
+        onRequestClose={() => setPermissionModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <FontAwesome6 name="location-dot" size={28} color={COLOR.blue40} />
+              <Text style={styles.modalTitle}>Truy cập vị trí</Text>
+            </View>
+            <Text style={styles.modalText}>
+              Fast Delivery cần truy cập vị trí của bạn để hiển thị các dịch vụ giao hàng gần bạn.
+            </Text>
+            <View style={styles.modalButtonContainer}>
+              <Button
+                title="Để sau"
+                onPress={() => setPermissionModalVisible(false)}
+                size="medium"
+                type="sub"
+              />
+              <Button
+                title="Cho phép"
+                onPress={handleRequestPermission}
+                size="medium"
+                type="primary"
+              />
+            </View>
+            {isLoading && (
+              <ActivityIndicator
+                size="large"
+                color={COLOR.blue40}
+                style={styles.loader}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -199,4 +315,41 @@ const styles = StyleSheet.create({
     alignContent: "center",
   },
   ad: { width: 200, height: 200, borderRadius: 8, marginHorizontal: 5 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: COLOR.white,
+    borderRadius: 16,
+    padding: 20,
+    width: '90%',
+    maxWidth: 400,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginLeft: 10,
+  },
+  modalText: {
+    fontSize: 16,
+    marginBottom: 20,
+    lineHeight: 22,
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  loader: {
+    marginTop: 20,
+  },
 });

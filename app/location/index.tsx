@@ -21,7 +21,7 @@ const Order = () => {
         if (location && location.latitude && location.longitude) {
           const response = await mapService.getAddressFromLocation(location.longitude, location.latitude);
           if (response.success) {
-            setHomeAddress(response.data.title);
+            setHomeAddress(response.data[0].title);
           }
         }
       } catch (error) {

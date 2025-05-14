@@ -15,6 +15,7 @@ const COLOR = {
   red55: "#e54334",
   green40: "#00cc00",
   green25: "#008000",
+  cyan: "cyan"
 };
 
 export default COLOR;

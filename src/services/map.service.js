@@ -17,10 +17,11 @@ const reverseGeocode = async (lat, lng) => {
             params: {
                 at: `${lat},${lng}`,
                 lang: 'vi',
+                limit: 5,
                 apiKey: HERE_API_KEY
             }
         });
-        return res.data.items[0];
+        return res.data.items;
     } catch (error) {
         console.error('Error getting address from coordinates:', error);
         return null;

@@ -12,7 +12,13 @@ const getProfile = async (req, res) => {
     res.status(200).json({
         success: true,
         message: 'User profile fetched successfully',
-        data: user
+        data: {
+            fullName: user.fullName,
+            dateOfBirth: user.dateOfBirth,
+            email: user.email,
+            gender: user.gender,
+            phoneNumber: user.phoneNumber
+        }
     });
 };
 
@@ -35,13 +41,20 @@ const updateProfile = async (req, res) => {
     res.status(200).json({
         success: true,
         message: 'User profile updated successfully',
-        data: user
+        data: {
+            fullName: user.fullName,
+            dateOfBirth: user.dateOfBirth,
+            email: user.email,
+            gender: user.gender,
+            phoneNumber: user.phoneNumber
+        }
     });
 };
 
 const changePasscode = async (req, res) => {
     const userId = req.userId;
-    const { passcode } = req.body;
+    const { currentPasscode, newPasscode } = req.body;
+
     const user = await User.findByPk(userId);
     if (!user) {
         return res.status(404).json({
@@ -50,12 +63,22 @@ const changePasscode = async (req, res) => {
             error: 'User not found'
         });
     }
-    user.passcode = passcode;
+
+    const isMatch = await user.comparePasscode(currentPasscode);
+
+    if (!isMatch) {
+        return res.status(401).json({
+            success: false,
+            message: 'Incorrect passcode',
+            error: 'Incorrect passcode'
+        });
+    }
+
+    user.passcode = newPasscode;
     await user.save();
     res.status(200).json({
         success: true,
-        message: 'User passcode updated successfully',
-        data: user
+        message: 'User passcode updated successfully'
     });
 };
 

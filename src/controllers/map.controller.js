@@ -9,7 +9,13 @@ const suggestPlaces = async (req, res) => {
             res.status(200).json({
                 success: true,
                 message: "Places suggested successfully",
-                data: places
+                data: places.map(place => ({
+                    id: place.id,
+                    title: place.title,
+                    address: place.address?.label,
+                    distance: place.distance,
+                    position: place.position,
+                }))
             });
         } else {
             res.status(404).json({
@@ -26,22 +32,25 @@ const suggestPlaces = async (req, res) => {
     }
 }
 
-const getPlaceFromLocation = async (req, res) => {
+const getPlacesFromLocation = async (req, res) => {
     const { lng, lat } = req.query;
     const latitude = parseFloat(lat);
     const longitude = parseFloat(lng);
     try {
-        const place = await reverseGeocode(latitude, longitude);
-        if (place) {
+        const places = await reverseGeocode(latitude, longitude);
+        if (places) {
             res.status(200).json({
                 success: true,
                 message: "Places suggested successfully",
-                data: {
-                    title: place.title,
-                    address: place.address,
-                    distance: place.distance,
-                    categories: place.categories
-                }
+                data: places.map(place => {
+                    return {
+                        id: place.id,
+                        title: place.title,
+                        address: place.address?.label,
+                        distance: place.distance,
+                        position: place.position,
+                    }
+                })
             });
         } else {
             res.status(404).json({
@@ -59,5 +68,5 @@ const getPlaceFromLocation = async (req, res) => {
 }
 module.exports = {
     suggestPlaces,
-    getPlaceFromLocation
+    getPlacesFromLocation
 }

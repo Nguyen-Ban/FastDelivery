@@ -10,7 +10,14 @@ const updateProfileSchema = Joi.object({
 });
 
 const changePasscodeSchema = Joi.object({
-    passcode: userSchema.passcode.required(),
+    currentPasscode: userSchema.passcode.required(),
+    newPasscode: userSchema.passcode.required(),
+    confirmPasscode: Joi.any()
+        .valid(Joi.ref('newPasscode'))
+        .required()
+        .messages({
+            'any.only': 'Xác nhận mật khẩu không khớp với mật khẩu mới',
+        }),
 });
 
 module.exports = {

@@ -5,7 +5,7 @@ import { useRouter } from 'expo-router';
 import MapView, { Marker } from 'react-native-maps';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import COLOR from '../../constants/Colors';
+import COLOR from '../../../constants/Colors';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 

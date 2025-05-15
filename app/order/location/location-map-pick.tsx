@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from "react-native";
 import MapView, { Marker, Region, Circle } from "react-native-maps";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
-import Button from "../../components/Button/ButtonComponent";
-import COLOR from "../../constants/Colors";
-import GLOBAL from "../../constants/GlobalStyles";
-import { useLocation } from "../../contexts/location.context";
-import mapService from "../../services/map.service";
+import Button from "../../../components/Button/ButtonComponent";
+import COLOR from "../../../constants/Colors";
+import GLOBAL from "../../../constants/GlobalStyles";
+import { useLocation } from "../../../contexts/location.context";
+import mapService from "../../../services/map.service";
+import { useOrder } from "../../../contexts/order.context";
 
 interface Location {
   latitude: number;
@@ -27,7 +28,9 @@ interface PlaceItem {
 
 const LocationMapPick = () => {
   const router = useRouter();
+  const { type, locationType } = useLocalSearchParams();
   const { location } = useLocation();
+  const { setPickupLocation, setDeliveryLocation } = useOrder();
   const mapRef = useRef<MapView>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [places, setPlaces] = useState<PlaceItem[]>([]);
@@ -111,15 +114,30 @@ const LocationMapPick = () => {
         place.position.lng === selectedLocation.longitude
     );
 
-    // Navigate to location-picked with selected location
-    router.push({
-      pathname: "/location/location-picked",
-      params: {
-        latitude: selectedLocation.latitude,
-        longitude: selectedLocation.longitude,
-        address: selectedPlace ? selectedPlace.address : "Địa điểm đã chọn"
+    const locationData = {
+      title: selectedPlace ? selectedPlace.title : "Địa điểm đã chọn",
+      address: selectedPlace ? selectedPlace.address : "Địa điểm đã chọn",
+      position: {
+        lat: selectedLocation.latitude,
+        lng: selectedLocation.longitude
       }
-    });
+    };
+
+    if (locationType === 'pickup') {
+      setPickupLocation(locationData);
+      router.back();
+    } else {
+      setDeliveryLocation(locationData);
+      router.push({
+        pathname: "/order/location/location-picked",
+        params: {
+          address: locationData.address,
+          latitude: selectedLocation.latitude.toString(),
+          longitude: selectedLocation.longitude.toString(),
+          type
+        }
+      });
+    }
   };
 
   const renderPlaceItem = ({ item }: { item: PlaceItem }) => (

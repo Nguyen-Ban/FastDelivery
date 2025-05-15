@@ -115,13 +115,13 @@ const HomeScreen = () => {
     // Store the selected type in AsyncStorage for persistence
     AsyncStorage.setItem('selectedDeliveryType', type);
     router.push({
-      pathname: '/location',
+      pathname: '/order/location',
       params: { type }
     });
   };
 
   type ServiceRoute =
-    | "/location"
+    | "/order/location"
     | "/home"
     | "/driver"
     | "/user/spending"

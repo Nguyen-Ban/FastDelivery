@@ -13,11 +13,12 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
-import Button from "../../components/Button/ButtonComponent";
-import COLOR from "../../constants/Colors";
-import GLOBAL from "../../constants/GlobalStyles";
-import mapService from "../../services/map.service";
-import { useLocation } from "../../contexts/location.context";
+import Button from "../../../components/Button/ButtonComponent";
+import COLOR from "../../../constants/Colors";
+import GLOBAL from "../../../constants/GlobalStyles";
+import mapService from "../../../services/map.service";
+import { useLocation } from "../../../contexts/location.context";
+import { useOrder } from "../../../contexts/order.context";
 
 
 interface SuggestedLocation {
@@ -33,12 +34,13 @@ interface SuggestedLocation {
 
 const Location = () => {
   const router = useRouter();
-  const { type } = useLocalSearchParams();
+  const { type, locationType } = useLocalSearchParams();
   const [searchText, setSearchText] = useState("");
   const [suggestedLocations, setSuggestedLocations] = useState<SuggestedLocation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { location } = useLocation();
+  const { setPickupLocation, setDeliveryLocation } = useOrder();
 
 
   const handleSearch = async (text: string) => {
@@ -70,15 +72,27 @@ const Location = () => {
   };
 
   const handleLocationSelect = (location: SuggestedLocation) => {
-    router.push({
-      pathname: "/location/location-picked",
-      params: {
-        address: location.address,
-        latitude: location.position.lat.toString(),
-        longitude: location.position.lng.toString(),
-        type
-      },
-    });
+    const selectedLocation = {
+      title: location.title,
+      address: location.address,
+      position: location.position
+    };
+
+    if (locationType === 'pickup') {
+      setPickupLocation(selectedLocation);
+      router.back();
+    } else {
+      setDeliveryLocation(selectedLocation);
+      router.push({
+        pathname: "/order/location/location-picked",
+        params: {
+          address: location.address,
+          latitude: location.position.lat.toString(),
+          longitude: location.position.lng.toString(),
+          type
+        },
+      });
+    }
   };
 
   // Format distance to km if ≥ 1000m, otherwise show in meters
@@ -169,7 +183,7 @@ const Location = () => {
         <Button
           title="Chọn trên bản đồ"
           onPress={() => router.push({
-            pathname: "/location/location-map-pick",
+            pathname: "/order/location/location-map-pick",
             params: { type }
           })}
           type="primary"

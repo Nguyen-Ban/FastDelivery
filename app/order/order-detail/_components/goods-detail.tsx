@@ -11,7 +11,8 @@ import {
   Dimensions
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
-import COLOR from "../../../constants/Colors";
+import COLOR from "../../../../constants/Colors";
+import { useOrder } from "../../../../contexts/order.context";
 
 const { width } = Dimensions.get('window');
 
@@ -19,33 +20,84 @@ interface GoodsDetailProps {
   type?: string;
 }
 
+interface GoodsDetails {
+  weight: number;
+  length: number;
+  width: number;
+  height: number;
+  quantity: number;
+  description?: string;
+}
+
+interface GoodsState extends GoodsDetails {
+  size?: string;
+  productType?: string;
+}
+
+const DEFAULT_GOODS_STATE: GoodsState = {
+  weight: 0,
+  length: 0,
+  width: 0,
+  height: 0,
+  quantity: 1,
+  description: '',
+  size: 'S',
+  productType: ''
+};
+
+const productTypes = [
+  "Nội thất, trang trí",
+  "Thực phẩm",
+  "Đồ uống",
+  "Đồ điện tử",
+  "Thời trang",
+  "Mỹ phẩm",
+  "Sách, văn phòng phẩm",
+  "Đồ chơi, quà tặng",
+  "Y tế, dược phẩm",
+  "Vật liệu xây dựng"
+];
+
+const sizeOptions = [
+  { label: 'S', size: 'Tối đa 25x32x12 cm' },
+  { label: 'M', size: 'Tối đa 35x32x12 cm' },
+  { label: 'L', size: 'Tối đa 40x35x15 cm' }
+];
+
 const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [weight, setWeight] = useState('');
-  const [length, setLength] = useState('');
-  const [width, setWidth] = useState('');
-  const [height, setHeight] = useState('');
-  const [selectedSize, setSelectedSize] = useState('S');
+  const { goodsDetails, setGoodsDetails } = useOrder();
+
+  const [localState, setLocalState] = useState<GoodsState>({
+    ...DEFAULT_GOODS_STATE,
+    ...goodsDetails,
+  });
+
   const isVan = type === 'VAN';
 
-  const productTypes = [
-    "Nội thất, trang trí",
-    "Thực phẩm",
-    "Đồ uống",
-    "Đồ điện tử",
-    "Thời trang",
-    "Mỹ phẩm",
-    "Sách, văn phòng phẩm",
-    "Đồ chơi, quà tặng",
-    "Y tế, dược phẩm",
-    "Vật liệu xây dựng"
-  ];
+  const handleConfirm = () => {
+    const details: GoodsDetails = {
+      weight: localState.weight,
+      length: localState.length,
+      width: localState.width,
+      height: localState.height,
+      quantity: localState.quantity,
+      description: localState.description
+    };
+    setGoodsDetails(details);
+    setModalVisible(false);
+  };
 
-  const sizeOptions = [
-    { label: 'S', size: 'Tối đa 25x32x12 cm' },
-    { label: 'M', size: 'Tối đa 35x32x12 cm' },
-    { label: 'L', size: 'Tối đa 40x35x15 cm' }
-  ];
+  const updateLocalState = (updates: Partial<GoodsState>) => {
+    setLocalState(prev => ({
+      ...prev,
+      ...updates
+    }));
+  };
+
+  const handleSelectProductType = (type: string) => {
+    updateLocalState({ productType: type });
+  };
 
   const renderMotorbikeContent = () => (
     <View style={styles.section}>
@@ -58,20 +110,20 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
                 key={option.label}
                 style={[
                   styles.sizeOption,
-                  selectedSize === option.label && styles.selectedSizeOption
+                  localState.size === option.label && styles.selectedSizeOption
                 ]}
-                onPress={() => setSelectedSize(option.label)}
+                onPress={() => updateLocalState({ size: option.label })}
               >
                 <Text style={[
                   styles.sizeLabel,
-                  selectedSize === option.label && styles.selectedSizeLabel
+                  localState.size === option.label && styles.selectedSizeLabel
                 ]}>{option.label}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
         <Text style={styles.sizeDescription}>
-          {sizeOptions.find(option => option.label === selectedSize)?.size}
+          {sizeOptions.find(option => option.label === localState.size)?.size}
         </Text>
 
         <View style={styles.weightInput}>
@@ -80,8 +132,10 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
             style={styles.input}
             placeholder="Nhập khối lượng"
             keyboardType="numeric"
-            value={weight}
-            onChangeText={setWeight}
+            value={localState.weight.toString()}
+            onChangeText={(value) => {
+              updateLocalState({ weight: parseFloat(value) || 0 });
+            }}
           />
         </View>
       </View>
@@ -97,10 +151,16 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
         <Text style={styles.sectionTitle}>Kích thước và khối lượng</Text>
         <View style={styles.optionsRow}>
           <View style={styles.optionTag}>
-            <Text style={styles.optionTagText}>Kích thước</Text>
+            <Text style={styles.optionTagText}>
+              {localState.length && localState.width && localState.height
+                ? `${localState.length}x${localState.width}x${localState.height} cm`
+                : 'Kích thước'}
+            </Text>
           </View>
           <View style={styles.optionTag}>
-            <Text style={styles.optionTagText}>Khối lượng</Text>
+            <Text style={styles.optionTagText}>
+              {localState.weight ? `${localState.weight} kg` : 'Khối lượng'}
+            </Text>
           </View>
         </View>
       </View>
@@ -134,8 +194,18 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
           contentContainerStyle={styles.productsScrollContent}
         >
           {productTypes.map((type, index) => (
-            <TouchableOpacity key={index} style={styles.productOption}>
-              <Text style={styles.productText}>{type}</Text>
+            <TouchableOpacity
+              key={index}
+              style={[
+                styles.productOption,
+                localState.productType === type && styles.selectedProductOption
+              ]}
+              onPress={() => handleSelectProductType(type)}
+            >
+              <Text style={[
+                styles.productText,
+                localState.productType === type && styles.selectedProductTextStyle
+              ]}>{type}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -164,8 +234,8 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
                 <Text style={styles.inputLabel}>Khối lượng 1 kiện (kg)</Text>
                 <TextInput
                   style={styles.input}
-                  value={weight}
-                  onChangeText={setWeight}
+                  value={localState.weight.toString()}
+                  onChangeText={(value) => updateLocalState({ weight: parseFloat(value) || 0 })}
                   placeholder="Nhập khối lượng"
                   keyboardType="numeric"
                 />
@@ -177,8 +247,8 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
                   <Text style={styles.inputLabel}>Dài (cm)</Text>
                   <TextInput
                     style={styles.input}
-                    value={length}
-                    onChangeText={setLength}
+                    value={localState.length.toString()}
+                    onChangeText={(value) => updateLocalState({ length: parseFloat(value) || 0 })}
                     placeholder="Dài"
                     keyboardType="numeric"
                   />
@@ -188,8 +258,8 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
                   <Text style={styles.inputLabel}>Rộng (cm)</Text>
                   <TextInput
                     style={styles.input}
-                    value={width}
-                    onChangeText={setWidth}
+                    value={localState.width.toString()}
+                    onChangeText={(value) => updateLocalState({ width: parseFloat(value) || 0 })}
                     placeholder="Rộng"
                     keyboardType="numeric"
                   />
@@ -199,62 +269,36 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
                   <Text style={styles.inputLabel}>Cao (cm)</Text>
                   <TextInput
                     style={styles.input}
-                    value={height}
-                    onChangeText={setHeight}
+                    value={localState.height.toString()}
+                    onChangeText={(value) => updateLocalState({ height: parseFloat(value) || 0 })}
                     placeholder="Cao"
                     keyboardType="numeric"
                   />
                 </View>
               </View>
 
-              {/* Converted Weight */}
-              <View style={styles.weightRow}>
-                <View style={styles.weightInfo}>
-                  <Text style={styles.weightLabel}>Khối lượng quy đổi</Text>
-                  <Ionicons name="information-circle-outline" size={16} color="#ccc" />
+              {/* Bottom Summary */}
+              <View style={styles.bottomSummary}>
+                <View style={styles.summaryRow}>
+                  <FontAwesome5 name="weight" size={16} color="#F97316" />
+                  <Text style={styles.summaryText}>{localState.weight} kg</Text>
                 </View>
-                <Text style={styles.weightValue}>0 (kg)</Text>
+                <View style={styles.summaryRow}>
+                  <MaterialCommunityIcons name="cube-outline" size={20} color="#1E40AF" />
+                  <Text style={styles.summaryText}>
+                    {localState.length} x {localState.width} x {localState.height} cm
+                  </Text>
+                </View>
               </View>
 
-              <View style={styles.weightRow}>
-                <View style={styles.weightInfo}>
-                  <Text style={styles.weightLabel}>Khối lượng tính phí</Text>
-                  <Ionicons name="information-circle-outline" size={16} color="#1E40AF" />
-                </View>
-                <Text style={[styles.weightValue, styles.blueText]}>0 (kg)</Text>
-              </View>
-
-              {/* Image Upload */}
-              <Text style={styles.imageLabel}>Hình ảnh</Text>
-              <TouchableOpacity style={styles.imageUpload}>
-                <View style={styles.imageIconContainer}>
-                  <Ionicons name="image-outline" size={24} color="#000" />
-                  <View style={styles.addIconBadge}>
-                    <Ionicons name="add" size={12} color="#fff" />
-                  </View>
-                </View>
+              {/* Confirm Button */}
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={handleConfirm}
+              >
+                <Text style={styles.confirmButtonText}>Xác nhận</Text>
               </TouchableOpacity>
             </View>
-
-            {/* Bottom Summary */}
-            <View style={styles.bottomSummary}>
-              <View style={styles.summaryRow}>
-                <FontAwesome5 name="weight" size={16} color="#F97316" />
-                <Text style={styles.summaryText}>0 kg</Text>
-              </View>
-              <View style={styles.summaryRow}>
-                <MaterialCommunityIcons name="cube-outline" size={20} color="#1E40AF" />
-                <Text style={styles.summaryText}>0 x 0 x 0 cm</Text>
-              </View>
-            </View>
-
-            {/* Confirm Button */}
-            <TouchableOpacity
-              style={styles.confirmButton}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.confirmButtonText}>Xác nhận</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -495,5 +539,13 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  selectedProductOption: {
+    borderColor: COLOR.orange50,
+    backgroundColor: COLOR.orange90,
+  },
+  selectedProductTextStyle: {
+    color: COLOR.orange50,
+    fontWeight: '500',
   },
 });

@@ -9,14 +9,25 @@ import GoodsDetail from "./_components/goods-detail";
 import Note from "./_components/note";
 import SpecialDemand from "./_components/special-demand";
 import OrderConfirm from "./_components/order-confirm";
-import COLOR from "../../constants/Colors";
+import SenderReceiver from "./_components/sender-receiver";
+import COLOR from "../../../constants/Colors";
+import { useOrder } from "../../../contexts/order.context";
 
 const OrderOverview = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { pickupLocation, deliveryLocation } = useOrder();
   // Ensure type is a string by taking first value if it's an array
   const deliveryType = Array.isArray(params.type) ? params.type[0] : params.type || 'VAN';
   const isVan = deliveryType === 'VAN';
+
+  // Extract receiver information from params
+  const receiverInfo = {
+    name: Array.isArray(params.name) ? params.name[0] : params.name,
+    phone: Array.isArray(params.phone) ? params.phone[0] : params.phone,
+    address: Array.isArray(params.address) ? params.address[0] : params.address,
+    note: Array.isArray(params.note) ? params.note[0] : params.note,
+  };
 
   // Height for the OrderConfirm component + extra padding
   const orderConfirmHeight = 180;
@@ -43,7 +54,17 @@ const OrderOverview = () => {
           { paddingBottom: orderConfirmHeight }
         ]}
       >
-        <RouteOverview />
+        <SenderReceiver
+          receiverName={receiverInfo.name}
+          receiverPhone={receiverInfo.phone}
+          receiverNote={receiverInfo.note}
+        />
+        {pickupLocation && deliveryLocation && (
+          <RouteOverview
+            pickupLocation={pickupLocation}
+            deliveryLocation={deliveryLocation}
+          />
+        )}
         <DeliveryType />
         {isVan && <CarType />}
         <GoodsDetail type={deliveryType} />

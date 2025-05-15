@@ -1,8 +1,9 @@
-import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Image } from "react-native";
+import React, { useState, useMemo } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Image, Alert } from "react-native";
 import { FontAwesome5, Ionicons, MaterialIcons } from "@expo/vector-icons";
-import COLOR from "../../../constants/Colors";
+import COLOR from "../../../../constants/Colors";
 import { useRouter } from "expo-router";
+import { useOrder } from "../../../../contexts/order.context";
 
 const PaymentMethods = [
   {
@@ -70,17 +71,83 @@ const OrderConfirm = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedMethod, setSelectedMethod] = useState('sendercash');
   const router = useRouter();
+  const {
+    pickupLocation,
+    deliveryLocation,
+    sender,
+    receiver,
+    deliveryType,
+    carType,
+    goodsDetails,
+    note,
+    specialDemands
+  } = useOrder();
 
   const handleSelectPayment = (id: string) => {
     setSelectedMethod(id);
     setModalVisible(false);
   };
 
-  const handlePlaceOrder = () => {
-    // Navigate to in-delivery screen component
-    router.push({
-      pathname: "/order/delivery",
-    });
+  // Calculate total price based on delivery details
+  const totalPrice = useMemo(() => {
+    // This is a placeholder calculation - implement your actual pricing logic here
+    const basePrice = deliveryType === 'VAN' ? 100000 : 50000;
+    const goodsPrice = goodsDetails ? goodsDetails.weight * 1000 : 0;
+    return basePrice + goodsPrice;
+  }, [deliveryType, goodsDetails]);
+
+  const validateOrder = () => {
+    if (!pickupLocation || !deliveryLocation) {
+      Alert.alert('Thông báo', 'Vui lòng chọn địa điểm đón và trả hàng');
+      return false;
+    }
+    if (!sender || !receiver) {
+      Alert.alert('Thông báo', 'Vui lòng nhập thông tin người gửi và người nhận');
+      return false;
+    }
+    if (!goodsDetails) {
+      Alert.alert('Thông báo', 'Vui lòng nhập thông tin hàng hóa');
+      return false;
+    }
+    return true;
+  };
+
+  const handlePlaceOrder = async () => {
+    if (!validateOrder()) {
+      return;
+    }
+
+    const orderData = {
+      pickup: pickupLocation,
+      delivery: deliveryLocation,
+      sender,
+      receiver,
+      deliveryType,
+      carType: deliveryType === 'VAN' ? carType : undefined,
+      goods: goodsDetails,
+      note,
+      specialDemands,
+      paymentMethod: selectedMethod,
+      totalPrice,
+      status: 'PENDING'
+    };
+
+    try {
+      // TODO: Replace with your actual API call
+      // const response = await createOrder(orderData);
+
+      // For now, we'll just navigate to the delivery screen
+      router.push({
+        pathname: "/order/order-detail/delivery",
+        // params: { orderId: response.orderId }
+      });
+    } catch (error) {
+      Alert.alert(
+        'Lỗi',
+        'Không thể tạo đơn hàng. Vui lòng thử lại sau.',
+        [{ text: 'OK' }]
+      );
+    }
   };
 
   // Find the selected payment method
@@ -114,7 +181,7 @@ const OrderConfirm = () => {
           <Text style={styles.totalText}>Tổng phí</Text>
           <Ionicons name="information-circle-outline" size={18} color="#ccc" />
         </View>
-        <Text style={styles.totalAmount}>đ132.000</Text>
+        <Text style={styles.totalAmount}>đ{totalPrice.toLocaleString()}</Text>
       </View>
 
       <TouchableOpacity

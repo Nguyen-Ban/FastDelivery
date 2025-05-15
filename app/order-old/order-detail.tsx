@@ -44,7 +44,7 @@ const OrderDetail = () => {
           <TouchableOpacity
             style={styles.detailOption}
             onPress={() => {
-              router.push("/location/location-pick");
+              router.push("/order/location/location-pick");
             }}
           >
             <FontAwesome6 name="location-dot" size={30} color={COLOR.red55} />
@@ -60,7 +60,7 @@ const OrderDetail = () => {
           <TouchableOpacity
             style={styles.detailOption}
             onPress={() => {
-              router.push("/order/client-info");
+              router.push("/order-old/client-info");
             }}
           >
             <FontAwesome6 name="location-dot" size={30} color={COLOR.blue40} />
@@ -99,7 +99,7 @@ const OrderDetail = () => {
           <TouchableOpacity
             style={styles.detailOption}
             onPress={() => {
-              router.push("/order/goods-detail");
+              router.push("/order-old/goods-detail");
             }}
           >
             <FontAwesome6 name="box" size={30} color="black" />
@@ -124,7 +124,7 @@ const OrderDetail = () => {
         </View>
         <Button
           title="Kiểm tra đơn hàng"
-          onPress={() => {}}
+          onPress={() => { }}
           type="primary"
           size="large"
           disabled={disabled}

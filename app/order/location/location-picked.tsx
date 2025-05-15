@@ -5,9 +5,9 @@ import MapView, { Marker } from "react-native-maps";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
-import Button from "../../components/Button/ButtonComponent";
-import COLOR from "../../constants/Colors";
-import GLOBAL from "../../constants/GlobalStyles";
+import Button from "../../../components/Button/ButtonComponent";
+import COLOR from "../../../constants/Colors";
+import GLOBAL from "../../../constants/GlobalStyles";
 
 const LocationPicked = () => {
   const router = useRouter();
@@ -66,7 +66,7 @@ const LocationPicked = () => {
 
     // Navigate to next screen with delivery info
     router.push({
-      pathname: "/order",
+      pathname: "/order/order-detail",
       params: {
         address: params.address,
         name,

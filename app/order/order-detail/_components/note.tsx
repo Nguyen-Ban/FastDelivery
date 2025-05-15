@@ -11,7 +11,7 @@ import {
   Keyboard
 } from "react-native";
 import { Ionicons, Feather, MaterialIcons } from "@expo/vector-icons";
-import COLOR from "../../../constants/Colors";
+import COLOR from "../../../../constants/Colors";
 
 const Note = () => {
   const [modalVisible, setModalVisible] = useState(false);

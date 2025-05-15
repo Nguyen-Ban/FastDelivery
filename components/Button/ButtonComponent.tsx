@@ -29,7 +29,7 @@ import {
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  size: "large" | "small";
+  size: "large" | "small" | "medium";
   type: "primary" | "sub";
   disabled?: boolean;
   loading?: boolean;
@@ -52,7 +52,11 @@ const Button: React.FC<ButtonProps> = ({
 }) => {
   const buttonStyle = [
     styles.button,
-    size === "large" ? styles.largeButton : styles.smallButton,
+    size === "large"
+      ? styles.largeButton
+      : size === "medium"
+      ? styles.mediumButton
+      : styles.smallButton,
     type === "primary" ? styles.primary : styles.sub,
     disabled && styles.disabledButton,
     style,
@@ -119,6 +123,9 @@ const styles = StyleSheet.create({
   },
   smallButton: {
     width: "30%",
+  },
+  mediumButton: {
+    width: "45%",
   },
   disabledButton: {
     backgroundColor: COLOR.grey90,

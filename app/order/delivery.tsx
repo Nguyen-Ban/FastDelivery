@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import COLOR from '../../../constants/Colors';
+import COLOR from '../../constants/Colors';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -15,25 +15,75 @@ const PANEL_HEIGHT = SCREEN_HEIGHT * 0.4;
 const DeliveryPage = () => {
     const router = useRouter();
 
+    // Mock order data (will be replaced with API data later)
+    const [orderData, setOrderData] = useState({
+        orderId: '#FD123456',
+        status: 'Đang giao hàng',
+        estimatedTime: '45 phút',
+        distance: '12.5 km',
+        driver: {
+            name: 'Nguyễn Văn A',
+            phone: '0123456789',
+        },
+        payment: {
+            status: 'Đã thanh toán',
+            method: 'Tiền mặt (Người gửi)',
+            totalFee: 132000,
+        },
+        locations: {
+            pickup: {
+                latitude: 10.762622,
+                longitude: 106.660172,
+                address: '123 Nguyễn Văn A, Quận 1, TP.HCM',
+            },
+            dropoff: {
+                latitude: 10.772622,
+                longitude: 106.680172,
+                address: '456 Lê Văn B, Quận 2, TP.HCM',
+            },
+        },
+    });
+
+    // Calculate the center point between pickup and dropoff for initial map region
+    const initialRegion = {
+        latitude: (orderData.locations.pickup.latitude + orderData.locations.dropoff.latitude) / 2,
+        longitude: (orderData.locations.pickup.longitude + orderData.locations.dropoff.longitude) / 2,
+        latitudeDelta: Math.abs(orderData.locations.pickup.latitude - orderData.locations.dropoff.latitude) * 1.5,
+        longitudeDelta: Math.abs(orderData.locations.pickup.longitude - orderData.locations.dropoff.longitude) * 1.5,
+    };
+
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <SafeAreaView style={styles.container}>
                 {/* Full Screen Map */}
                 <MapView
+                    provider={PROVIDER_GOOGLE}
                     style={styles.map}
-                    initialRegion={{
-                        latitude: 10.762622,
-                        longitude: 106.660172,
-                        latitudeDelta: 0.0922,
-                        longitudeDelta: 0.0421,
-                    }}
+                    initialRegion={initialRegion}
+                    mapPadding={{ top: 40, right: 40, bottom: PANEL_HEIGHT + 40, left: 40 }}
                 >
+                    {/* Pickup Marker */}
                     <Marker
-                        coordinate={{
-                            latitude: 10.762622,
-                            longitude: 106.660172,
-                        }}
-                        title="Vị trí hiện tại"
+                        coordinate={orderData.locations.pickup}
+                        title="Điểm đón"
+                        pinColor={COLOR.orange50}
+                    />
+
+                    {/* Dropoff Marker */}
+                    <Marker
+                        coordinate={orderData.locations.dropoff}
+                        title="Điểm trả"
+                        pinColor="red"
+                    />
+
+                    {/* Route Line */}
+                    <Polyline
+                        coordinates={[
+                            orderData.locations.pickup,
+                            orderData.locations.dropoff,
+                        ]}
+                        strokeColor={COLOR.orange50}
+                        strokeWidth={3}
                     />
                 </MapView>
 
@@ -47,53 +97,36 @@ const DeliveryPage = () => {
 
                 {/* Fixed Info Panel */}
                 <View style={styles.infoPanel}>
-                    {/* Panel Header */}
-                    <View style={styles.panelHeader}>
-                        <View style={styles.orderStatus}>
-                            <View style={styles.statusIndicator}>
-                                <FontAwesome5 name="truck" size={24} color={COLOR.orange50} />
-                            </View>
-                            <Text style={styles.statusText}>Đơn hàng đang được giao</Text>
-                        </View>
-                    </View>
-
-                    {/* Scrollable Content */}
-                    <ScrollView
-                        style={styles.scrollContent}
-                        contentContainerStyle={styles.scrollContentContainer}
-                        showsVerticalScrollIndicator={false}
+                    {/* Order Summary - Clickable to go to details */}
+                    <TouchableOpacity
+                        style={styles.orderSummary}
+                        onPress={() => router.push('/order/order-detail/delivery-detail')}
                     >
-                        {/* Delivery Information */}
-                        <View style={styles.deliveryInfo}>
-                            <Text style={styles.sectionTitle}>Thông tin giao hàng</Text>
-
-                            <View style={styles.infoRow}>
-                                <View style={styles.infoIcon}>
-                                    <Ionicons name="time-outline" size={20} color="#666" />
+                        <View style={styles.orderHeader}>
+                            <View style={styles.orderStatus}>
+                                <View style={styles.statusIndicator}>
+                                    <FontAwesome5 name="truck" size={24} color={COLOR.orange50} />
                                 </View>
-                                <View style={styles.infoContent}>
-                                    <Text style={styles.infoLabel}>Thời gian dự kiến</Text>
-                                    <Text style={styles.infoValue}>45 phút</Text>
+                                <View>
+                                    <Text style={styles.statusText}>{orderData.status}</Text>
+                                    <Text style={styles.orderId}>Mã đơn: {orderData.orderId}</Text>
                                 </View>
                             </View>
+                            <Ionicons name="chevron-forward" size={24} color="#666" />
+                        </View>
+                    </TouchableOpacity>
 
-                            <View style={styles.infoRow}>
-                                <View style={styles.infoIcon}>
-                                    <FontAwesome5 name="route" size={20} color="#666" />
-                                </View>
-                                <View style={styles.infoContent}>
-                                    <Text style={styles.infoLabel}>Khoảng cách</Text>
-                                    <Text style={styles.infoValue}>12.5 km</Text>
-                                </View>
-                            </View>
-
+                    {/* Driver Information */}
+                    <View style={styles.driverSection}>
+                        <Text style={styles.sectionTitle}>Thông tin tài xế</Text>
+                        <View style={styles.driverInfo}>
                             <View style={styles.infoRow}>
                                 <View style={styles.infoIcon}>
                                     <FontAwesome5 name="user" size={20} color="#666" />
                                 </View>
                                 <View style={styles.infoContent}>
                                     <Text style={styles.infoLabel}>Tài xế</Text>
-                                    <Text style={styles.infoValue}>Nguyễn Văn A</Text>
+                                    <Text style={styles.infoValue}>{orderData.driver.name}</Text>
                                 </View>
                             </View>
 
@@ -103,36 +136,11 @@ const DeliveryPage = () => {
                                 </View>
                                 <View style={styles.infoContent}>
                                     <Text style={styles.infoLabel}>Liên hệ</Text>
-                                    <Text style={styles.infoValue}>0123456789</Text>
+                                    <Text style={styles.infoValue}>{orderData.driver.phone}</Text>
                                 </View>
                             </View>
                         </View>
-
-                        {/* Order Details */}
-                        <View style={styles.orderDetails}>
-                            <Text style={styles.sectionTitle}>Chi tiết đơn hàng</Text>
-
-                            <View style={styles.detailRow}>
-                                <Text style={styles.detailLabel}>Mã đơn hàng:</Text>
-                                <Text style={styles.detailValue}>#FD123456</Text>
-                            </View>
-
-                            <View style={styles.detailRow}>
-                                <Text style={styles.detailLabel}>Trạng thái thanh toán:</Text>
-                                <Text style={[styles.detailValue, styles.paidStatus]}>Đã thanh toán</Text>
-                            </View>
-
-                            <View style={styles.detailRow}>
-                                <Text style={styles.detailLabel}>Phương thức thanh toán:</Text>
-                                <Text style={styles.detailValue}>Tiền mặt (Người gửi)</Text>
-                            </View>
-
-                            <View style={styles.detailRow}>
-                                <Text style={styles.detailLabel}>Tổng phí:</Text>
-                                <Text style={[styles.detailValue, styles.totalFee]}>đ132.000</Text>
-                            </View>
-                        </View>
-                    </ScrollView>
+                    </View>
 
                     {/* Fixed Footer with Action Buttons */}
                     <View style={styles.panelFooter}>
@@ -190,15 +198,16 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 5,
         elevation: 10,
-        overflow: 'hidden',
     },
-    panelHeader: {
-        backgroundColor: '#fff',
-        paddingTop: 15,
-        paddingHorizontal: 20,
-        paddingBottom: 10,
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+    orderSummary: {
+        padding: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f0f0f0',
+    },
+    orderHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
     orderStatus: {
         flexDirection: 'row',
@@ -211,34 +220,33 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFF3E0',
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 15,
+        marginRight: 12,
     },
     statusText: {
-        fontSize: 18,
+        fontSize: 16,
         fontWeight: 'bold',
         color: '#333',
+        marginBottom: 4,
     },
-    scrollContent: {
-        flex: 1,
-        backgroundColor: '#fff',
+    orderId: {
+        fontSize: 14,
+        color: '#666',
     },
-    scrollContentContainer: {
-        paddingHorizontal: 20,
-        paddingBottom: 20,
-    },
-    deliveryInfo: {
-        marginBottom: 20,
-        paddingTop: 10,
+    driverSection: {
+        padding: 16,
     },
     sectionTitle: {
         fontSize: 16,
         fontWeight: 'bold',
-        marginBottom: 15,
+        marginBottom: 12,
         color: '#333',
+    },
+    driverInfo: {
+        gap: 12,
     },
     infoRow: {
         flexDirection: 'row',
-        marginBottom: 15,
+        alignItems: 'center',
     },
     infoIcon: {
         width: 30,
@@ -251,44 +259,19 @@ const styles = StyleSheet.create({
     infoLabel: {
         fontSize: 14,
         color: '#666',
-        marginBottom: 4,
+        marginBottom: 2,
     },
     infoValue: {
         fontSize: 16,
         fontWeight: '500',
         color: '#333',
     },
-    orderDetails: {
-        marginBottom: 70, // Add extra space at the bottom to ensure all content is visible when scrolled
-    },
-    detailRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 12,
-    },
-    detailLabel: {
-        fontSize: 14,
-        color: '#666',
-    },
-    detailValue: {
-        fontSize: 14,
-        fontWeight: '500',
-        color: '#333',
-    },
-    paidStatus: {
-        color: '#4CAF50',
-    },
-    totalFee: {
-        fontSize: 16,
-        fontWeight: 'bold',
-        color: COLOR.orange50,
-    },
     panelFooter: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         backgroundColor: '#fff',
-        paddingHorizontal: 20,
-        paddingVertical: 15,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
         borderTopWidth: 1,
         borderTopColor: '#f0f0f0',
         position: 'absolute',

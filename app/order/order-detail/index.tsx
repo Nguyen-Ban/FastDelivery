@@ -16,18 +16,11 @@ import { useOrder } from "../../../contexts/order.context";
 const OrderOverview = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
-  const { pickupLocation, deliveryLocation } = useOrder();
+  const { pickupLocation, deliveryLocation, sender, receiver } = useOrder();
+
   // Ensure type is a string by taking first value if it's an array
   const deliveryType = Array.isArray(params.type) ? params.type[0] : params.type || 'VAN';
   const isVan = deliveryType === 'VAN';
-
-  // Extract receiver information from params
-  const receiverInfo = {
-    name: Array.isArray(params.name) ? params.name[0] : params.name,
-    phone: Array.isArray(params.phone) ? params.phone[0] : params.phone,
-    address: Array.isArray(params.address) ? params.address[0] : params.address,
-    note: Array.isArray(params.note) ? params.note[0] : params.note,
-  };
 
   // Height for the OrderConfirm component + extra padding
   const orderConfirmHeight = 180;
@@ -55,9 +48,12 @@ const OrderOverview = () => {
         ]}
       >
         <SenderReceiver
-          receiverName={receiverInfo.name}
-          receiverPhone={receiverInfo.phone}
-          receiverNote={receiverInfo.note}
+          senderName={sender?.name}
+          senderPhone={sender?.phone}
+          senderNote={sender?.note}
+          receiverName={receiver?.name}
+          receiverPhone={receiver?.phone}
+          receiverNote={receiver?.note}
         />
         {pickupLocation && deliveryLocation && (
           <RouteOverview

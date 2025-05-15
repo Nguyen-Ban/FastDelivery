@@ -9,16 +9,18 @@ import COLOR from "../../../constants/Colors";
 import GLOBAL from "../../../constants/GlobalStyles";
 import { useLocation } from "../../../contexts/location.context";
 import { useOrder } from "../../../contexts/order.context";
+import { useAuth } from "../../../contexts/auth.context";
 
 const Order = () => {
     const router = useRouter();
     const { type } = useLocalSearchParams();
     const { location } = useLocation();
-    const { pickupLocation, deliveryLocation, setPickupLocation } = useOrder();
+    const { user } = useAuth();
+    const { pickupLocation, deliveryLocation, setPickupLocation, setSender } = useOrder();
 
     useEffect(() => {
+        // Set initial pickup location from current location
         if (location?.address && !pickupLocation) {
-            // Set initial pickup location from current location
             const { latitude, longitude, address } = location;
             setPickupLocation({
                 title: "Vị trí của bạn",
@@ -29,7 +31,16 @@ const Order = () => {
                 },
             });
         }
-    }, [location, pickupLocation, setPickupLocation]);
+
+        // Set initial sender information from user data
+        if (user && !pickupLocation) {
+            setSender({
+                name: user.fullName || "",
+                phone: user.phoneNumber || "",
+                note: undefined
+            });
+        }
+    }, [location, pickupLocation, setPickupLocation, user, setSender]);
 
     const locationHandler = (locationType: 'pickup' | 'delivery') => {
         router.push({

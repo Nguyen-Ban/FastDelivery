@@ -138,7 +138,7 @@ const OrderConfirm = () => {
 
       // For now, we'll just navigate to the delivery screen
       router.push({
-        pathname: "/order/order-detail/delivery",
+        pathname: "/order/delivery",
         // params: { orderId: response.orderId }
       });
     } catch (error) {

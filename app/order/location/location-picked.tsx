@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, TextInput } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import MapView, { Marker } from "react-native-maps";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -8,10 +8,12 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Button from "../../../components/Button/ButtonComponent";
 import COLOR from "../../../constants/Colors";
 import GLOBAL from "../../../constants/GlobalStyles";
+import { useOrder } from "../../../contexts/order.context";
 
 const LocationPicked = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { setSender, setReceiver } = useOrder();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
@@ -23,12 +25,11 @@ const LocationPicked = () => {
   const location = {
     latitude: parseFloat(params.latitude as string),
     longitude: parseFloat(params.longitude as string),
-    latitudeDelta: 0.001, // Increased zoom level (smaller delta)
+    latitudeDelta: 0.001,
     longitudeDelta: 0.001,
   };
 
   const validatePhone = (phoneNumber: string) => {
-    // Regex for standard phone number format (allowing 9-12 digits)
     const phoneRegex = /^0\d{9,11}$/;
     return phoneRegex.test(phoneNumber);
   };
@@ -40,13 +41,11 @@ const LocationPicked = () => {
       phone: ""
     };
 
-    // Validate name
     if (!name.trim()) {
       newErrors.name = "Họ tên là bắt buộc";
       isValid = false;
     }
 
-    // Validate phone
     if (!phone.trim()) {
       newErrors.phone = "Số điện thoại là bắt buộc";
       isValid = false;
@@ -64,14 +63,24 @@ const LocationPicked = () => {
       return;
     }
 
-    // Navigate to next screen with delivery info
+    const personInfo = {
+      name,
+      phone,
+      note: note || undefined
+    };
+
+    // Update the appropriate context based on location type
+    if (params.type === 'pickup') {
+      setSender(personInfo);
+    } else {
+      setReceiver(personInfo);
+    }
+
+    // Navigate to next screen
     router.push({
       pathname: "/order/order-detail",
       params: {
         address: params.address,
-        name,
-        phone,
-        note,
         type: params.type
       },
     });
@@ -98,7 +107,9 @@ const LocationPicked = () => {
           <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
             <FontAwesome6 name="arrow-left" size={24} color={COLOR.black} />
           </TouchableOpacity>
-          <Text style={styles.title}>Thông tin người nhận</Text>
+          <Text style={styles.title}>
+            {params.type === 'pickup' ? 'Thông tin người gửi' : 'Thông tin người nhận'}
+          </Text>
         </View>
 
         <View style={styles.addressContainer}>
@@ -112,7 +123,7 @@ const LocationPicked = () => {
           <View style={styles.inputContainer}>
             <TextInput
               style={[styles.input, errors.name ? styles.inputError : null]}
-              placeholder="Họ tên người nhận *"
+              placeholder={params.type === 'pickup' ? "Họ tên người gửi *" : "Họ tên người nhận *"}
               value={name}
               onChangeText={(text) => {
                 setName(text);

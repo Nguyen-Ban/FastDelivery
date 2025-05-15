@@ -25,7 +25,6 @@ interface GoodsDetails {
   length: number;
   width: number;
   height: number;
-  quantity: number;
   description?: string;
 }
 
@@ -39,7 +38,6 @@ const DEFAULT_GOODS_STATE: GoodsState = {
   length: 0,
   width: 0,
   height: 0,
-  quantity: 1,
   description: '',
   size: 'S',
   productType: ''
@@ -59,9 +57,33 @@ const productTypes = [
 ];
 
 const sizeOptions = [
-  { label: 'S', size: 'Tối đa 25x32x12 cm' },
-  { label: 'M', size: 'Tối đa 35x32x12 cm' },
-  { label: 'L', size: 'Tối đa 40x35x15 cm' }
+  {
+    label: 'S',
+    display: 'Tối đa 25x32x12 cm',
+    dimensions: {
+      length: 25,
+      width: 32,
+      height: 12
+    }
+  },
+  {
+    label: 'M',
+    display: 'Tối đa 35x32x12 cm',
+    dimensions: {
+      length: 35,
+      width: 32,
+      height: 12
+    }
+  },
+  {
+    label: 'L',
+    display: 'Tối đa 40x35x15 cm',
+    dimensions: {
+      length: 40,
+      width: 35,
+      height: 15
+    }
+  }
 ];
 
 const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
@@ -81,7 +103,6 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
       length: localState.length,
       width: localState.width,
       height: localState.height,
-      quantity: localState.quantity,
       description: localState.description
     };
     setGoodsDetails(details);
@@ -93,6 +114,27 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
       ...prev,
       ...updates
     }));
+  };
+
+  const handleSelectSize = (size: string) => {
+    const sizeOption = sizeOptions.find(option => option.label === size);
+    if (sizeOption) {
+      setGoodsDetails({
+        weight: goodsDetails?.weight || 0,
+        description: goodsDetails?.description || '',
+        ...sizeOption.dimensions,
+      });
+    }
+  };
+
+  const handleWeightChange = (value: string) => {
+    setGoodsDetails({
+      length: goodsDetails?.length || 0,
+      width: goodsDetails?.width || 0,
+      height: goodsDetails?.height || 0,
+      description: goodsDetails?.description || '',
+      weight: parseFloat(value) || 0
+    });
   };
 
   const handleSelectProductType = (type: string) => {
@@ -110,20 +152,24 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
                 key={option.label}
                 style={[
                   styles.sizeOption,
-                  localState.size === option.label && styles.selectedSizeOption
+                  goodsDetails?.length === option.dimensions.length && styles.selectedSizeOption
                 ]}
-                onPress={() => updateLocalState({ size: option.label })}
+                onPress={() => handleSelectSize(option.label)}
               >
                 <Text style={[
                   styles.sizeLabel,
-                  localState.size === option.label && styles.selectedSizeLabel
+                  goodsDetails?.length === option.dimensions.length && styles.selectedSizeLabel
                 ]}>{option.label}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
         </View>
         <Text style={styles.sizeDescription}>
-          {sizeOptions.find(option => option.label === localState.size)?.size}
+          {sizeOptions.find(option =>
+            option.dimensions.length === goodsDetails?.length &&
+            option.dimensions.width === goodsDetails?.width &&
+            option.dimensions.height === goodsDetails?.height
+          )?.display || sizeOptions[0].display}
         </Text>
 
         <View style={styles.weightInput}>
@@ -132,10 +178,8 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
             style={styles.input}
             placeholder="Nhập khối lượng"
             keyboardType="numeric"
-            value={localState.weight.toString()}
-            onChangeText={(value) => {
-              updateLocalState({ weight: parseFloat(value) || 0 });
-            }}
+            value={goodsDetails?.weight?.toString() || ''}
+            onChangeText={handleWeightChange}
           />
         </View>
       </View>
@@ -231,7 +275,7 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
             <View style={styles.formContainer}>
               {/* Weight Input */}
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Khối lượng 1 kiện (kg)</Text>
+                <Text style={styles.inputLabel}>Khối lượng (kg)</Text>
                 <TextInput
                   style={styles.input}
                   value={localState.weight.toString()}

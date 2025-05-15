@@ -20,7 +20,6 @@ interface GoodsDetails {
     length: number;
     width: number;
     height: number;
-    quantity: number;
     description?: string;
 }
 

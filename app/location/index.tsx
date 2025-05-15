@@ -1,42 +1,34 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 import Button from "../../components/Button/ButtonComponent";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import { useRouter } from "expo-router";
-import mapService from "../../services/map.service";
 import { useLocation } from "../../contexts/location.context";
 
 const Order = () => {
   const router = useRouter();
+  const { type } = useLocalSearchParams();
   const [homeAddress, setHomeAddress] = useState("Nhà");
   const { location } = useLocation();
 
   useEffect(() => {
-    const fetchHomeAddress = async () => {
-      try {
-        if (location && location.latitude && location.longitude) {
-          const response = await mapService.getAddressFromLocation(location.longitude, location.latitude);
-          if (response.success) {
-            setHomeAddress(response.data[0].title);
-          }
-        }
-      } catch (error) {
-        console.log("Error fetching home address:", error);
-      }
-    };
-
-    fetchHomeAddress();
+    if (location?.address) {
+      setHomeAddress(location.address);
+    }
   }, [location]);
 
   // const orderDetailHandler = () => {
   //   router.push("/order/order-detail");
   // };
   const locationHandler = () => {
-    router.push("/location/location-pick");
+    router.push({
+      pathname: "/location/location-pick",
+      params: { type }
+    });
   };
 
   return (
@@ -56,7 +48,9 @@ const Order = () => {
             >
               <FontAwesome6 name="arrow-left" size={30} color="black" />
             </TouchableOpacity>
-            <Text style={styles.title}>Giao hàng</Text>
+            <Text style={styles.title}>
+              {type === 'VAN' ? 'Giao hàng xe tải' : 'Giao hàng xe máy'}
+            </Text>
           </View>
           <TouchableOpacity>
             <FontAwesome6 name="clipboard" size={25} color="black" />
@@ -65,9 +59,7 @@ const Order = () => {
         <View style={styles.locationPickCard}>
           <Button
             title={homeAddress}
-            onPress={() => {
-              locationHandler();
-            }}
+            onPress={locationHandler}
             type="sub"
             size="large"
             style={[
@@ -81,9 +73,7 @@ const Order = () => {
           />
           <Button
             title="Giao đến đâu?"
-            onPress={() => {
-              locationHandler();
-            }}
+            onPress={locationHandler}
             type="sub"
             size="large"
             style={[

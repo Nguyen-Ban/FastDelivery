@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, TextInput } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import MapView, { Marker } from "react-native-maps";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -15,20 +15,55 @@ const LocationPicked = () => {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
+  const [errors, setErrors] = useState({
+    name: "",
+    phone: ""
+  });
 
   const location = {
     latitude: parseFloat(params.latitude as string),
     longitude: parseFloat(params.longitude as string),
-    latitudeDelta: 0.005,
-    longitudeDelta: 0.005,
+    latitudeDelta: 0.001, // Increased zoom level (smaller delta)
+    longitudeDelta: 0.001,
+  };
+
+  const validatePhone = (phoneNumber: string) => {
+    // Regex for standard phone number format (allowing 9-12 digits)
+    const phoneRegex = /^0\d{9,11}$/;
+    return phoneRegex.test(phoneNumber);
+  };
+
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors = {
+      name: "",
+      phone: ""
+    };
+
+    // Validate name
+    if (!name.trim()) {
+      newErrors.name = "Họ tên là bắt buộc";
+      isValid = false;
+    }
+
+    // Validate phone
+    if (!phone.trim()) {
+      newErrors.phone = "Số điện thoại là bắt buộc";
+      isValid = false;
+    } else if (!validatePhone(phone)) {
+      newErrors.phone = "Số điện thoại không hợp lệ (VD: 0912345678)";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
   };
 
   const handleConfirm = () => {
-    // Handle form submission
-    if (!name || !phone) {
-      // Show error
+    if (!validateForm()) {
       return;
     }
+
     // Navigate to next screen with delivery info
     router.push({
       pathname: "/order",
@@ -37,6 +72,7 @@ const LocationPicked = () => {
         name,
         phone,
         note,
+        type: params.type
       },
     });
   };
@@ -48,7 +84,12 @@ const LocationPicked = () => {
         style={styles.background}
         locations={[0.15, 0.25]}
       />
-      <MapView style={styles.map} initialRegion={location}>
+      <MapView
+        style={styles.map}
+        initialRegion={location}
+        zoomEnabled={true}
+        scrollEnabled={false}
+      >
         <Marker coordinate={location} />
       </MapView>
 
@@ -70,21 +111,33 @@ const LocationPicked = () => {
         <View style={styles.form}>
           <View style={styles.inputContainer}>
             <TextInput
-              style={styles.input}
-              placeholder="Tên người nhận"
+              style={[styles.input, errors.name ? styles.inputError : null]}
+              placeholder="Họ tên người nhận *"
               value={name}
-              onChangeText={setName}
+              onChangeText={(text) => {
+                setName(text);
+                if (errors.name && text.trim()) {
+                  setErrors({ ...errors, name: "" });
+                }
+              }}
             />
+            {errors.name ? <Text style={styles.errorText}>{errors.name}</Text> : null}
           </View>
 
           <View style={styles.inputContainer}>
             <TextInput
-              style={styles.input}
-              placeholder="Số điện thoại"
+              style={[styles.input, errors.phone ? styles.inputError : null]}
+              placeholder="Số điện thoại (VD: 0912345678) *"
               keyboardType="phone-pad"
               value={phone}
-              onChangeText={setPhone}
+              onChangeText={(text) => {
+                setPhone(text);
+                if (errors.phone && validatePhone(text)) {
+                  setErrors({ ...errors, phone: "" });
+                }
+              }}
             />
+            {errors.phone ? <Text style={styles.errorText}>{errors.phone}</Text> : null}
           </View>
 
           <View style={styles.inputContainer}>
@@ -169,6 +222,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
+  },
+  inputError: {
+    borderColor: COLOR.red55,
+  },
+  errorText: {
+    color: COLOR.red55,
+    fontSize: 12,
+    marginTop: 4,
+    marginLeft: 4,
   },
   noteInput: {
     height: 80,

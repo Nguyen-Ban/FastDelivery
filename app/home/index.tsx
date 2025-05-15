@@ -24,6 +24,7 @@ import { router } from "expo-router";
 import { useFonts } from "expo-font";
 import { useAuth } from "../../contexts/auth.context";
 import { useLocation } from "../../contexts/location.context";
+import driverService from "../../services/driver.service";
 
 const HomeScreen = () => {
   const [Cascadia] = useFonts({
@@ -80,12 +81,26 @@ const HomeScreen = () => {
     }
   };
 
+  const handleDriverMode = async () => {
+    try {
+      const response = await driverService.checkRegistered();
+      if (response.success) {
+        router.push('/driver');
+      } else {
+        router.push('/driver/register');
+      }
+    } catch (error) {
+      console.log(error)
+      Alert.alert('Lỗi', 'Không thể kiểm tra trạng thái tài xế. Vui lòng thử lại sau.');
+    }
+  };
+
   const services = [
-    { id: "1", name: "Giao hàng", icon: "box" },
+    { id: "1", name: "Giao xe máy", icon: "motorcycle", type: "MOTORBIKE" },
+    { id: "6", name: "Giao xe tải", icon: "truck", type: "VAN" },
     { id: "2", name: "Lịch sử", icon: "sticky-note" },
     { id: "3", name: "Chi tiêu", icon: "chart-simple" },
-    { id: "4", name: "Nhận đơn", icon: "car-on" },
-    { id: "5", name: "Trở thành tài xế", icon: "user-plus" },
+    { id: "7", name: "Chế độ tài xế", icon: "car-side" },
   ];
   const ads = [
     require("../../assets/ad_1.png"),
@@ -93,26 +108,38 @@ const HomeScreen = () => {
     require("../../assets/ad_3.png"),
   ];
 
+  const [selectedDeliveryType, setSelectedDeliveryType] = useState<'MOTORBIKE' | 'VAN' | null>(null);
+
+  const handleDeliverySelection = (type: 'MOTORBIKE' | 'VAN') => {
+    setSelectedDeliveryType(type);
+    // Store the selected type in AsyncStorage for persistence
+    AsyncStorage.setItem('selectedDeliveryType', type);
+    router.push({
+      pathname: '/location',
+      params: { type }
+    });
+  };
+
   type ServiceRoute =
     | "/location"
     | "/home"
     | "/driver"
     | "/user/spending"
     | "/user/events"
-    | "/user/driver-form";
+    | "/driver/register";
 
-  const getRouteById = (id: string): ServiceRoute => {
+  const getRouteById = (id: string): ServiceRoute | (() => void) => {
     switch (id) {
       case "1":
-        return "/location";
+        return () => handleDeliverySelection('MOTORBIKE');
+      case "6":
+        return () => handleDeliverySelection('VAN');
       case "2":
         return "/user/events";
       case "3":
         return "/user/spending";
-      case "4":
-        return "/driver";
-      case "5":
-        return "/user/driver-form";
+      case "7":
+        return () => handleDriverMode();
       default:
         return "/home";
     }
@@ -183,8 +210,18 @@ const HomeScreen = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity
-            style={styles.service}
-            onPress={() => router.push(getRouteById(item.id))}
+            style={[
+              styles.service,
+              item.type && selectedDeliveryType === item.type && styles.selectedService
+            ]}
+            onPress={() => {
+              const route = getRouteById(item.id);
+              if (typeof route === 'function') {
+                route();
+              } else {
+                router.push(route);
+              }
+            }}
           >
             <FontAwesome6
               name={item.icon}
@@ -351,5 +388,9 @@ const styles = StyleSheet.create({
   },
   loader: {
     marginTop: 20,
+  },
+  selectedService: {
+    backgroundColor: COLOR.blue70,
+    borderWidth: 2,
   },
 });

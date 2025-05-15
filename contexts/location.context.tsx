@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
+import mapService from '../services/map.service';
 
 export interface LocationData {
     latitude: number;
@@ -20,29 +21,61 @@ interface LocationContextType {
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
+const isLocationSignificantlyDifferent = (loc1: LocationData, loc2: LocationData, threshold = 0.0001) => {
+    return Math.abs(loc1.latitude - loc2.latitude) > threshold ||
+        Math.abs(loc1.longitude - loc2.longitude) > threshold;
+};
+
 export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [location, setLocation] = useState<LocationData | null>(null);
     const [hasLocationPermission, setHasLocationPermission] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
+    const fetchAndSetAddress = async (latitude: number, longitude: number) => {
+        try {
+            const response = await mapService.getAddressFromLocation(longitude, latitude);
+            if (response.success && response.data.length > 0) {
+                return response.data[0].title;
+            }
+        } catch (err) {
+            console.error('Error fetching address:', err);
+        }
+        return undefined;
+    };
+
     useEffect(() => {
-        // Try to load saved location data from AsyncStorage when component mounts
         const loadSavedLocation = async () => {
             try {
                 const savedLocationJson = await AsyncStorage.getItem('userLocation');
                 if (savedLocationJson) {
                     const savedLocation = JSON.parse(savedLocationJson);
                     setLocation(savedLocation);
-                    // console.log('Loaded location from AsyncStorage:', savedLocation);
-                } else {
-                    // console.log('No saved location found in AsyncStorage');
+
+                    // Check current location if we have permission
+                    const { status } = await Location.getForegroundPermissionsAsync();
+                    if (status === 'granted') {
+                        const currentPosition = await Location.getCurrentPositionAsync({
+                            accuracy: Location.Accuracy.Balanced,
+                        });
+
+                        const currentLocation = {
+                            latitude: currentPosition.coords.latitude,
+                            longitude: currentPosition.coords.longitude,
+                        };
+
+                        // If location has changed significantly, update it
+                        if (isLocationSignificantlyDifferent(savedLocation, currentLocation)) {
+                            const address = await fetchAndSetAddress(currentLocation.latitude, currentLocation.longitude);
+                            const newLocation = { ...currentLocation, address };
+                            setLocation(newLocation);
+                            await AsyncStorage.setItem('userLocation', JSON.stringify(newLocation));
+                        }
+                    }
                 }
 
-                // Check if we already have location permissions
                 const { status } = await Location.getForegroundPermissionsAsync();
                 setHasLocationPermission(status === 'granted');
-                // console.log('Location permission status:', status);
             } catch (err) {
                 console.error('Error loading saved location:', err);
                 setError('Could not load saved location data');
@@ -64,7 +97,6 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
             setHasLocationPermission(permissionGranted);
 
             if (permissionGranted) {
-                // If permission is granted, try to get current location
                 await getCurrentLocation();
             }
 
@@ -81,7 +113,6 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const getCurrentLocation = async (): Promise<LocationData | null> => {
         if (!hasLocationPermission) {
             setError('Location permission not granted');
-            // console.log('Cannot get location - permission not granted');
             return null;
         }
 
@@ -93,20 +124,16 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 accuracy: Location.Accuracy.Balanced,
             });
 
+            const address = await fetchAndSetAddress(coords.latitude, coords.longitude);
+
             const newLocation = {
                 latitude: coords.latitude,
                 longitude: coords.longitude,
+                address
             };
 
-            // console.log('Got current location:', newLocation);
-
-            // Save to state and AsyncStorage
             setLocation(newLocation);
             await AsyncStorage.setItem('userLocation', JSON.stringify(newLocation));
-
-            // Verify data was saved to AsyncStorage
-            const savedData = await AsyncStorage.getItem('userLocation');
-            // console.log('Verified location saved to AsyncStorage:', savedData);
 
             return newLocation;
         } catch (err) {
@@ -120,13 +147,13 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const updateLocation = async (newLocation: LocationData) => {
         try {
-            // console.log('Updating location to:', newLocation);
+            if (!newLocation.address) {
+                const address = await fetchAndSetAddress(newLocation.latitude, newLocation.longitude);
+                newLocation = { ...newLocation, address };
+            }
+
             setLocation(newLocation);
             await AsyncStorage.setItem('userLocation', JSON.stringify(newLocation));
-
-            // Verify data was updated in AsyncStorage
-            const savedData = await AsyncStorage.getItem('userLocation');
-            // console.log('Verified location updated in AsyncStorage:', savedData);
         } catch (err) {
             console.error('Error saving location:', err);
             setError('Failed to save location');

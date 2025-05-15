@@ -15,12 +15,18 @@ import COLOR from "../../../constants/Colors";
 
 const { width } = Dimensions.get('window');
 
-const GoodsDetail = () => {
+interface GoodsDetailProps {
+  type?: string;
+}
+
+const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [weight, setWeight] = useState('');
   const [length, setLength] = useState('');
   const [width, setWidth] = useState('');
   const [height, setHeight] = useState('');
+  const [selectedSize, setSelectedSize] = useState('S');
+  const isVan = type === 'VAN';
 
   const productTypes = [
     "Nội thất, trang trí",
@@ -35,6 +41,73 @@ const GoodsDetail = () => {
     "Vật liệu xây dựng"
   ];
 
+  const sizeOptions = [
+    { label: 'S', size: 'Tối đa 25x32x12 cm' },
+    { label: 'M', size: 'Tối đa 35x32x12 cm' },
+    { label: 'L', size: 'Tối đa 40x35x15 cm' }
+  ];
+
+  const renderMotorbikeContent = () => (
+    <View style={styles.section}>
+      <View>
+        <Text style={styles.sectionTitle}>Kích thước và khối lượng</Text>
+        <View style={styles.sizeOptionsContainer}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {sizeOptions.map((option) => (
+              <TouchableOpacity
+                key={option.label}
+                style={[
+                  styles.sizeOption,
+                  selectedSize === option.label && styles.selectedSizeOption
+                ]}
+                onPress={() => setSelectedSize(option.label)}
+              >
+                <Text style={[
+                  styles.sizeLabel,
+                  selectedSize === option.label && styles.selectedSizeLabel
+                ]}>{option.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+        <Text style={styles.sizeDescription}>
+          {sizeOptions.find(option => option.label === selectedSize)?.size}
+        </Text>
+
+        <View style={styles.weightInput}>
+          <Text style={styles.weightLabel}>Khối lượng (kg)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Nhập khối lượng"
+            keyboardType="numeric"
+            value={weight}
+            onChangeText={setWeight}
+          />
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderVanContent = () => (
+    <TouchableOpacity
+      style={styles.section}
+      onPress={() => setModalVisible(true)}
+    >
+      <View>
+        <Text style={styles.sectionTitle}>Kích thước và khối lượng</Text>
+        <View style={styles.optionsRow}>
+          <View style={styles.optionTag}>
+            <Text style={styles.optionTagText}>Kích thước</Text>
+          </View>
+          <View style={styles.optionTag}>
+            <Text style={styles.optionTagText}>Khối lượng</Text>
+          </View>
+        </View>
+      </View>
+      <Ionicons name="chevron-forward" size={24} color="#ccc" />
+    </TouchableOpacity>
+  );
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -45,23 +118,7 @@ const GoodsDetail = () => {
       <View style={styles.separator} />
 
       {/* Dimensions section */}
-      <TouchableOpacity
-        style={styles.section}
-        onPress={() => setModalVisible(true)}
-      >
-        <View>
-          <Text style={styles.sectionTitle}>Kích thước và khối lượng</Text>
-          <View style={styles.optionsRow}>
-            <View style={styles.optionTag}>
-              <Text style={styles.optionTagText}>Kích thước</Text>
-            </View>
-            <View style={styles.optionTag}>
-              <Text style={styles.optionTagText}>Khối lượng</Text>
-            </View>
-          </View>
-        </View>
-        <Ionicons name="chevron-forward" size={24} color="#ccc" />
-      </TouchableOpacity>
+      {isVan ? renderVanContent() : renderMotorbikeContent()}
 
       <View style={styles.separator} />
 
@@ -84,7 +141,7 @@ const GoodsDetail = () => {
         </ScrollView>
       </View>
 
-      {/* Dimensions Modal */}
+      {/* Dimensions Modal for VAN type */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -266,6 +323,51 @@ const styles = StyleSheet.create({
     color: "#666",
     fontSize: 14,
   },
+  sizeOptionsContainer: {
+    marginBottom: 12,
+  },
+  sizeOption: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  selectedSizeOption: {
+    borderColor: COLOR.orange50,
+    backgroundColor: COLOR.orange50,
+  },
+  sizeLabel: {
+    fontSize: 16,
+    color: '#666',
+  },
+  selectedSizeLabel: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  sizeDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  weightInput: {
+    marginTop: 8,
+  },
+  weightLabel: {
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+  },
   productsScrollContent: {
     paddingRight: 20,
   },
@@ -280,8 +382,6 @@ const styles = StyleSheet.create({
   productText: {
     fontSize: 14,
   },
-
-  // Modal Styles
   modalContainer: {
     flex: 1,
     backgroundColor: '#fff',
@@ -315,13 +415,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 12,
-    fontSize: 16,
-  },
   dimensionsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -340,10 +433,6 @@ const styles = StyleSheet.create({
   weightInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  weightLabel: {
-    fontSize: 16,
-    marginRight: 6,
   },
   weightValue: {
     fontSize: 16,

@@ -33,32 +33,36 @@ const LocationMapPick = () => {
   const [places, setPlaces] = useState<PlaceItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [region, setRegion] = useState<Region>({
-    latitude: 21.03835308269753,
-    longitude: 105.78267549063561,
+    latitude: location?.latitude as number,//21.03835308269753,
+    longitude: location?.longitude as number,//105.78267549063561,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   });
 
-  // Fetch nearby places when component mounts
+  // Fetch nearby places when component mounts or location changes
   useEffect(() => {
     if (location && location.latitude && location.longitude) {
-      setSelectedLocation({
-        latitude: 21.03835308269753,
-        longitude: 105.78267549063561
-      });
-
-      fetchNearbyPlaces(105.78267549063561, 21.03835308269753);
+      const newLocation = {
+        latitude: location.latitude,
+        longitude: location.longitude,
+      };
+      setSelectedLocation(newLocation);
+      fetchNearbyPlaces(location.longitude, location.latitude);
     }
   }, [location]);
 
   // Animate to region when component mounts
   useEffect(() => {
-    if (mapRef.current) {
+    if (mapRef.current && selectedLocation) {
       setTimeout(() => {
-        mapRef.current?.animateToRegion(region, 500);
+        mapRef.current?.animateToRegion({
+          ...region,
+          latitude: selectedLocation.latitude,
+          longitude: selectedLocation.longitude,
+        }, 500);
       }, 100);
     }
-  }, []);
+  }, [selectedLocation]);
 
   const fetchNearbyPlaces = async (lng: number, lat: number) => {
     setLoading(true);

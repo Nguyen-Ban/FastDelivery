@@ -1,6 +1,6 @@
 import React from "react";
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, Dimensions, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from "react-native";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import RouteOverview from "./_components/route-overview";
 import DeliveryType from "./_components/delivery-type";
@@ -13,6 +13,11 @@ import COLOR from "../../constants/Colors";
 
 const OrderOverview = () => {
   const router = useRouter();
+  const params = useLocalSearchParams();
+  // Ensure type is a string by taking first value if it's an array
+  const deliveryType = Array.isArray(params.type) ? params.type[0] : params.type || 'VAN';
+  const isVan = deliveryType === 'VAN';
+
   // Height for the OrderConfirm component + extra padding
   const orderConfirmHeight = 180;
 
@@ -25,7 +30,9 @@ const OrderOverview = () => {
         >
           <Ionicons name="chevron-back" size={26} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.title}>Giao hàng xe tải</Text>
+        <Text style={styles.title}>
+          {isVan ? "Giao hàng xe tải" : "Giao hàng xe máy"}
+        </Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -38,10 +45,10 @@ const OrderOverview = () => {
       >
         <RouteOverview />
         <DeliveryType />
-        <CarType />
-        <GoodsDetail />
+        {isVan && <CarType />}
+        <GoodsDetail type={deliveryType} />
         <Note />
-        <SpecialDemand />
+        <SpecialDemand type={deliveryType} />
       </ScrollView>
       <OrderConfirm />
     </SafeAreaView>

@@ -10,7 +10,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 import Button from "../../components/Button/ButtonComponent";
@@ -33,6 +33,7 @@ interface SuggestedLocation {
 
 const Location = () => {
   const router = useRouter();
+  const { type } = useLocalSearchParams();
   const [searchText, setSearchText] = useState("");
   const [suggestedLocations, setSuggestedLocations] = useState<SuggestedLocation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -75,6 +76,7 @@ const Location = () => {
         address: location.address,
         latitude: location.position.lat.toString(),
         longitude: location.position.lng.toString(),
+        type
       },
     });
   };
@@ -166,7 +168,10 @@ const Location = () => {
       <View style={styles.footer}>
         <Button
           title="Chọn trên bản đồ"
-          onPress={() => router.push("/location/location-map-pick")}
+          onPress={() => router.push({
+            pathname: "/location/location-map-pick",
+            params: { type }
+          })}
           type="primary"
           size="large"
           leftImg={

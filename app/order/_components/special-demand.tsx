@@ -3,131 +3,131 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-nati
 import { Ionicons } from "@expo/vector-icons";
 import COLOR from "../../../constants/Colors";
 
-const SpecialDemand = () => {
+interface SpecialDemandProps {
+  type?: string;
+}
+
+const SpecialDemand: React.FC<SpecialDemandProps> = ({ type = 'VAN' }) => {
   const [expanded, setExpanded] = useState(false);
+  const isVan = type === 'VAN';
+
+  const vanServices = [
+    {
+      name: "Gói hỗ trợ chuyển nhà",
+      price: "300.000đ",
+      alwaysVisible: true
+    },
+    {
+      name: "Dịch vụ bốc xếp",
+      price: "0đ",
+      alwaysVisible: true
+    },
+    {
+      name: "Khai giá hàng hoá doanh nghiệp",
+      price: "0đ",
+      alwaysVisible: true
+    },
+    {
+      name: "Chứng từ điện tử",
+      price: "5.000đ",
+      alwaysVisible: false
+    },
+    {
+      name: "Phí chờ",
+      price: "60.000đ",
+      alwaysVisible: false
+    },
+    {
+      name: "Hỗ trợ tài xế",
+      price: "10.000đ",
+      alwaysVisible: false
+    },
+    {
+      name: "Quay lại điểm lấy hàng",
+      price: "65.000đ",
+      alwaysVisible: false
+    }
+  ];
+
+  const motorbikeServices = [
+    {
+      name: "Giao hàng tận tay",
+      price: "10.000đ",
+      alwaysVisible: true
+    },
+    {
+      name: "Quay lại điểm lấy hàng",
+      price: "19.000đ",
+      alwaysVisible: true
+    },
+    {
+      name: "Túi giữ nhiệt",
+      price: "0đ",
+      alwaysVisible: true
+    },
+    {
+      name: "Giao hàng dễ vỡ",
+      price: "10.000đ",
+      alwaysVisible: true
+    },
+    {
+      name: "Gửi SMS cho người nhận",
+      price: "1.000đ",
+      alwaysVisible: true
+    },
+    {
+      name: "Hỗ trợ tài xế",
+      price: "5.000đ",
+      alwaysVisible: true
+    }
+  ];
+
+  const services = isVan ? vanServices : motorbikeServices;
+  const visibleServices = services.filter(service => service.alwaysVisible);
+  const expandableServices = services.filter(service => !service.alwaysVisible);
 
   const toggleExpand = () => {
     setExpanded(!expanded);
   };
 
+  const renderService = (service: typeof services[0]) => (
+    <View key={service.name} style={styles.serviceItem}>
+      <View style={styles.serviceInfo}>
+        <View style={styles.serviceDetails}>
+          <Text style={styles.serviceName}>{service.name}</Text>
+          <Ionicons name="information-circle-outline" size={18} color="#ccc" style={styles.infoIcon} />
+        </View>
+        <Text style={styles.servicePrice}>{service.price}</Text>
+      </View>
+      <TouchableOpacity style={styles.addButton}>
+        <Ionicons name="add" size={22} color={COLOR.orange50} />
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Yêu cầu đặc biệt</Text>
 
-      {/* Gói hỗ trợ chuyển nhà - Always visible */}
-      <View style={styles.serviceItem}>
-        <View style={styles.serviceInfo}>
-          <View style={styles.serviceDetails}>
-            <Text style={styles.serviceName}>Gói hỗ trợ chuyển nhà</Text>
-            <Ionicons name="information-circle-outline" size={18} color="#ccc" style={styles.infoIcon} />
-          </View>
-          <Text style={styles.servicePrice}>300.000đ</Text>
-        </View>
-        <TouchableOpacity style={styles.addButton}>
-          <Ionicons name="add" size={22} color={COLOR.orange50} />
+      {/* Always visible services */}
+      {visibleServices.map(renderService)}
+
+      {/* Expandable services for VAN type */}
+      {isVan && expanded && expandableServices.map(renderService)}
+
+      {/* Expand/Collapse button only for VAN type */}
+      {isVan && expandableServices.length > 0 && (
+        <TouchableOpacity style={styles.collapseButton} onPress={toggleExpand}>
+          <Text style={styles.collapseText}>
+            {expanded ? "Thu gọn" : "Xem thêm"}
+          </Text>
+          <Ionicons
+            name={expanded ? "chevron-up" : "chevron-down"}
+            size={18}
+            color="#999"
+          />
         </TouchableOpacity>
-      </View>
-
-      {/* Dịch vụ bốc xếp - Always visible */}
-      <View style={styles.serviceItem}>
-        <View style={styles.serviceInfo}>
-          <View style={styles.serviceDetails}>
-            <Text style={styles.serviceName}>Dịch vụ bốc xếp</Text>
-            <Ionicons name="information-circle-outline" size={18} color="#ccc" style={styles.infoIcon} />
-          </View>
-          <Text style={styles.servicePrice}>0đ</Text>
-        </View>
-        <TouchableOpacity style={styles.addButton}>
-          <Ionicons name="add" size={22} color={COLOR.orange50} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Khai giá hàng hoá doanh nghiệp - Always visible */}
-      <View style={styles.serviceItem}>
-        <View style={styles.serviceInfo}>
-          <View style={styles.serviceDetails}>
-            <Text style={styles.serviceName}>Khai giá hàng hoá doanh nghiệp</Text>
-            <Ionicons name="information-circle-outline" size={18} color="#ccc" style={styles.infoIcon} />
-          </View>
-          <Text style={styles.servicePrice}>0đ</Text>
-        </View>
-        <TouchableOpacity style={styles.addButton}>
-          <Ionicons name="add" size={22} color={COLOR.orange50} />
-        </TouchableOpacity>
-      </View>
-
-      {/* Expandable content */}
-      {expanded && (
-        <>
-          {/* Chứng từ điện tử */}
-          <View style={styles.serviceItem}>
-            <View style={styles.serviceInfo}>
-              <View style={styles.serviceDetails}>
-                <Text style={styles.serviceName}>Chứng từ điện tử</Text>
-                <Ionicons name="information-circle-outline" size={18} color="#ccc" style={styles.infoIcon} />
-              </View>
-              <Text style={styles.servicePrice}>5.000đ</Text>
-            </View>
-            <TouchableOpacity style={styles.addButton}>
-              <Ionicons name="add" size={22} color={COLOR.orange50} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Phí chờ */}
-          <View style={styles.serviceItem}>
-            <View style={styles.serviceInfo}>
-              <View style={styles.serviceDetails}>
-                <Text style={styles.serviceName}>Phí chờ</Text>
-                <Ionicons name="information-circle-outline" size={18} color="#ccc" style={styles.infoIcon} />
-              </View>
-              <Text style={styles.servicePrice}>60.000đ</Text>
-            </View>
-            <TouchableOpacity style={styles.addButton}>
-              <Ionicons name="add" size={22} color={COLOR.orange50} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Hỗ trợ tài xế */}
-          <View style={styles.serviceItem}>
-            <View style={styles.serviceInfo}>
-              <View style={styles.serviceDetails}>
-                <Text style={styles.serviceName}>Hỗ trợ tài xế</Text>
-                <Ionicons name="information-circle-outline" size={18} color="#ccc" style={styles.infoIcon} />
-              </View>
-              <Text style={styles.servicePrice}>10.000đ</Text>
-            </View>
-            <TouchableOpacity style={styles.addButton}>
-              <Ionicons name="add" size={22} color={COLOR.orange50} />
-            </TouchableOpacity>
-          </View>
-
-          {/* Quay lại điểm lấy hàng */}
-          <View style={styles.serviceItem}>
-            <View style={styles.serviceInfo}>
-              <View style={styles.serviceDetails}>
-                <Text style={styles.serviceName}>Quay lại điểm lấy hàng</Text>
-                <Ionicons name="information-circle-outline" size={18} color="#ccc" style={styles.infoIcon} />
-              </View>
-              <Text style={styles.servicePrice}>65.000đ</Text>
-            </View>
-            <TouchableOpacity style={styles.addButton}>
-              <Ionicons name="add" size={22} color={COLOR.orange50} />
-            </TouchableOpacity>
-          </View>
-        </>
       )}
-
-      {/* Expand/Collapse button */}
-      <TouchableOpacity style={styles.collapseButton} onPress={toggleExpand}>
-        <Text style={styles.collapseText}>
-          {expanded ? "Thu gọn" : "Xem thêm"}
-        </Text>
-        <Ionicons
-          name={expanded ? "chevron-up" : "chevron-down"}
-          size={18}
-          color="#999"
-        />
-      </TouchableOpacity>
 
       <View style={styles.verificationRow}>
         <Ionicons name="checkmark-circle" size={20} color={COLOR.blue_theme} />

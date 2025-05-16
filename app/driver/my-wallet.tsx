@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -8,12 +8,14 @@ import {
     StatusBar,
     Platform,
     Image,
+    Modal,
 } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 const MyWallet = () => {
     const router = useRouter();
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -37,7 +39,9 @@ const MyWallet = () => {
             {/* Action Buttons */}
             <View style={styles.actionList}>
                 {/* Top Up */}
-                <TouchableOpacity style={styles.actionItem}>
+                <TouchableOpacity
+                    style={styles.actionItem}
+                    onPress={() => setShowPaymentModal(true)}>
                     <View style={styles.actionIconContainer}>
                         <MaterialCommunityIcons name="wallet-plus" size={24} color="#00BFA5" />
                     </View>
@@ -47,6 +51,43 @@ const MyWallet = () => {
                     </View>
                     <Ionicons name="chevron-forward" size={24} color="#666" />
                 </TouchableOpacity>
+                {/* Modal */}
+                <Modal
+                    visible={showPaymentModal}
+                    animationType="slide"
+                    transparent
+                    onRequestClose={() => setShowPaymentModal(false)}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <View style={styles.paymentHeader}>
+                                <Text style={styles.modalTitle}>Chọn phương thức thanh toán</Text>
+                                <TouchableOpacity
+                                    style={styles.closeButton}
+                                    onPress={() => setShowPaymentModal(false)}
+                                >
+                                    <FontAwesome5 name="times" size={20} color="#00a651" />
+                                </TouchableOpacity>
+                            </View>
+
+                            <TouchableOpacity style={styles.paymentOption}>
+                                <View style={styles.paymentIconBox}>
+                                    <FontAwesome5 name="credit-card" size={20} color="#00a651" />
+                                </View>
+                                <Text style={styles.optionText}>Thẻ ATM</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={styles.paymentOption}>
+                                <View style={styles.paymentIconBox}>
+                                    <FontAwesome5 name="dollar-sign" size={20} color="#00a651" />
+                                </View>
+                                <Text style={styles.optionText}>Nạp tiền bằng tài khoản ảo</Text>
+                            </TouchableOpacity>
+
+
+                        </View>
+                    </View>
+                </Modal>
 
                 {/* Withdraw */}
                 <TouchableOpacity style={styles.actionItem}>
@@ -71,28 +112,52 @@ const MyWallet = () => {
                     </View>
                     <Ionicons name="chevron-forward" size={24} color="#666" />
                 </TouchableOpacity>
-            </View>
-        </SafeAreaView>
+            </View >
+        </SafeAreaView >
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
+    actionContent: {
         flex: 1,
-        backgroundColor: '#fff',
-        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
     },
-    header: {
+    actionIconContainer: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: '#e6f7f5',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 16,
+    },
+    actionItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: 16,
+        paddingVertical: 16,
         borderBottomWidth: 1,
         borderBottomColor: '#eee',
     },
-    headerTitle: {
-        fontSize: 18,
+    actionList: {
+        paddingHorizontal: 16,
+    },
+    actionSubtitle: {
+        fontSize: 14,
+        color: '#666',
+    },
+    actionTitle: {
+        fontSize: 16,
+        color: '#000',
+        marginBottom: 4,
+    },
+    balance: {
+        fontSize: 28,
         fontWeight: 'bold',
+        marginVertical: 10,
+    },
+    balanceAmount: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        color: '#000',
     },
     balanceCard: {
         padding: 24,
@@ -106,42 +171,77 @@ const styles = StyleSheet.create({
         color: '#666',
         marginBottom: 8,
     },
-    balanceAmount: {
-        fontSize: 32,
-        fontWeight: 'bold',
-        color: '#000',
+    closeButton: {
+        alignSelf: 'auto',
     },
-    actionList: {
-        paddingHorizontal: 16,
+    closeText: {
+        fontSize: 16,
+        color: 'blue',
     },
-    actionItem: {
+    container: {
+        flex: 1,
+        backgroundColor: '#fff',
+        paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+    },
+    content: {
+        padding: 20,
+    },
+    header: {
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 16,
+        justifyContent: 'space-between',
+        padding: 16,
         borderBottomWidth: 1,
         borderBottomColor: '#eee',
     },
-    actionIconContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: '#e6f7f5',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 16,
+    headerTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
     },
-    actionContent: {
+    item: {
+        paddingVertical: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+    },
+    itemText: {
+        fontSize: 18,
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        padding: 20,
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+    },
+    modalOverlay: {
         flex: 1,
+        justifyContent: 'flex-end',
+        backgroundColor: 'rgba(0,0,0,0.4)',
     },
-    actionTitle: {
+    paymentHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: 20,
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    optionText: {
         fontSize: 16,
-        color: '#000',
-        marginBottom: 4,
+        paddingLeft: 10,
     },
-    actionSubtitle: {
-        fontSize: 14,
-        color: '#666',
+    paymentIconBox: {
+        width: 28,
+        alignItems: 'center',
+    },
+    paymentOption: {
+        paddingVertical: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#eee',
+        flexDirection: 'row',
+        alignItems: 'center',
     },
 });
 
-export default MyWallet; 
+export default MyWallet;

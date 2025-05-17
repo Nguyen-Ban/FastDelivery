@@ -1,4 +1,4 @@
-const { suggestLocation, reverseGeocode } = require("../services/map.service")
+const { suggestLocation, reverseGeocode, getDistanceBasedOnRoadRoute } = require("../services/map.service")
 
 const suggestPlaces = async (req, res) => {
     const query = req.query.q;
@@ -66,7 +66,36 @@ const getPlacesFromLocation = async (req, res) => {
         });
     }
 }
+
+const getDistanceBetweenTwoLocation = async (req, res) => {
+    const { transportType, orgLat, orgLng, desLat, desLng } = req.query;
+    const transportMode = transportType === 'MOTORBIKE' ? 'scooter' : 'car'
+
+    try {
+        const distance = await getDistanceBasedOnRoadRoute(transportMode, { lat: orgLat, lng: orgLng }, { lat: desLat, lng: desLng });
+        if (distance) {
+            res.status(200).json({
+                success: true,
+                message: "Distance calculated successfully",
+                data: distance
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: "No distance found",
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error calculating distance",
+            error: error.message
+        });
+    }
+}
+
 module.exports = {
     suggestPlaces,
-    getPlacesFromLocation
+    getPlacesFromLocation,
+    getDistanceBetweenTwoLocation
 }

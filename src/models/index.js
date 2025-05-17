@@ -130,12 +130,12 @@ Message.belongsTo(Order, {
     as: 'order'
 });
 
-Review.hasOne(Order, {
+Review.belongsTo(Order, {
     foreignKey: 'orderId',
     as: 'order'
 });
 
-Order.belongsTo(Review, {
+Order.hasOne(Review, {
     foreignKey: 'orderId',
     as: 'review'
 });

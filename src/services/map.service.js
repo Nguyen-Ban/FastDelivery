@@ -1,4 +1,4 @@
-const { default: axios } = require("axios");
+const { default: axios, get } = require("axios");
 
 const HERE_API_KEY = process.env.HERE_API_KEY;
 const suggestLocation = async (userLocation, query) => {
@@ -28,4 +28,14 @@ const reverseGeocode = async (lat, lng) => {
     }
 };
 
-module.exports = { suggestLocation, reverseGeocode }
+const getDistanceBasedOnRoadRoute = async (transportMode, origin, destination) => {
+    try {
+        const res = await axios.get(`https://router.hereapi.com/v8/routes?transportMode=${transportMode}&origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&return=summary&apikey=${HERE_API_KEY}`);
+        return res.data.routes[0].sections[0].summary.distance;
+    } catch (error) {
+        console.error('Error getting driver to order duration:', error);
+        return null;
+    }
+}
+
+module.exports = { suggestLocation, reverseGeocode, getDistanceBasedOnRoadRoute };

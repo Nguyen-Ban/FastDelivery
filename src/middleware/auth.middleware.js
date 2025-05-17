@@ -28,7 +28,7 @@ const checkRole = (allowedRoles) => {
   return async (req, res, next) => {
     try {
       const activeRole = req.headers['role'];
-
+      console.log('activeRole', activeRole);
       if (!activeRole) {
         return res.status(400).json({ message: 'Missing role in header (role)' });
       }

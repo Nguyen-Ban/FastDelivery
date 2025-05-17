@@ -3,6 +3,39 @@ const { Driver, User, Review, Order } = require("../models/index");
 const { sequelize } = require("../config/database");
 const { messaging } = require("firebase-admin");
 
+const checkDriver = async (req, res) => {
+    const userId = req.userId;
+    logger.info(`[DriverController] Check driver status for user: ${userId}`);
+    try {
+        const driver = await Driver.findOne({ where: { userId } });
+        if (!driver) {
+            return res.status(404).json({
+                success: false,
+                message: 'Driver not found',
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: 'Driver status fetched successfully',
+            data: {
+                driverId: driver.id,
+                licenseNumber: driver.licenseNumber,
+                vehicleType: driver.vehicleType,
+                vehiclePlate: driver.vehiclePlate,
+                approvalStatus: driver.approvalStatus
+            }
+        });
+    } catch (error) {
+        logger.error(`[DriverController] Error checking driver status for user ${userId}: ${error.message}`);
+        return res.status(500).json({
+            success: false,
+            message: 'Error checking driver status',
+            error: error.message
+        });
+    }
+
+}
+
 
 const reviewDriver = async (req, res) => {
     const { orderId, rating, comment } = req.body;
@@ -157,5 +190,6 @@ module.exports = {
     registerDriver,
     getDriverList,
     fetchDriverById,
-    assessDriverAuth
+    assessDriverAuth,
+    checkDriver
 };

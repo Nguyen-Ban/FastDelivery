@@ -2,14 +2,10 @@ const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 
 const OrderLocation = sequelize.define('OrderLocation', {
-    id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true,
-        field: 'id'
-    },
     orderId: {
         type: DataTypes.INTEGER,
+        primaryKey: true,
+        unique: true,
         allowNull: false,
         field: 'order_id'
     },

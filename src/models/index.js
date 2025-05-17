@@ -8,6 +8,7 @@ const Message = require('./message.model');
 const DeviceToken = require('./deviceToken.model');
 const Notification = require('./notification.model');
 const Review = require('./review.model');
+const OrderSenderReceiver = require('./order.senderReceiver');
 // User associations
 User.hasOne(Driver, {
     foreignKey: 'userId',
@@ -114,6 +115,17 @@ Order.hasOne(OrderLocation, {
     as: 'location'
 });
 
+// OrderSenderReceiver associations
+OrderSenderReceiver.belongsTo(Order, {
+    foreignKey: 'orderId',
+    as: 'order'
+});
+
+Order.hasOne(OrderSenderReceiver, {
+    foreignKey: 'orderId',
+    as: 'senderReceiver'
+});
+
 // Message associations
 Message.belongsTo(User, {
     foreignKey: 'senderId',
@@ -149,6 +161,7 @@ module.exports = {
     OrderDetail,
     OrderAddon,
     OrderLocation,
+    OrderSenderReceiver,
     Message,
     DeviceToken,
     Notification,

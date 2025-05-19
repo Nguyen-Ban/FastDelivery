@@ -23,6 +23,9 @@ const Driver = () => {
   const [autoReceive, setAutoReceive] = useState(false);
   const router = useRouter();
 
+  // Display Menu Text
+  const [isMenuTextVisible, setIsMenuTextVisible] = useState(false);
+
   useEffect(() => {
     const showEarnings = router.canGoBack();
     if (showEarnings) {
@@ -54,16 +57,23 @@ const Driver = () => {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.menuButton}
-          onPress={() => router.push("../driver/menu")}
+          onPress={() => router.push("/driver/menu")}
+          onLongPress={() => setIsMenuTextVisible(true)} // Hiển thị văn bản khi nhấn giữ
+          onPressOut={() => setIsMenuTextVisible(false)} // Ẩn văn bản khi thả tay
         >
           <Ionicons name="menu" size={24} color="#333" />
         </TouchableOpacity>
       </View>
 
+      {/* Hiển thị văn bản "Menu" khi nhấn giữ */}
+      {isMenuTextVisible && (
+      <Text style={styles.floatingText}>Menu</Text>
+      )}
+
       {/* Calendar Button with Notification */}
       <TouchableOpacity
         style={styles.calendarButton}
-        onPress={() => router.push("../driver/order-details")}
+        onPress={() => router.push("/driver/order-details")}
       >
         <View style={styles.calendarIconContainer}>
           <MaterialIcons name="event-note" size={24} color="#333" />
@@ -132,6 +142,11 @@ const Driver = () => {
           <Text style={styles.navText}>Dịch vụ</Text>
         </TouchableOpacity>
 
+        <TouchableOpacity style={styles.navItem}>
+          <FontAwesome5 name="map-marker-alt" size={20} color="#00a651" />
+          <Text style={styles.navText}>Chọn điểm đến</Text>
+        </TouchableOpacity>
+
         <TouchableOpacity
           style={styles.navItem}
           onPress={() => setAutoReceive(!autoReceive)}
@@ -142,7 +157,7 @@ const Driver = () => {
 
         <TouchableOpacity
           style={styles.navItem}
-          onPress={() => router.push("../driver/delivery-settings")}
+          onPress={() => router.push("/driver/delivery-settings")}
         >
           <Ionicons name="ellipsis-horizontal" size={22} color="#666" />
           <Text style={styles.navText}>Cài đặt</Text>
@@ -321,6 +336,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+
+  // For Menu Text
+  floatingText: {
+    position: "absolute",
+    top: 20, // Điều chỉnh vị trí theo nhu cầu
+    left: 50, // Điều chỉnh vị trí theo nhu cầu
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    color: "white",
+    padding: 5,
+    borderRadius: 5,
+    fontSize: 14,
+    zIndex: 10,
   },
 });
 

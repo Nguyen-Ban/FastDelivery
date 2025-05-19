@@ -10,11 +10,7 @@
     "ios": {
       "supportsTablet": true
     },
-    "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
-      }
-    },
+    "android": { "windowSoftInputMode": "adjustPan" },
     "web": {
       "bundler": "metro",
       "output": "static"
@@ -26,7 +22,8 @@
         {
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true

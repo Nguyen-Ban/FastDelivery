@@ -10,12 +10,38 @@ import {
   Dimensions
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import COLOR from "../../../constants/Colors";
+import COLOR from "../../../../constants/Colors";
+import { useOrder } from "../../../../contexts/order.context";
 
 const { width, height } = Dimensions.get('window');
 
+const DELIVERY_TYPES = {
+  SUPER_FAST: {
+    id: 'BIKE',
+    title: 'Siêu tốc',
+    subtitle: 'Lấy hàng ngay, giao trong 1 giờ',
+    price: 'Từ 118.000đ',
+    icon: 'flash'
+  },
+  ECONOMY: {
+    id: 'VAN',
+    title: 'Tiết kiệm',
+    subtitle: 'Giá tốt hơn, giao trong 6 giờ',
+    price: 'Từ 69.000đ',
+    icon: 'sunny'
+  }
+};
+
 const DeliveryType = () => {
   const [modalVisible, setModalVisible] = useState(false);
+  const { deliveryType, setDeliveryType } = useOrder();
+
+  const selectedType = deliveryType === 'VAN' ? DELIVERY_TYPES.ECONOMY : DELIVERY_TYPES.SUPER_FAST;
+
+  const handleSelectType = (type: 'VAN' | 'MOTORBIKE') => {
+    setDeliveryType(type);
+    setModalVisible(false);
+  };
 
   return (
     <>
@@ -25,11 +51,15 @@ const DeliveryType = () => {
       >
         <View style={styles.leftContent}>
           <View style={styles.iconContainer}>
-            <Ionicons name="flash" size={24} color={COLOR.orange50} />
+            <Ionicons
+              name={selectedType.icon as any}
+              size={24}
+              color={COLOR.orange50}
+            />
           </View>
           <View style={styles.textContainer}>
-            <Text style={styles.title}>Siêu tốc</Text>
-            <Text style={styles.subtitle}>Lấy hàng ngay, giao trong 1 giờ</Text>
+            <Text style={styles.title}>{selectedType.title}</Text>
+            <Text style={styles.subtitle}>{selectedType.subtitle}</Text>
           </View>
         </View>
         <Ionicons name="chevron-forward" size={24} color="#ccc" />
@@ -49,36 +79,42 @@ const DeliveryType = () => {
 
             {/* Siêu tốc option */}
             <TouchableOpacity
-              style={[styles.serviceOption, styles.selectedOption]}
-              onPress={() => setModalVisible(false)}
+              style={[
+                styles.serviceOption,
+                deliveryType === 'MOTORBIKE' && styles.selectedOption
+              ]}
+              onPress={() => handleSelectType('MOTORBIKE')}
             >
               <View style={styles.serviceContent}>
                 <View style={styles.serviceIconContainer}>
                   <Ionicons name="flash" size={24} color={COLOR.orange50} />
                 </View>
                 <View style={styles.serviceTextContainer}>
-                  <Text style={styles.serviceTitle}>Siêu tốc</Text>
-                  <Text style={styles.serviceSubtitle}>Lấy hàng ngay, giao trong 1 giờ</Text>
+                  <Text style={styles.serviceTitle}>{DELIVERY_TYPES.SUPER_FAST.title}</Text>
+                  <Text style={styles.serviceSubtitle}>{DELIVERY_TYPES.SUPER_FAST.subtitle}</Text>
                 </View>
               </View>
-              <Text style={styles.servicePrice}>Từ 118.000đ</Text>
+              <Text style={styles.servicePrice}>{DELIVERY_TYPES.SUPER_FAST.price}</Text>
             </TouchableOpacity>
 
             {/* Tiết kiệm option */}
             <TouchableOpacity
-              style={styles.serviceOption}
-              onPress={() => setModalVisible(false)}
+              style={[
+                styles.serviceOption,
+                deliveryType === 'VAN' && styles.selectedOption
+              ]}
+              onPress={() => handleSelectType('VAN')}
             >
               <View style={styles.serviceContent}>
                 <View style={[styles.serviceIconContainer, styles.economyIcon]}>
                   <Ionicons name="sunny" size={24} color="orange" />
                 </View>
                 <View style={styles.serviceTextContainer}>
-                  <Text style={styles.serviceTitle}>Tiết kiệm</Text>
-                  <Text style={styles.serviceSubtitle}>Giá tốt hơn, giao trong 6 giờ</Text>
+                  <Text style={styles.serviceTitle}>{DELIVERY_TYPES.ECONOMY.title}</Text>
+                  <Text style={styles.serviceSubtitle}>{DELIVERY_TYPES.ECONOMY.subtitle}</Text>
                 </View>
               </View>
-              <Text style={styles.servicePrice}>Từ 69.000đ</Text>
+              <Text style={styles.servicePrice}>{DELIVERY_TYPES.ECONOMY.price}</Text>
             </TouchableOpacity>
 
             {/* Close button area */}

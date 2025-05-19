@@ -11,9 +11,11 @@ const COLOR = {
   grey50: "#808080",
   orange90: "#fee9cc",
   orange50: "#f08e0f",
+  orange70: "#ffb366",
   red55: "#e54334",
   green40: "#00cc00",
   green25: "#008000",
+  cyan: "cyan"
 };
 
 export default COLOR;

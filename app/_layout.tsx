@@ -1,11 +1,12 @@
-import { AuthProvider } from "@/contexts";
+import { AuthProvider, LocationProvider } from "@/contexts";
 import { Stack } from "expo-router";
 
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <Stack screenOptions={{ headerShown: false }} />
+      <LocationProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+      </LocationProvider>
     </AuthProvider>
-
   )
 }

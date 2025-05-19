@@ -10,7 +10,7 @@ import {
   Dimensions
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import COLOR from "../../../constants/Colors";
+import COLOR from "../../../../constants/Colors";
 
 const { width } = Dimensions.get('window');
 

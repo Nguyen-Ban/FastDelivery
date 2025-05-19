@@ -1,14 +1,40 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import COLOR from "../../../constants/Colors";
+import COLOR from "../../../../constants/Colors";
+import { useOrder } from "../../../../contexts/order.context";
 
-const RouteOverview = () => {
+interface LocationPoint {
+  title: string;
+  address: string;
+  position: {
+    lat: number;
+    lng: number;
+  };
+}
+
+interface RouteOverviewProps {
+  pickupLocation: LocationPoint;
+  deliveryLocation: LocationPoint;
+}
+
+const RouteOverview: React.FC<RouteOverviewProps> = ({
+  pickupLocation,
+  deliveryLocation
+}) => {
+  const { setPickupLocation, setDeliveryLocation } = useOrder();
+
+  const handleSwapLocations = () => {
+    const tempPickup = pickupLocation;
+    setPickupLocation(deliveryLocation);
+    setDeliveryLocation(tempPickup);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Lộ trình 2,98km</Text>
-        <TouchableOpacity style={styles.changeButton}>
+        <Text style={styles.title}>Lộ trình</Text>
+        <TouchableOpacity style={styles.changeButton} onPress={handleSwapLocations}>
           <Ionicons name="swap-vertical" size={18} color={COLOR.blue_theme} />
           <Text style={styles.changeButtonText}>Hoán đổi</Text>
         </TouchableOpacity>
@@ -19,7 +45,10 @@ const RouteOverview = () => {
           <View style={styles.locationIcon}>
             <View style={styles.startPoint} />
           </View>
-          <Text style={styles.locationText}>Detech Building</Text>
+          <View style={styles.locationTextContainer}>
+            <Text style={styles.locationTitle}>{pickupLocation.title}</Text>
+            <Text style={styles.locationAddress}>{pickupLocation.address}</Text>
+          </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </View>
 
@@ -29,7 +58,10 @@ const RouteOverview = () => {
           <View style={styles.locationIcon}>
             <View style={styles.endPoint} />
           </View>
-          <Text style={styles.locationText}>Trường Đại Học Điện Lực</Text>
+          <View style={styles.locationTextContainer}>
+            <Text style={styles.locationTitle}>{deliveryLocation.title}</Text>
+            <Text style={styles.locationAddress}>{deliveryLocation.address}</Text>
+          </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </View>
       </View>
@@ -76,7 +108,7 @@ const styles = StyleSheet.create({
   },
   locationItem: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     paddingVertical: 12,
   },
   locationIcon: {
@@ -90,18 +122,26 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: "#000",
+    backgroundColor: COLOR.red55,
   },
   endPoint: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: COLOR.orange50,
+    backgroundColor: COLOR.blue40,
   },
-  locationText: {
+  locationTextContainer: {
     flex: 1,
+  },
+  locationTitle: {
     fontSize: 16,
+    fontWeight: "500",
     color: "#333",
+    marginBottom: 4,
+  },
+  locationAddress: {
+    fontSize: 14,
+    color: COLOR.grey50,
   },
   separator: {
     height: 20,

@@ -1,14 +1,5 @@
 import React from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  TextInput,
-  FlatList,
-  Image,
-  Dimensions,
-} from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 import GLOBAL from "../../constants/GlobalStyles";
 import COLOR from "@/constants/Colors";
@@ -17,7 +8,6 @@ import InfoCard from "@/components/InfoCard";
 import Button from "@/components/Button/ButtonComponent";
 import { router } from "expo-router";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import { FontAwesome } from "@expo/vector-icons";
 
 const EventDetailScreen = () => {
   //hard code for UI

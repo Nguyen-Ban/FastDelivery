@@ -6,7 +6,7 @@ import GLOBAL from "../constants/GlobalStyles";
 
 interface InfoCardProps {
   title: string;
-  subtitle: string;
+  subtitle?: string;
   onPress: () => void;
   icon?: React.ReactNode;
   iconSize?: number;

@@ -16,6 +16,7 @@ import EventCard from "../../components/EventCard";
 import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import { router } from "expo-router";
 
 const Activity = () => {
   //hard code
@@ -119,7 +120,9 @@ const Activity = () => {
                 pickup={details.pickup}
                 dropoff={details.dropoff}
                 status={details.status}
-                onPress={() => {}}
+                onPress={() => {
+                  router.push("/user/event-detail");
+                }}
                 container_style={{ paddingBottom: 10 }}
               ></EventCard>
             )}

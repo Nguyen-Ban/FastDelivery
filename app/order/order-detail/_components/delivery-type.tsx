@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,41 +7,73 @@ import {
   Image,
   Modal,
   Pressable,
-  Dimensions
+  Dimensions,
+  Alert
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import COLOR from "../../../../constants/Colors";
 import { useOrder } from "../../../../contexts/order.context";
+import { DELIVERY_TYPE } from "@/constants/DeliveryTypes";
+import orderService from "@/services/order.service";
 
 const { width, height } = Dimensions.get('window');
 
-const DELIVERY_TYPES = {
-  SUPER_FAST: {
-    id: 'BIKE',
+const DELIVERY_OPTIONS = {
+  EXPRESS: {
+    id: 'EXPRESS',
     title: 'Siêu tốc',
     subtitle: 'Lấy hàng ngay, giao trong 1 giờ',
-    price: 'Từ 118.000đ',
     icon: 'flash'
   },
   ECONOMY: {
-    id: 'VAN',
+    id: 'ECONOMY',
     title: 'Tiết kiệm',
     subtitle: 'Giá tốt hơn, giao trong 6 giờ',
-    price: 'Từ 69.000đ',
     icon: 'sunny'
   }
 };
 
 const DeliveryType = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const { deliveryType, setDeliveryType } = useOrder();
+  const { setDeliveryType, vehicleType, pickupLocation, dropoffLocation, setDeliveryPrice } = useOrder();
 
-  const selectedType = deliveryType === 'VAN' ? DELIVERY_TYPES.ECONOMY : DELIVERY_TYPES.SUPER_FAST;
 
-  const handleSelectType = (type: 'VAN' | 'MOTORBIKE') => {
-    setDeliveryType(type);
+
+  const [economyPrice, setEconomyPrice] = useState(10000);
+  const [expressPrice, setExpressPrice] = useState(20000);
+
+
+  const [selectedType, setSelectedType] = useState(DELIVERY_OPTIONS.EXPRESS)
+
+  const fetchPrices = async () => {
+    try {
+      const res = await orderService.getPrices(vehicleType, pickupLocation?.position ?? null, dropoffLocation?.position ?? null);
+      if (!res?.success) {
+        Alert.alert('Thông báo', 'Có lỗi xảy ra trong quá trình lấy giá');
+      }
+      setEconomyPrice(res?.data?.economyPrice);
+      setExpressPrice(res?.data?.expressPrice);
+    } catch (error) {
+      Alert.alert('Thông báo', 'Có lỗi xảy ra trong quá trình lấy giá');
+    }
+  }
+
+  useEffect(() => {
+    fetchPrices();
+  }, [])
+
+  const handleSelectType = (type: string) => {
+    if (type === 'EXPRESS') {
+      setSelectedType(DELIVERY_OPTIONS.EXPRESS);
+      setDeliveryType(DELIVERY_TYPE.EXPRESS);
+      setDeliveryPrice(expressPrice);
+    } else {
+      setSelectedType(DELIVERY_OPTIONS.ECONOMY);
+      setDeliveryType(DELIVERY_TYPE.ECONOMY);
+      setDeliveryPrice(economyPrice);
+    }
     setModalVisible(false);
-  };
+  }
 
   return (
     <>
@@ -81,40 +113,40 @@ const DeliveryType = () => {
             <TouchableOpacity
               style={[
                 styles.serviceOption,
-                deliveryType === 'MOTORBIKE' && styles.selectedOption
+                styles.selectedOption
               ]}
-              onPress={() => handleSelectType('MOTORBIKE')}
+              onPress={() => handleSelectType('EXPRESS')}
             >
               <View style={styles.serviceContent}>
                 <View style={styles.serviceIconContainer}>
                   <Ionicons name="flash" size={24} color={COLOR.orange50} />
                 </View>
                 <View style={styles.serviceTextContainer}>
-                  <Text style={styles.serviceTitle}>{DELIVERY_TYPES.SUPER_FAST.title}</Text>
-                  <Text style={styles.serviceSubtitle}>{DELIVERY_TYPES.SUPER_FAST.subtitle}</Text>
+                  <Text style={styles.serviceTitle}>{DELIVERY_OPTIONS.EXPRESS.title}</Text>
+                  <Text style={styles.serviceSubtitle}>{DELIVERY_OPTIONS.EXPRESS.subtitle}</Text>
                 </View>
               </View>
-              <Text style={styles.servicePrice}>{DELIVERY_TYPES.SUPER_FAST.price}</Text>
+              <Text style={styles.servicePrice}>{`${expressPrice.toLocaleString()}đ`}</Text>
             </TouchableOpacity>
 
             {/* Tiết kiệm option */}
             <TouchableOpacity
               style={[
                 styles.serviceOption,
-                deliveryType === 'VAN' && styles.selectedOption
+                styles.selectedOption
               ]}
-              onPress={() => handleSelectType('VAN')}
+              onPress={() => handleSelectType('ECONOMY')}
             >
               <View style={styles.serviceContent}>
                 <View style={[styles.serviceIconContainer, styles.economyIcon]}>
                   <Ionicons name="sunny" size={24} color="orange" />
                 </View>
                 <View style={styles.serviceTextContainer}>
-                  <Text style={styles.serviceTitle}>{DELIVERY_TYPES.ECONOMY.title}</Text>
-                  <Text style={styles.serviceSubtitle}>{DELIVERY_TYPES.ECONOMY.subtitle}</Text>
+                  <Text style={styles.serviceTitle}>{DELIVERY_OPTIONS.ECONOMY.title}</Text>
+                  <Text style={styles.serviceSubtitle}>{DELIVERY_OPTIONS.ECONOMY.subtitle}</Text>
                 </View>
               </View>
-              <Text style={styles.servicePrice}>{DELIVERY_TYPES.ECONOMY.price}</Text>
+              <Text style={styles.servicePrice}>{`${economyPrice.toLocaleString()}đ`}</Text>
             </TouchableOpacity>
 
             {/* Close button area */}

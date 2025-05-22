@@ -13,14 +13,18 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useOrderDriver } from '@/contexts/order.driver.context';
 
 const OrderDetails = () => {
     const router = useRouter();
+    const { price, pickupDropoffDistance, driverPickupDistance,
+        pickupLocation, dropoffLocation, packageDetails } = useOrderDriver();
     const [showPackageInfo, setShowPackageInfo] = useState(false);
 
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView style={styles.content}>
+
                 {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.serviceInfo}>
@@ -35,7 +39,7 @@ const OrderDetails = () => {
                 {/* Price Section */}
                 <View style={styles.priceSection}>
                     <Text style={styles.priceLabel}>Cước phí</Text>
-                    <Text style={styles.price}>20.000đ</Text>
+                    <Text style={styles.price}>{`${price?.toLocaleString()}`}đ</Text>
                     <View style={styles.paymentMethods}>
                         <View style={styles.paymentMethod}>
                             <Text style={styles.paymentMethodText}>Thẻ/Ví</Text>
@@ -48,8 +52,8 @@ const OrderDetails = () => {
 
                 {/* Trip Info */}
                 <View style={styles.tripInfo}>
-                    <Text style={styles.tripDistance}>3,3 km - 1 điểm dừng</Text>
-                    <Text style={styles.currentDistance}>Đang cách bạn 0,4 km</Text>
+                    <Text style={styles.tripDistance}>Khoảng cách: {`${pickupDropoffDistance}`} m</Text>
+                    <Text style={styles.currentDistance}>Đang cách bạn {`${driverPickupDistance}`} m</Text>
                 </View>
 
                 {/* Location Details */}
@@ -61,8 +65,8 @@ const OrderDetails = () => {
                             <Text style={styles.locationLabel}>Điểm lấy hàng</Text>
                         </View>
                         <View style={styles.locationText}>
-                            <Text style={styles.locationName}>Eddie's New York Deli & Diner</Text>
-                            <Text style={styles.locationAddress}>73 Đường Pasteur, Phường Bến Nghé, Quận 1, Thành phố Hồ Chí Minh, 70000, VNM</Text>
+                            <Text style={styles.locationName}>{`${pickupLocation?.title}`}</Text>
+                            <Text style={styles.locationAddress}>{`${pickupLocation?.address}`}</Text>
                         </View>
                     </View>
 
@@ -83,8 +87,8 @@ const OrderDetails = () => {
                             <Text style={styles.locationLabel}>Điểm trả hàng</Text>
                         </View>
                         <View style={styles.locationText}>
-                            <Text style={styles.locationName}>Chung Cư Khánh Hội 3</Text>
-                            <Text style={styles.locationAddress}>360G Đường Bến Vân Đồn, Phường 1, Quận 4, Hồ Chí Minh, Việt Nam</Text>
+                            <Text style={styles.locationName}>{`${dropoffLocation?.title}`}</Text>
+                            <Text style={styles.locationAddress}>{`${dropoffLocation?.address}`}</Text>
                         </View>
                     </View>
                 </View>
@@ -126,7 +130,7 @@ const OrderDetails = () => {
                                     <MaterialIcons name="category" size={20} color="#666" />
                                     <View style={styles.packageItemContent}>
                                         <Text style={styles.packageItemLabel}>Loại</Text>
-                                        <Text style={styles.packageItemValue}>Hàng điện tử</Text>
+                                        <Text style={styles.packageItemValue}>{`${packageDetails?.packageType}`}</Text>
                                     </View>
                                 </View>
                             </View>
@@ -135,7 +139,7 @@ const OrderDetails = () => {
                                     <MaterialIcons name="line-weight" size={20} color="#666" />
                                     <View style={styles.packageItemContent}>
                                         <Text style={styles.packageItemLabel}>Cân nặng</Text>
-                                        <Text style={styles.packageItemValue}>2.5 kg</Text>
+                                        <Text style={styles.packageItemValue}>{`${packageDetails?.weightKg}`} kg</Text>
                                     </View>
                                 </View>
                             </View>
@@ -144,7 +148,7 @@ const OrderDetails = () => {
                                     <MaterialIcons name="straighten" size={20} color="#666" />
                                     <View style={styles.packageItemContent}>
                                         <Text style={styles.packageItemLabel}>Kích thước</Text>
-                                        <Text style={styles.packageItemValue}>30 x 20 x 15 cm</Text>
+                                        <Text style={styles.packageItemValue}>{`${packageDetails?.size}`}</Text>
                                     </View>
                                 </View>
                             </View>

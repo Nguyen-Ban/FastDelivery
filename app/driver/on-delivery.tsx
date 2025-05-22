@@ -72,11 +72,22 @@ const OnDelivery = () => {
             {/* Customer Info Card */}
             <View style={styles.customerCard}>
                 <View style={styles.customerHeader}>
-                    <Text style={styles.customerLabel}>Hành khách</Text>
-                    <TouchableOpacity style={styles.directionButton}>
-                        <Ionicons name="navigate" size={20} color="#007AFF" />
-                        <Text style={styles.directionText}>Điều hướng</Text>
-                    </TouchableOpacity>
+                    <View style={styles.headerButtons}>
+                        <TouchableOpacity
+                            style={styles.detailButton}
+                            onPress={() => router.push("/driver/order-detail")}
+                        >
+                            <Ionicons name="document-text-outline" size={20} color="#007AFF" />
+                            <Text style={styles.detailText}>Chi tiết đơn hàng</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.directionButton}
+                            onPress={() => router.push("/driver/direct-route")}
+                        >
+                            <Ionicons name="navigate" size={20} color="#007AFF" />
+                            <Text style={styles.directionText}>Điều hướng</Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
                 <View style={styles.customerInfo}>
@@ -149,6 +160,24 @@ const styles = StyleSheet.create({
     customerLabel: {
         fontSize: 14,
         color: '#666',
+    },
+    headerButtons: {
+        flexDirection: 'row',
+        gap: 8,
+    },
+    detailButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#f0f8ff',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+    },
+    detailText: {
+        color: '#007AFF',
+        marginLeft: 4,
+        fontSize: 14,
+        fontWeight: '500',
     },
     directionButton: {
         flexDirection: 'row',

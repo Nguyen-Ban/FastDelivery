@@ -2,24 +2,12 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons, FontAwesome6 } from "@expo/vector-icons";
 import COLOR from "../../../../constants/Colors";
+import { useOrder } from "@/contexts/order.context";
 
-interface SenderReceiverProps {
-    senderName?: string;
-    senderPhone?: string;
-    senderNote?: string;
-    receiverName?: string;
-    receiverPhone?: string;
-    receiverNote?: string;
-}
 
-const SenderReceiver: React.FC<SenderReceiverProps> = ({
-    senderName,
-    senderPhone,
-    senderNote,
-    receiverName,
-    receiverPhone,
-    receiverNote
-}) => {
+
+const SenderReceiver = () => {
+    const { sender, receiver } = useOrder();
     return (
         <View style={styles.container}>
             {/* Sender Section */}
@@ -31,16 +19,8 @@ const SenderReceiver: React.FC<SenderReceiverProps> = ({
                     <Text style={styles.title}>Người gửi</Text>
                 </View>
                 <View style={styles.infoContainer}>
-                    <Text style={styles.name}>{senderName || "Chưa có tên"}</Text>
-                    <Text style={styles.phone}>{senderPhone || "Chưa có số điện thoại"}</Text>
-                    {senderNote && (
-                        <View style={styles.noteContainer}>
-                            <Ionicons name="document-text-outline" size={16} color={COLOR.grey50} style={styles.noteIcon} />
-                            <Text style={styles.note} numberOfLines={2}>
-                                {senderNote}
-                            </Text>
-                        </View>
-                    )}
+                    <Text style={styles.name}>{sender?.name || "Chưa có tên"}</Text>
+                    <Text style={styles.phone}>{sender?.phoneNumber || "Chưa có số điện thoại"}</Text>
                 </View>
             </View>
 
@@ -55,16 +35,8 @@ const SenderReceiver: React.FC<SenderReceiverProps> = ({
                     <Text style={styles.title}>Người nhận</Text>
                 </View>
                 <View style={styles.infoContainer}>
-                    <Text style={styles.name}>{receiverName || "Chưa có tên"}</Text>
-                    <Text style={styles.phone}>{receiverPhone || "Chưa có số điện thoại"}</Text>
-                    {receiverNote && (
-                        <View style={styles.noteContainer}>
-                            <Ionicons name="document-text-outline" size={16} color={COLOR.grey50} style={styles.noteIcon} />
-                            <Text style={styles.note} numberOfLines={2}>
-                                {receiverNote}
-                            </Text>
-                        </View>
-                    )}
+                    <Text style={styles.name}>{receiver?.name || "Chưa có tên"}</Text>
+                    <Text style={styles.phone}>{receiver?.phoneNumber || "Chưa có số điện thoại"}</Text>
                 </View>
             </View>
         </View>

@@ -1,141 +1,118 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, {
+    createContext,
+    useContext,
+    useState,
+    useEffect,
+    useRef,
+} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Location from 'expo-location';
 import mapService from '../services/map.service';
-
-export interface LocationData {
-    latitude: number;
-    longitude: number;
-    address?: string;
-}
+import { LocationPoint } from '@/types/Location';
 
 interface LocationContextType {
-    location: LocationData | null;
+    location: LocationPoint | null;
     hasLocationPermission: boolean;
     isLoading: boolean;
     error: string | null;
     requestLocationPermission: () => Promise<boolean>;
-    updateLocation: (location: LocationData) => void;
-    getCurrentLocation: () => Promise<LocationData | null>;
+    getCurrentLocation: () => Promise<LocationPoint | null>;
 }
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
-const isLocationSignificantlyDifferent = (loc1: LocationData, loc2: LocationData, threshold = 0.0001) => {
-    return Math.abs(loc1.latitude - loc2.latitude) > threshold ||
-        Math.abs(loc1.longitude - loc2.longitude) > threshold;
-};
-
 export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [location, setLocation] = useState<LocationData | null>(null);
-    const [hasLocationPermission, setHasLocationPermission] = useState<boolean>(false);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [location, setLocation] = useState<LocationPoint | null>(null);
+    const [hasLocationPermission, setHasLocationPermission] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const isWatching = useRef(false);
 
-    const fetchAndSetAddress = async (latitude: number, longitude: number) => {
+    const fetchAndFormatLocation = async (
+        latitude: number,
+        longitude: number
+    ): Promise<LocationPoint | null> => {
         try {
-            const response = await mapService.getAddressFromLocation(longitude, latitude);
-            if (response.success && response.data.length > 0) {
-                return response.data[0].title;
+            const res = await mapService.getAddressFromLocation(longitude, latitude);
+            if (res.success && res.data.length > 0) {
+                const loc = res.data[0];
+                return {
+                    title: loc.title,
+                    address: loc.address,
+                    position: { lat: latitude, lng: longitude },
+                };
             }
         } catch (err) {
             console.error('Error fetching address:', err);
         }
-        return undefined;
+        return null;
     };
 
-    useEffect(() => {
-        const loadSavedLocation = async () => {
-            try {
-                const savedLocationJson = await AsyncStorage.getItem('userLocation');
-                if (savedLocationJson) {
-                    const savedLocation = JSON.parse(savedLocationJson);
-                    setLocation(savedLocation);
+    const saveLocation = async (loc: LocationPoint) => {
+        setLocation(loc);
+        await AsyncStorage.setItem('userLocation', JSON.stringify(loc));
+    };
 
-                    // Check current location if we have permission
-                    const { status } = await Location.getForegroundPermissionsAsync();
-                    if (status === 'granted') {
-                        const currentPosition = await Location.getCurrentPositionAsync({
-                            accuracy: Location.Accuracy.Balanced,
-                        });
+    const startWatchingPosition = async () => {
+        if (isWatching.current) return;
+        isWatching.current = true;
 
-                        const currentLocation = {
-                            latitude: currentPosition.coords.latitude,
-                            longitude: currentPosition.coords.longitude,
-                        };
-
-                        // If location has changed significantly, update it
-                        if (isLocationSignificantlyDifferent(savedLocation, currentLocation)) {
-                            const address = await fetchAndSetAddress(currentLocation.latitude, currentLocation.longitude);
-                            const newLocation = { ...currentLocation, address };
-                            setLocation(newLocation);
-                            await AsyncStorage.setItem('userLocation', JSON.stringify(newLocation));
-                        }
-                    }
-                }
-
-                const { status } = await Location.getForegroundPermissionsAsync();
-                setHasLocationPermission(status === 'granted');
-            } catch (err) {
-                console.error('Error loading saved location:', err);
-                setError('Could not load saved location data');
-            } finally {
-                setIsLoading(false);
+        await Location.watchPositionAsync(
+            {
+                accuracy: Location.Accuracy.Balanced,
+                timeInterval: 3000,
+                distanceInterval: 3,
+            },
+            async (loc) => {
+                const { latitude, longitude } = loc.coords;
+                const updated = await fetchAndFormatLocation(latitude, longitude);
+                if (updated) await saveLocation(updated);
             }
-        };
+        );
+    };
 
-        loadSavedLocation();
-    }, []);
-
-    const requestLocationPermission = async (): Promise<boolean> => {
-        setIsLoading(true);
-        setError(null);
-
+    const loadSavedLocation = async () => {
         try {
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            const permissionGranted = status === 'granted';
-            setHasLocationPermission(permissionGranted);
-
-            if (permissionGranted) {
-                await getCurrentLocation();
+            const json = await AsyncStorage.getItem('userLocation');
+            if (json) {
+                const saved: LocationPoint = JSON.parse(json);
+                setLocation(saved);
+                return saved;
             }
-
-            return permissionGranted;
         } catch (err) {
-            console.error('Error requesting location permission:', err);
-            setError('Failed to request location permission');
-            return false;
-        } finally {
-            setIsLoading(false);
+            console.error('Failed to load saved location:', err);
         }
+        return null;
     };
 
-    const getCurrentLocation = async (): Promise<LocationData | null> => {
+    const getCurrentLocation = async (): Promise<LocationPoint | null> => {
         if (!hasLocationPermission) {
             setError('Location permission not granted');
             return null;
         }
 
-        setIsLoading(true);
-        setError(null);
+        // Nếu đã có location hiện tại thì trả về ngay (không gọi GPS nữa)
+        if (location) {
+            return location;
+        }
 
+        // Nếu chưa có, thì thử lấy lastKnown trước
         try {
-            const { coords } = await Location.getCurrentPositionAsync({
+            setIsLoading(true);
+            setError(null);
+
+            // Fallback nếu lastKnown không có
+            const current = await Location.getCurrentPositionAsync({
                 accuracy: Location.Accuracy.Balanced,
             });
 
-            const address = await fetchAndSetAddress(coords.latitude, coords.longitude);
+            const formatted = await fetchAndFormatLocation(current.coords.latitude, current.coords.longitude);
+            if (formatted) {
+                await saveLocation(formatted);
+                return formatted;
+            }
 
-            const newLocation = {
-                latitude: coords.latitude,
-                longitude: coords.longitude,
-                address
-            };
-
-            setLocation(newLocation);
-            await AsyncStorage.setItem('userLocation', JSON.stringify(newLocation));
-
-            return newLocation;
+            return null;
         } catch (err) {
             console.error('Error getting current location:', err);
             setError('Failed to get current location');
@@ -145,20 +122,52 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         }
     };
 
-    const updateLocation = async (newLocation: LocationData) => {
+    const requestLocationPermission = async (): Promise<boolean> => {
+        setIsLoading(true);
+        setError(null);
+
         try {
-            if (!newLocation.address) {
-                const address = await fetchAndSetAddress(newLocation.latitude, newLocation.longitude);
-                newLocation = { ...newLocation, address };
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            const granted = status === 'granted';
+            setHasLocationPermission(granted);
+
+            if (granted) {
+                const loc = await getCurrentLocation();
+                if (loc) await startWatchingPosition();
             }
 
-            setLocation(newLocation);
-            await AsyncStorage.setItem('userLocation', JSON.stringify(newLocation));
+            return granted;
         } catch (err) {
-            console.error('Error saving location:', err);
-            setError('Failed to save location');
+            console.error('Permission request failed:', err);
+            setError('Failed to request location permission');
+            return false;
+        } finally {
+            setIsLoading(false);
         }
     };
+
+    useEffect(() => {
+        const initialize = async () => {
+            const saved = await loadSavedLocation();
+
+            const { status } = await Location.getForegroundPermissionsAsync();
+            const granted = status === 'granted';
+            setHasLocationPermission(granted);
+
+            if (granted) {
+                if (!saved) {
+                    const loc = await getCurrentLocation();
+                    if (loc) await startWatchingPosition();
+                } else {
+                    await startWatchingPosition();
+                }
+            }
+
+            setIsLoading(false);
+        };
+
+        initialize();
+    }, []);
 
     return (
         <LocationContext.Provider
@@ -168,7 +177,6 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
                 isLoading,
                 error,
                 requestLocationPermission,
-                updateLocation,
                 getCurrentLocation,
             }}
         >
@@ -179,8 +187,8 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
 export const useLocation = () => {
     const context = useContext(LocationContext);
-    if (context === undefined) {
+    if (!context) {
         throw new Error('useLocation must be used within a LocationProvider');
     }
     return context;
-}; 
+};

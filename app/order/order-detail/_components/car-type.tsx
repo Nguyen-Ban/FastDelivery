@@ -4,78 +4,67 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
   Modal,
   ScrollView,
-  Dimensions
+  Dimensions,
 } from "react-native";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import COLOR from "../../../../constants/Colors";
+import { useOrder } from "@/contexts/order.context";
+import { VEHICLE_TYPES } from "@/constants/VehicleTypes";
 
-const { width } = Dimensions.get('window');
+const { width } = Dimensions.get("window");
+
+const vehicleOptions = [
+  {
+    id: VEHICLE_TYPES.VAN,
+    name: "Xe VAN",
+    dimensions: "Hàng hoá 145 x 145 x 95 cm. Tối đa 500kg",
+    price: "132.000đ",
+    sizeLabel: "500",
+  },
+  {
+    id: VEHICLE_TYPES.PICKUP_TRUCK,
+    name: "Xe Bán Tải",
+    dimensions: "Hàng hoá 180 x 160 x 110 cm. Tối đa 700kg",
+    price: "159.000đ",
+    sizeLabel: "700",
+  },
+  {
+    id: VEHICLE_TYPES.TRUCK,
+    name: "Xe tải",
+    dimensions: "Hàng hoá 290 x 160 x 160 cm. Tối đa 1000kg",
+    price: "195.000đ",
+    sizeLabel: "1000",
+  },
+];
 
 const CarType = () => {
   const [modalVisible, setModalVisible] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState(vehicleOptions[0]);
+  const { setVehicleType } = useOrder();
 
-  const vehicleOptions = [
-    {
-      id: 1,
-      name: "Xe VAN 500kg",
-      price: "132.000đ",
-      dimensions: "Hàng hoá 160 x 120 x 110 cm. Tối đa 500kg",
-      selected: true,
-      specs: {
-        length: "430 cm",
-        width: "160 cm",
-        height: "191 cm",
-      }
-    },
-    {
-      id: 2,
-      name: "Xe Bán Tải",
-      price: "132.000đ",
-      dimensions: "Hàng hoá 145 x 145 x 95 cm. Tối đa 450kg",
-      selected: false,
-    },
-    {
-      id: 3,
-      name: "Xe tải 500kg",
-      price: "132.000đ",
-      dimensions: "Hàng hoá 180 x 130 x 130 cm. Tối đa 500kg",
-      selected: false,
-    },
-    {
-      id: 4,
-      name: "Xe VAN 1000kg",
-      price: "179.000đ",
-      dimensions: "Hàng hoá 230 x 150 x 140 cm. Tối đa 850kg",
-      selected: false,
-    },
-    {
-      id: 5,
-      name: "Xe tải 1000kg",
-      price: "179.000đ",
-      dimensions: "Hàng hoá 290 x 160 x 160 cm. Tối đa 950kg",
-      selected: false,
-    },
-  ];
+  const handleSelectVehicle = (vehicleId: string) => {
+    const vehicle = vehicleOptions.find((v) => v.id === vehicleId);
+    if (vehicle) {
+      setSelectedVehicle(vehicle);
+      setVehicleType(vehicleId as VEHICLE_TYPES);
+    }
+  };
 
   return (
     <>
-      <TouchableOpacity
-        style={styles.container}
-        onPress={() => setModalVisible(true)}
-      >
+      <TouchableOpacity style={styles.container} onPress={() => setModalVisible(true)}>
         <View style={styles.leftContent}>
           <View style={styles.iconContainer}>
             <MaterialCommunityIcons name="truck-delivery" size={24} color="#F97316" />
           </View>
           <View style={styles.textContainer}>
             <View style={styles.titleContainer}>
-              <Text style={styles.title}>Xe VAN 500kg</Text>
+              <Text style={styles.title}>{selectedVehicle.name}</Text>
               <Ionicons name="information-circle-outline" size={18} color="#ccc" />
             </View>
-            <Text style={styles.subtitle}>Hàng hoá 160 x 120 x 110 cm. Tối ...</Text>
+            <Text style={styles.subtitle}>{selectedVehicle.dimensions}</Text>
           </View>
         </View>
         <Ionicons name="chevron-forward" size={24} color="#ccc" />
@@ -90,85 +79,43 @@ const CarType = () => {
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <View style={styles.modalHandle} />
-
             <Text style={styles.modalTitle}>Chọn loại xe</Text>
 
             <ScrollView style={styles.vehicleList}>
-              {/* Selected vehicle with detailed view */}
-              <TouchableOpacity style={[styles.vehicleOption, styles.selectedVehicleOption]}>
-                <View style={styles.vehicleHeader}>
-                  <View style={styles.vehicleIconContainer}>
-                    <MaterialCommunityIcons name="truck-delivery" size={24} color="#F97316" />
-                  </View>
-                  <View style={styles.vehicleTitleContainer}>
-                    <View style={styles.vehicleTitleRow}>
-                      <Text style={styles.vehicleTitle}>Xe VAN 500kg</Text>
-                      <Ionicons name="information-circle-outline" size={18} color="#ccc" />
-                    </View>
-                    <Text style={styles.vehiclePrice}>132.000đ</Text>
-                  </View>
-                </View>
-
-                <Text style={styles.vehicleDimensions}>
-                  Hàng hoá 160 x 120 x 110 cm. Tối đa 500kg
-                </Text>
-
-                <View style={styles.vehicleSpecsContainer}>
-                  <View style={styles.widthSpec}>
-                    <Text style={styles.specLabel}>430 cm</Text>
-                    <View style={styles.horizontalLine} />
-                    <View style={styles.horizontalArrows} />
-                  </View>
-
-                  <View style={styles.vehicleImagePlaceholder}>
-                    <MaterialCommunityIcons name="truck-delivery" size={60} color="#F97316" />
-                    <Text style={styles.vanLabel}>500</Text>
-                  </View>
-
-                  <View style={styles.dimensionsContainer}>
-                    <View style={styles.innerWidthSpec}>
-                      <Text style={styles.specLabel}>160 cm</Text>
-                      <View style={styles.innerWidthLine} />
-                      <View style={styles.innerWidthArrows} />
-                    </View>
-
-                    <View style={styles.heightSpec}>
-                      <Text style={styles.specLabel}>191 cm</Text>
-                      <View style={styles.heightLine} />
-                      <View style={styles.heightArrows} />
-                    </View>
-                  </View>
-                </View>
-              </TouchableOpacity>
-
-              {/* Other vehicle options */}
-              {vehicleOptions.slice(1).map((vehicle) => (
-                <TouchableOpacity
-                  key={vehicle.id}
-                  style={styles.vehicleOption}
-                  onPress={() => setModalVisible(false)}
-                >
-                  <View style={styles.vehicleHeader}>
-                    <View style={styles.vehicleIconContainer}>
-                      <MaterialCommunityIcons name="truck-delivery" size={24} color="#777" />
-                    </View>
-                    <View style={styles.vehicleTitleContainer}>
-                      <View style={styles.vehicleTitleRow}>
-                        <Text style={styles.vehicleTitle}>{vehicle.name}</Text>
-                        <Ionicons name="information-circle-outline" size={18} color="#ccc" />
+              {vehicleOptions.map((vehicle) => {
+                const isSelected = vehicle.id === selectedVehicle.id;
+                return (
+                  <TouchableOpacity
+                    key={vehicle.id}
+                    style={[
+                      styles.vehicleOption,
+                      isSelected && styles.selectedVehicleOption,
+                    ]}
+                    onPress={() => handleSelectVehicle(vehicle.id)}
+                  >
+                    <View style={styles.vehicleHeader}>
+                      <View style={styles.vehicleIconContainer}>
+                        <MaterialCommunityIcons
+                          name="truck-delivery"
+                          size={24}
+                          color={isSelected ? COLOR.orange50 : "#777"}
+                        />
                       </View>
-                      <Text style={styles.vehiclePrice}>{vehicle.price}</Text>
+                      <View style={styles.vehicleTitleContainer}>
+                        <View style={styles.vehicleTitleRow}>
+                          <Text style={styles.vehicleTitle}>{vehicle.name}</Text>
+                          <Ionicons name="information-circle-outline" size={18} color="#ccc" />
+                        </View>
+                        <Text style={styles.vehiclePrice}>{vehicle.price}</Text>
+                      </View>
                     </View>
-                  </View>
-                  <Text style={styles.vehicleDimensions}>{vehicle.dimensions}</Text>
-                </TouchableOpacity>
-              ))}
+                    <Text style={styles.vehicleDimensions}>{vehicle.dimensions}</Text>
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
 
-            <TouchableOpacity
-              style={styles.confirmButton}
-              onPress={() => setModalVisible(false)}
-            >
+            <TouchableOpacity style={styles.confirmButton} onPress={() => setModalVisible(false)}>
               <Text style={styles.confirmButtonText}>Chọn</Text>
             </TouchableOpacity>
           </View>
@@ -177,6 +124,7 @@ const CarType = () => {
     </>
   );
 };
+
 
 export default CarType;
 

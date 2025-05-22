@@ -1,4 +1,4 @@
-import axiosInstance from './axios';
+import { axiosInstance } from './axios';
 import { ApiResponse } from './types';
 
 interface registerDeviceReqBody {

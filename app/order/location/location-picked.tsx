@@ -9,14 +9,14 @@ import Button from "../../../components/Button/ButtonComponent";
 import COLOR from "../../../constants/Colors";
 import GLOBAL from "../../../constants/GlobalStyles";
 import { useOrder } from "../../../contexts/order.context";
+import { PhoneNumber } from "libphonenumber-js";
 
 const LocationPicked = () => {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { setSender, setReceiver } = useOrder();
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [note, setNote] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
   const [errors, setErrors] = useState({
     name: "",
     phone: ""
@@ -46,10 +46,10 @@ const LocationPicked = () => {
       isValid = false;
     }
 
-    if (!phone.trim()) {
+    if (!phoneNumber.trim()) {
       newErrors.phone = "Số điện thoại là bắt buộc";
       isValid = false;
-    } else if (!validatePhone(phone)) {
+    } else if (!validatePhone(phoneNumber)) {
       newErrors.phone = "Số điện thoại không hợp lệ (VD: 0912345678)";
       isValid = false;
     }
@@ -65,8 +65,7 @@ const LocationPicked = () => {
 
     const personInfo = {
       name,
-      phone,
-      note: note || undefined
+      phoneNumber,
     };
 
     // Update the appropriate context based on location type
@@ -140,26 +139,15 @@ const LocationPicked = () => {
               style={[styles.input, errors.phone ? styles.inputError : null]}
               placeholder="Số điện thoại (VD: 0912345678) *"
               keyboardType="phone-pad"
-              value={phone}
+              value={phoneNumber}
               onChangeText={(text) => {
-                setPhone(text);
+                setPhoneNumber(text);
                 if (errors.phone && validatePhone(text)) {
                   setErrors({ ...errors, phone: "" });
                 }
               }}
             />
             {errors.phone ? <Text style={styles.errorText}>{errors.phone}</Text> : null}
-          </View>
-
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={[styles.input, styles.noteInput]}
-              placeholder="Ghi chú thêm (không bắt buộc)"
-              multiline
-              numberOfLines={3}
-              value={note}
-              onChangeText={setNote}
-            />
           </View>
         </View>
 

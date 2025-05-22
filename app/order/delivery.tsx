@@ -1,19 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Linking } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Linking} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import COLOR from '../../constants/Colors';
+import { decode } from '@here/flexpolyline';
+import { useOrder } from '../../contexts/order.context';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Fixed panel height
-const PANEL_HEIGHT = SCREEN_HEIGHT * 0.4;
+const PANEL_HEIGHT = SCREEN_HEIGHT * 0.45;
 
 const DeliveryPage = () => {
     const router = useRouter();
+    const { pickupLocation, dropoffLocation, polyline } = useOrder();
+    const mapRef = useRef<MapView>(null);
 
     // Mock order data (will be replaced with API data later)
     const [orderData, setOrderData] = useState({
@@ -30,27 +34,59 @@ const DeliveryPage = () => {
             method: 'Tiền mặt (Người gửi)',
             totalFee: 132000,
         },
-        locations: {
-            pickup: {
-                latitude: 10.762622,
-                longitude: 106.660172,
-                address: '123 Nguyễn Văn A, Quận 1, TP.HCM',
-            },
-            dropoff: {
-                latitude: 10.772622,
-                longitude: 106.680172,
-                address: '456 Lê Văn B, Quận 2, TP.HCM',
-            },
-        },
     });
 
+    // Decode polyline string
+    const polylineString = polyline || 'gfo}Eto~u`@_';
+    const decodedPolyline = decode(polylineString);
+    const routeCoordinates = pickupLocation?.position ? [
+        {
+            latitude: pickupLocation.position.lat,
+            longitude: pickupLocation.position.lng
+        },
+        ...decodedPolyline.polyline.map(point => ({
+            latitude: point[0],
+            longitude: point[1]
+        }))
+    ] : decodedPolyline.polyline.map(point => ({
+        latitude: point[0],
+        longitude: point[1]
+    }));
+
+
     // Calculate the center point between pickup and dropoff for initial map region
-    const initialRegion = {
-        latitude: (orderData.locations.pickup.latitude + orderData.locations.dropoff.latitude) / 2,
-        longitude: (orderData.locations.pickup.longitude + orderData.locations.dropoff.longitude) / 2,
-        latitudeDelta: Math.abs(orderData.locations.pickup.latitude - orderData.locations.dropoff.latitude) * 1.5,
-        longitudeDelta: Math.abs(orderData.locations.pickup.longitude - orderData.locations.dropoff.longitude) * 1.5,
+    const initialRegion = pickupLocation?.position && dropoffLocation?.position ? {
+        latitude: (pickupLocation.position.lat + dropoffLocation.position.lat) / 2,
+        longitude: (pickupLocation.position.lng + dropoffLocation.position.lng) / 2,
+        latitudeDelta: Math.max(0.01, Math.abs(pickupLocation.position.lat - dropoffLocation.position.lat) / 2),
+        longitudeDelta: Math.max(0.01, Math.abs(pickupLocation.position.lng - dropoffLocation.position.lng) / 2),
+    } : {
+        latitude: 10.762622,
+        longitude: 106.660172,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
     };
+    // Function to fit map to route bounds
+    const fitMapToRoute = () => {
+        if (!pickupLocation?.position || !dropoffLocation?.position || !mapRef.current) return;
+
+        const coordinates = [
+            { latitude: pickupLocation.position.lat, longitude: pickupLocation.position.lng },
+            { latitude: dropoffLocation.position.lat, longitude: dropoffLocation.position.lng }
+        ];
+
+        mapRef.current.fitToCoordinates(coordinates, {
+            edgePadding: { top: 50, right: 50, bottom: PANEL_HEIGHT + 50, left: 50 },
+            animated: true
+        });
+    };
+
+    // Effect to zoom to route when locations are available
+    useEffect(() => {
+        if (pickupLocation?.position && dropoffLocation?.position) {
+            fitMapToRoute();
+        }
+    }, [pickupLocation, dropoffLocation]);
 
     const handleCallDriver = () => {
         const phoneNumber = orderData.driver.phone;
@@ -64,38 +100,50 @@ const DeliveryPage = () => {
         console.log('Chat with driver');
     };
 
+
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <SafeAreaView style={styles.container}>
                 {/* Full Screen Map */}
                 <MapView
+                    ref={mapRef}
                     provider={PROVIDER_GOOGLE}
                     style={styles.map}
                     initialRegion={initialRegion}
                     mapPadding={{ top: 40, right: 40, bottom: PANEL_HEIGHT + 40, left: 40 }}
                 >
                     {/* Pickup Marker */}
-                    <Marker
-                        coordinate={orderData.locations.pickup}
-                        title="Điểm đón"
-                        pinColor={COLOR.orange50}
-                    />
+                    {pickupLocation?.position && (
+                        <Marker
+                            coordinate={{
+                                latitude: pickupLocation.position.lat,
+                                longitude: pickupLocation.position.lng
+                            }}
+                            title="Điểm đón"
+                        >
+                            <View style={styles.motorcycleMarker}>
+                                <FontAwesome5 name="motorcycle" size={24} color={COLOR.orange50} />
+                            </View>
+                        </Marker>
+                    )}
 
                     {/* Dropoff Marker */}
-                    <Marker
-                        coordinate={orderData.locations.dropoff}
-                        title="Điểm trả"
-                        pinColor="red"
-                    />
+                    {dropoffLocation?.position && (
+                        <Marker
+                            coordinate={{
+                                latitude: dropoffLocation.position.lat,
+                                longitude: dropoffLocation.position.lng
+                            }}
+                            title="Điểm trả"
+                            pinColor="red"
+                        />
+                    )}
 
                     {/* Route Line */}
                     <Polyline
-                        coordinates={[
-                            orderData.locations.pickup,
-                            orderData.locations.dropoff,
-                        ]}
+                        coordinates={routeCoordinates}
                         strokeColor={COLOR.orange50}
-                        strokeWidth={3}
+                        strokeWidth={4}
                     />
                 </MapView>
 
@@ -106,6 +154,14 @@ const DeliveryPage = () => {
                 >
                     <Ionicons name="arrow-back" size={24} color="white" />
                 </TouchableOpacity>
+
+                {/* Zoom Button */}
+                {/* <TouchableOpacity
+                    style={styles.zoomButton}
+                    onPress={fitMapToRoute}
+                >
+                    <Ionicons name="locate" size={24} color="white" />
+                </TouchableOpacity> */}
 
                 {/* Fixed Info Panel */}
                 <View style={styles.infoPanel}>
@@ -304,6 +360,34 @@ const styles = StyleSheet.create({
         color: COLOR.orange50,
         fontWeight: '600',
         marginLeft: 8,
+    },
+    zoomButton: {
+        position: 'absolute',
+        top: 20,
+        right: 20,
+        backgroundColor: COLOR.orange50,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+        elevation: 5,
+    },
+    motorcycleMarker: {
+        backgroundColor: 'white',
+        padding: 8,
+        borderRadius: 20,
+        borderWidth: 2,
+        borderColor: COLOR.orange50,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
     },
 });
 

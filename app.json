@@ -10,7 +10,9 @@
     "ios": {
       "supportsTablet": true
     },
-    "android": { "windowSoftInputMode": "adjustPan" },
+    "android": {
+      "windowSoftInputMode": "adjustPan"
+    },
     "web": {
       "bundler": "metro",
       "output": "static"

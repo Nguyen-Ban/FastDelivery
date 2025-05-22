@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -50,6 +50,18 @@ const DeliveryPage = () => {
         longitude: (orderData.locations.pickup.longitude + orderData.locations.dropoff.longitude) / 2,
         latitudeDelta: Math.abs(orderData.locations.pickup.latitude - orderData.locations.dropoff.latitude) * 1.5,
         longitudeDelta: Math.abs(orderData.locations.pickup.longitude - orderData.locations.dropoff.longitude) * 1.5,
+    };
+
+    const handleCallDriver = () => {
+        const phoneNumber = orderData.driver.phone;
+        if (phoneNumber) {
+            Linking.openURL(`tel:${phoneNumber}`);
+        }
+    };
+
+    const handleChatDriver = () => {
+        // Implement chat functionality here
+        console.log('Chat with driver');
     };
 
     return (
@@ -144,7 +156,7 @@ const DeliveryPage = () => {
 
                     {/* Fixed Footer with Action Buttons */}
                     <View style={styles.panelFooter}>
-                        <TouchableOpacity style={styles.actionButton}>
+                        <TouchableOpacity style={styles.actionButton} onPress={handleCallDriver}>
                             <Ionicons name="call" size={24} color={COLOR.orange50} />
                             <Text style={styles.actionText}>Gọi tài xế</Text>
                         </TouchableOpacity>

@@ -44,6 +44,22 @@ const EventDetailScreen = () => {
       : event.items[0].status === "Hoàn thành"
       ? COLOR.blue70
       : COLOR.grey50;
+
+  const handleButtonPress = () => {
+    if (event.items[0].status === "Hoàn thành") {
+      router.push({
+        pathname: "/order/order-detail/rate-driver",
+        params: {
+          driverName: driver.name,
+          orderId: "123", // Có thể là real ID
+        },
+      });
+    } else {
+      // Logic xử lý hủy đơn nếu cần
+      console.log("Hủy đơn hàng");
+    }
+  };
+
   return (
     <View style={GLOBAL.container}>
       <TouchableOpacity onPress={() => router.back()}>
@@ -95,7 +111,7 @@ const EventDetailScreen = () => {
       <View style={{ flex: 1, justifyContent: "flex-end" }}>
         <Button
           title={status}
-          onPress={() => {}}
+          onPress={() => {handleButtonPress()}}
           size="large"
           type="primary"
           textStyle={{ color: COLOR.black, fontSize: 16 }}

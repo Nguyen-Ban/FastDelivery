@@ -1,5 +1,5 @@
 import { User } from '@/contexts';
-import axiosInstance from './axios';
+import { axiosInstance } from './axios';
 import { ApiResponse } from './types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 

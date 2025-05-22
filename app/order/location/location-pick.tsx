@@ -40,7 +40,7 @@ const Location = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { location } = useLocation();
-  const { setPickupLocation, setDeliveryLocation } = useOrder();
+  const { setPickupLocation, setDropoffLocation } = useOrder();
 
 
   const handleSearch = async (text: string) => {
@@ -55,7 +55,12 @@ const Location = () => {
     setError(null);
 
     try {
-      const response = await mapService.getSuggestPlaces(text, { userLocation: { lat: location?.latitude as number, lng: location?.longitude as number } });
+      const response = await mapService.getSuggestPlaces(text, {
+        userLocation: {
+          lat: location?.position?.lat as number,
+          lng: location?.position?.lng as number
+        }
+      });
       if (response.success && response.data) {
         setSuggestedLocations(response.data);
       } else {
@@ -82,7 +87,7 @@ const Location = () => {
       setPickupLocation(selectedLocation);
       router.back();
     } else {
-      setDeliveryLocation(selectedLocation);
+      setDropoffLocation(selectedLocation);
       router.push({
         pathname: "/order/location/location-picked",
         params: {

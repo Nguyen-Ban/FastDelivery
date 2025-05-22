@@ -12,10 +12,11 @@ import {
 } from "react-native";
 import { Ionicons, Feather, MaterialIcons } from "@expo/vector-icons";
 import COLOR from "../../../../constants/Colors";
+import { useOrder } from "@/contexts/order.context";
 
 const Note = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [note, setNote] = useState('');
+  const { note, setNote } = useOrder();
 
   const dismissKeyboard = () => {
     Keyboard.dismiss();

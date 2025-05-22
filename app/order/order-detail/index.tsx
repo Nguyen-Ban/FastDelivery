@@ -15,12 +15,9 @@ import { useOrder } from "../../../contexts/order.context";
 
 const OrderOverview = () => {
   const router = useRouter();
-  const params = useLocalSearchParams();
-  const { pickupLocation, deliveryLocation, sender, receiver } = useOrder();
+  const { pickupLocation, dropoffLocation, sender, receiver, vehicleType } = useOrder();
 
-  // Ensure type is a string by taking first value if it's an array
-  const deliveryType = Array.isArray(params.type) ? params.type[0] : params.type || 'VAN';
-  const isVan = deliveryType === 'VAN';
+  const isMotorbike = vehicleType === 'MOTORBIKE';
 
   // Height for the OrderConfirm component + extra padding
   const orderConfirmHeight = 180;
@@ -35,7 +32,7 @@ const OrderOverview = () => {
           <Ionicons name="chevron-back" size={26} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.title}>
-          {isVan ? "Giao hàng xe tải" : "Giao hàng xe máy"}
+          {isMotorbike ? "Giao hàng xe máy" : "Giao hàng xe tải"}
         </Text>
         <View style={styles.placeholder} />
       </View>
@@ -47,25 +44,13 @@ const OrderOverview = () => {
           { paddingBottom: orderConfirmHeight }
         ]}
       >
-        <SenderReceiver
-          senderName={sender?.name}
-          senderPhone={sender?.phone}
-          senderNote={sender?.note}
-          receiverName={receiver?.name}
-          receiverPhone={receiver?.phone}
-          receiverNote={receiver?.note}
-        />
-        {pickupLocation && deliveryLocation && (
-          <RouteOverview
-            pickupLocation={pickupLocation}
-            deliveryLocation={deliveryLocation}
-          />
-        )}
+        <SenderReceiver />
+        <RouteOverview />
         <DeliveryType />
-        {isVan && <CarType />}
-        <GoodsDetail type={deliveryType} />
+        {!isMotorbike && <CarType />}
+        <GoodsDetail />
         <Note />
-        <SpecialDemand type={deliveryType} />
+        <SpecialDemand />
       </ScrollView>
       <OrderConfirm />
     </SafeAreaView>

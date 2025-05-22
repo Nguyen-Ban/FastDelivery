@@ -3,10 +3,9 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-nati
 import { Ionicons } from "@expo/vector-icons";
 import COLOR from "../../../../constants/Colors";
 import { useOrder } from "../../../../contexts/order.context";
+import { SpecialDemands } from "@/types/OrderDetails";
 
-interface SpecialDemandProps {
-  type?: string;
-}
+
 
 interface ServiceItem {
   id: string;
@@ -18,7 +17,7 @@ interface ServiceItem {
 
 const vanServices: ServiceItem[] = [
   {
-    id: "home_moving",
+    id: "homeMoving",
     name: "Gói hỗ trợ chuyển nhà",
     price: "300.000đ",
     priceValue: 300000,
@@ -27,19 +26,19 @@ const vanServices: ServiceItem[] = [
   {
     id: "loading",
     name: "Dịch vụ bốc xếp",
-    price: "0đ",
-    priceValue: 0,
+    price: "100.000đ",
+    priceValue: 100000,
     alwaysVisible: true
   },
   {
-    id: "business_value",
+    id: "businessValue",
     name: "Khai giá hàng hoá doanh nghiệp",
     price: "0đ",
     priceValue: 0,
     alwaysVisible: true
   },
   {
-    id: "e_document",
+    id: "eDocument",
     name: "Chứng từ điện tử",
     price: "5.000đ",
     priceValue: 5000,
@@ -53,59 +52,31 @@ const vanServices: ServiceItem[] = [
     alwaysVisible: false
   },
   {
-    id: "driver_support",
+    id: "donateDriver",
     name: "Hỗ trợ tài xế",
     price: "10.000đ",
     priceValue: 10000,
-    alwaysVisible: false
-  },
-  {
-    id: "return_pickup",
-    name: "Quay lại điểm lấy hàng",
-    price: "65.000đ",
-    priceValue: 65000,
     alwaysVisible: false
   }
 ];
 
 const motorbikeServices: ServiceItem[] = [
   {
-    id: "hand_delivery",
+    id: "handDelivery",
     name: "Giao hàng tận tay",
     price: "10.000đ",
     priceValue: 10000,
     alwaysVisible: true
   },
   {
-    id: "return_pickup",
-    name: "Quay lại điểm lấy hàng",
-    price: "19.000đ",
-    priceValue: 19000,
-    alwaysVisible: true
-  },
-  {
-    id: "thermal_bag",
-    name: "Túi giữ nhiệt",
-    price: "0đ",
-    priceValue: 0,
-    alwaysVisible: true
-  },
-  {
-    id: "fragile",
+    id: "fragileDelivery",
     name: "Giao hàng dễ vỡ",
     price: "10.000đ",
     priceValue: 10000,
     alwaysVisible: true
   },
   {
-    id: "sms",
-    name: "Gửi SMS cho người nhận",
-    price: "1.000đ",
-    priceValue: 1000,
-    alwaysVisible: true
-  },
-  {
-    id: "driver_support",
+    id: "donateDriver",
     name: "Hỗ trợ tài xế",
     price: "5.000đ",
     priceValue: 5000,
@@ -115,24 +86,21 @@ const motorbikeServices: ServiceItem[] = [
 
 interface SpecialDemandState {
   selectedDemands: string[];
-  totalPrice: number;
+  addonPrice: number;
 }
 
 const DEFAULT_STATE: SpecialDemandState = {
   selectedDemands: [],
-  totalPrice: 0
+  addonPrice: 0
 };
 
-const SpecialDemand: React.FC<SpecialDemandProps> = ({ type = 'VAN' }) => {
+const SpecialDemand = () => {
   const [expanded, setExpanded] = useState(false);
-  const { specialDemands, setSpecialDemands } = useOrder();
-  const [state, setState] = useState<SpecialDemandState>({
-    ...DEFAULT_STATE,
-    selectedDemands: specialDemands || []
-  });
+  const { specialDemands, setSpecialDemands, setAddonPrice, vehicleType } = useOrder();
+  const [state, setState] = useState<SpecialDemandState>(DEFAULT_STATE);
 
-  const isVan = type === 'VAN';
-  const services = isVan ? vanServices : motorbikeServices;
+  const isMotorbike = vehicleType === 'MOTORBIKE';
+  const services = isMotorbike ? motorbikeServices : vanServices;
   const visibleServices = services.filter(service => service.alwaysVisible);
   const expandableServices = services.filter(service => !service.alwaysVisible);
 
@@ -155,10 +123,47 @@ const SpecialDemand: React.FC<SpecialDemandProps> = ({ type = 'VAN' }) => {
 
     setState({
       selectedDemands: newSelectedDemands,
-      totalPrice: newTotalPrice
+      addonPrice: newTotalPrice
     });
 
-    setSpecialDemands(newSelectedDemands);
+    setSpecialDemands(mapSelectedDemandsToSpecialDemands(state.selectedDemands));
+    setAddonPrice(newTotalPrice);
+  };
+
+  const mapSelectedDemandsToSpecialDemands = (selectedDemands: string[]): SpecialDemands => {
+    const specialDemands: SpecialDemands = {};
+
+    selectedDemands.forEach(id => {
+      switch (id) {
+        case "handDelivery":
+          specialDemands.handDelivery = true;
+          break;
+        case "fragileDelivery":
+          specialDemands.fragileDelivery = true;
+          break;
+        case "donateDriver":
+          // Nếu donateDriver là số (ví dụ tiền hỗ trợ), bạn có thể set mặc định hoặc lấy giá từ đâu đó
+          specialDemands.donateDriver = 10000; // ví dụ
+          break;
+        case "homeMoving":
+          specialDemands.homeMoving = true;
+          break;
+        case "loading":
+          specialDemands.loading = true;
+          break;
+        case "businessValue":
+          specialDemands.businessValue = 0; // hoặc giá phù hợp
+          break;
+        case "eDocument":
+          specialDemands.eDocument = true;
+          break;
+        case "waiting":
+          specialDemands.waiting = true;
+          break;
+      }
+    });
+
+    return specialDemands;
   };
 
   const renderService = (service: ServiceItem) => (
@@ -193,11 +198,11 @@ const SpecialDemand: React.FC<SpecialDemandProps> = ({ type = 'VAN' }) => {
       {/* Always visible services */}
       {visibleServices.map(renderService)}
 
-      {/* Expandable services for VAN type */}
-      {isVan && expanded && expandableServices.map(renderService)}
+      {/* Expandable services for motorbike type */}
+      {isMotorbike && expanded && expandableServices.map(renderService)}
 
       {/* Expand/Collapse button only for VAN type */}
-      {isVan && expandableServices.length > 0 && (
+      {!isMotorbike && expandableServices.length > 0 && (
         <TouchableOpacity style={styles.collapseButton} onPress={toggleExpand}>
           <Text style={styles.collapseText}>
             {expanded ? "Thu gọn" : "Xem thêm"}
@@ -214,7 +219,7 @@ const SpecialDemand: React.FC<SpecialDemandProps> = ({ type = 'VAN' }) => {
         <View style={styles.totalPriceContainer}>
           <Text style={styles.totalPriceLabel}>Tổng phí dịch vụ:</Text>
           <Text style={styles.totalPriceValue}>
-            {state.totalPrice.toLocaleString()}đ
+            {state.addonPrice.toLocaleString()}đ
           </Text>
         </View>
       )}

@@ -140,7 +140,7 @@ const DriverRegistration = () => {
                                     style={styles.picker}
                                 >
                                     <Picker.Item label="Xe máy" value="MOTORBIKE" />
-                                    <Picker.Item label="Ô tô" value="VAN" />
+                                    <Picker.Item label="Ô tô" value="CAR" />
                                 </Picker>
                             </View>
                         </View>

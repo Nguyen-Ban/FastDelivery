@@ -13,47 +13,33 @@ import {
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
 import COLOR from "../../../../constants/Colors";
 import { useOrder } from "../../../../contexts/order.context";
+import { PACKAGE_TYPES } from "@/constants/PackageTypes";
+import { GoodsDetails } from "@/types/OrderDetails";
 
 const { width } = Dimensions.get('window');
 
-interface GoodsDetailProps {
-  type?: string;
-}
 
-interface GoodsDetails {
-  weight: number;
-  length: number;
-  width: number;
-  height: number;
-  description?: string;
-}
-
-interface GoodsState extends GoodsDetails {
-  size?: string;
-  productType?: string;
-}
-
-const DEFAULT_GOODS_STATE: GoodsState = {
-  weight: 0,
-  length: 0,
-  width: 0,
-  height: 0,
-  description: '',
-  size: 'S',
-  productType: ''
-};
-
-const productTypes = [
-  "Nội thất, trang trí",
-  "Thực phẩm",
-  "Đồ uống",
-  "Đồ điện tử",
-  "Thời trang",
-  "Mỹ phẩm",
-  "Sách, văn phòng phẩm",
-  "Đồ chơi, quà tặng",
-  "Y tế, dược phẩm",
-  "Vật liệu xây dựng"
+const packageOptions = [
+  {
+    id: PACKAGE_TYPES.FOOD,
+    name: "Thực phẩm",
+  },
+  {
+    id: PACKAGE_TYPES.ELECTRONICS,
+    name: "Điện tử",
+  },
+  {
+    id: PACKAGE_TYPES.CLOTHING,
+    name: "Thời trang",
+  },
+  {
+    id: PACKAGE_TYPES.DOCUMENT,
+    name: "Tài liệu",
+  },
+  {
+    id: PACKAGE_TYPES.OTHERS,
+    name: "Khác",
+  }
 ];
 
 const sizeOptions = [
@@ -86,60 +72,17 @@ const sizeOptions = [
   }
 ];
 
-const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
+const GoodsDetail = () => {
   const [modalVisible, setModalVisible] = useState(false);
-  const { goodsDetails, setGoodsDetails } = useOrder();
+  const { packageType, weightKg, lengthCm, widthCm, heightCm, sizeName,
+    setPackageType, setWeightKg, setLengthCm, setWidthCm, setHeightCm, setSizeName,
+    vehicleType } = useOrder();
 
-  const [localState, setLocalState] = useState<GoodsState>({
-    ...DEFAULT_GOODS_STATE,
-    ...goodsDetails,
-  });
 
-  const isVan = type === 'VAN';
 
-  const handleConfirm = () => {
-    const details: GoodsDetails = {
-      weight: localState.weight,
-      length: localState.length,
-      width: localState.width,
-      height: localState.height,
-      description: localState.description
-    };
-    setGoodsDetails(details);
-    setModalVisible(false);
-  };
+  const isMotorbike = vehicleType === 'MOTORBIKE';
 
-  const updateLocalState = (updates: Partial<GoodsState>) => {
-    setLocalState(prev => ({
-      ...prev,
-      ...updates
-    }));
-  };
 
-  const handleSelectSize = (size: string) => {
-    const sizeOption = sizeOptions.find(option => option.label === size);
-    if (sizeOption) {
-      setGoodsDetails({
-        weight: goodsDetails?.weight || 0,
-        description: goodsDetails?.description || '',
-        ...sizeOption.dimensions,
-      });
-    }
-  };
-
-  const handleWeightChange = (value: string) => {
-    setGoodsDetails({
-      length: goodsDetails?.length || 0,
-      width: goodsDetails?.width || 0,
-      height: goodsDetails?.height || 0,
-      description: goodsDetails?.description || '',
-      weight: parseFloat(value) || 0
-    });
-  };
-
-  const handleSelectProductType = (type: string) => {
-    updateLocalState({ productType: type });
-  };
 
   const renderMotorbikeContent = () => (
     <View style={styles.section}>
@@ -152,13 +95,18 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
                 key={option.label}
                 style={[
                   styles.sizeOption,
-                  goodsDetails?.length === option.dimensions.length && styles.selectedSizeOption
+                  lengthCm === option.dimensions.length && styles.selectedSizeOption
                 ]}
-                onPress={() => handleSelectSize(option.label)}
+                onPress={() => {
+                  setLengthCm(option.dimensions.length);
+                  setWidthCm(option.dimensions.width);
+                  setHeightCm(option.dimensions.height);
+                  setSizeName(option.label);
+                }}
               >
                 <Text style={[
                   styles.sizeLabel,
-                  goodsDetails?.length === option.dimensions.length && styles.selectedSizeLabel
+                  lengthCm === option.dimensions.length && styles.selectedSizeLabel
                 ]}>{option.label}</Text>
               </TouchableOpacity>
             ))}
@@ -166,9 +114,9 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
         </View>
         <Text style={styles.sizeDescription}>
           {sizeOptions.find(option =>
-            option.dimensions.length === goodsDetails?.length &&
-            option.dimensions.width === goodsDetails?.width &&
-            option.dimensions.height === goodsDetails?.height
+            option.dimensions.length === lengthCm &&
+            option.dimensions.width === widthCm &&
+            option.dimensions.height === heightCm
           )?.display || sizeOptions[0].display}
         </Text>
 
@@ -178,8 +126,8 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
             style={styles.input}
             placeholder="Nhập khối lượng"
             keyboardType="numeric"
-            value={goodsDetails?.weight?.toString() || ''}
-            onChangeText={handleWeightChange}
+            value={weightKg?.toString()}
+            onChangeText={(val) => setWeightKg(parseFloat(val))}
           />
         </View>
       </View>
@@ -196,14 +144,14 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
         <View style={styles.optionsRow}>
           <View style={styles.optionTag}>
             <Text style={styles.optionTagText}>
-              {localState.length && localState.width && localState.height
-                ? `${localState.length}x${localState.width}x${localState.height} cm`
+              {lengthCm && widthCm && heightCm
+                ? `${lengthCm}x${widthCm}x${heightCm} cm`
                 : 'Kích thước'}
             </Text>
           </View>
           <View style={styles.optionTag}>
             <Text style={styles.optionTagText}>
-              {localState.weight ? `${localState.weight} kg` : 'Khối lượng'}
+              {weightKg ? `${weightKg} kg` : 'Khối lượng'}
             </Text>
           </View>
         </View>
@@ -222,7 +170,7 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
       <View style={styles.separator} />
 
       {/* Dimensions section */}
-      {isVan ? renderVanContent() : renderMotorbikeContent()}
+      {isMotorbike ? renderMotorbikeContent() : renderVanContent()}
 
       <View style={styles.separator} />
 
@@ -237,19 +185,19 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.productsScrollContent}
         >
-          {productTypes.map((type, index) => (
+          {packageOptions.map((type, index) => (
             <TouchableOpacity
               key={index}
               style={[
                 styles.productOption,
-                localState.productType === type && styles.selectedProductOption
+                packageType === type.id && styles.selectedProductOption
               ]}
-              onPress={() => handleSelectProductType(type)}
+              onPress={() => setPackageType(type.id)}
             >
               <Text style={[
                 styles.productText,
-                localState.productType === type && styles.selectedProductTextStyle
-              ]}>{type}</Text>
+                packageType === type.id && styles.selectedProductTextStyle
+              ]}>{type.name}</Text>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -278,8 +226,8 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
                 <Text style={styles.inputLabel}>Khối lượng (kg)</Text>
                 <TextInput
                   style={styles.input}
-                  value={localState.weight.toString()}
-                  onChangeText={(value) => updateLocalState({ weight: parseFloat(value) || 0 })}
+                  value={weightKg?.toString()}
+                  onChangeText={(value) => setWeightKg(parseFloat(value))}
                   placeholder="Nhập khối lượng"
                   keyboardType="numeric"
                 />
@@ -291,8 +239,8 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
                   <Text style={styles.inputLabel}>Dài (cm)</Text>
                   <TextInput
                     style={styles.input}
-                    value={localState.length.toString()}
-                    onChangeText={(value) => updateLocalState({ length: parseFloat(value) || 0 })}
+                    value={lengthCm?.toString()}
+                    onChangeText={(value) => setLengthCm(parseFloat(value))}
                     placeholder="Dài"
                     keyboardType="numeric"
                   />
@@ -302,8 +250,8 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
                   <Text style={styles.inputLabel}>Rộng (cm)</Text>
                   <TextInput
                     style={styles.input}
-                    value={localState.width.toString()}
-                    onChangeText={(value) => updateLocalState({ width: parseFloat(value) || 0 })}
+                    value={widthCm?.toString()}
+                    onChangeText={(value) => setWidthCm(parseFloat(value))}
                     placeholder="Rộng"
                     keyboardType="numeric"
                   />
@@ -313,8 +261,8 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
                   <Text style={styles.inputLabel}>Cao (cm)</Text>
                   <TextInput
                     style={styles.input}
-                    value={localState.height.toString()}
-                    onChangeText={(value) => updateLocalState({ height: parseFloat(value) || 0 })}
+                    value={heightCm?.toString()}
+                    onChangeText={(value) => setHeightCm(parseFloat(value))}
                     placeholder="Cao"
                     keyboardType="numeric"
                   />
@@ -325,12 +273,12 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
               <View style={styles.bottomSummary}>
                 <View style={styles.summaryRow}>
                   <FontAwesome5 name="weight" size={16} color="#F97316" />
-                  <Text style={styles.summaryText}>{localState.weight} kg</Text>
+                  <Text style={styles.summaryText}>{weightKg} kg</Text>
                 </View>
                 <View style={styles.summaryRow}>
                   <MaterialCommunityIcons name="cube-outline" size={20} color="#1E40AF" />
                   <Text style={styles.summaryText}>
-                    {localState.length} x {localState.width} x {localState.height} cm
+                    {lengthCm} x {widthCm} x {heightCm} cm
                   </Text>
                 </View>
               </View>
@@ -338,7 +286,7 @@ const GoodsDetail: React.FC<GoodsDetailProps> = ({ type = 'VAN' }) => {
               {/* Confirm Button */}
               <TouchableOpacity
                 style={styles.confirmButton}
-                onPress={handleConfirm}
+                onPress={() => setModalVisible(false)}
               >
                 <Text style={styles.confirmButtonText}>Xác nhận</Text>
               </TouchableOpacity>

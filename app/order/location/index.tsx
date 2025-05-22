@@ -10,24 +10,33 @@ import GLOBAL from "../../../constants/GlobalStyles";
 import { useLocation } from "../../../contexts/location.context";
 import { useOrder } from "../../../contexts/order.context";
 import { useAuth } from "../../../contexts/auth.context";
+import { VEHICLE_TYPES } from "@/constants/VehicleTypes";
 
 const Order = () => {
     const router = useRouter();
     const { type } = useLocalSearchParams();
     const { location } = useLocation();
     const { user } = useAuth();
-    const { pickupLocation, deliveryLocation, setPickupLocation, setSender } = useOrder();
+    const { pickupLocation, dropoffLocation, setPickupLocation, setSender, setVehicleType } = useOrder();
+
+    useEffect(() => {
+        // Set vehicle type based on the type parameter
+        if (type === 'CAR') {
+            setVehicleType(VEHICLE_TYPES.VAN);
+        } else if (type === 'MOTORBIKE') {
+            setVehicleType(VEHICLE_TYPES.MOTORBIKE);
+        }
+    }, []);
 
     useEffect(() => {
         // Set initial pickup location from current location
         if (location?.address && !pickupLocation) {
-            const { latitude, longitude, address } = location;
             setPickupLocation({
                 title: "Vị trí của bạn",
-                address: address || "Địa điểm chưa xác định",
+                address: location.address || "Địa điểm chưa xác định",
                 position: {
-                    lat: latitude,
-                    lng: longitude,
+                    lat: location?.position?.lat as number,
+                    lng: location?.position?.lng as number,
                 },
             });
         }
@@ -36,13 +45,12 @@ const Order = () => {
         if (user && !pickupLocation) {
             setSender({
                 name: user.fullName || "",
-                phone: user.phoneNumber || "",
-                note: undefined
+                phoneNumber: user.phoneNumber || "",
             });
         }
     }, [location, pickupLocation, setPickupLocation, user, setSender]);
 
-    const locationHandler = (locationType: 'pickup' | 'delivery') => {
+    const locationHandler = (locationType: 'pickup' | 'dropoff') => {
         router.push({
             pathname: "/order/location/location-pick",
             params: {
@@ -70,7 +78,7 @@ const Order = () => {
                             <FontAwesome6 name="arrow-left" size={30} color="black" />
                         </TouchableOpacity>
                         <Text style={styles.title}>
-                            {type === 'VAN' ? 'Giao hàng xe tải' : 'Giao hàng xe máy'}
+                            {type === 'CAR' ? 'Giao hàng xe tải' : 'Giao hàng xe máy'}
                         </Text>
                     </View>
                     <TouchableOpacity>
@@ -93,8 +101,8 @@ const Order = () => {
                         }
                     />
                     <Button
-                        title={deliveryLocation?.address || "Giao đến đâu?"}
-                        onPress={() => locationHandler('delivery')}
+                        title={dropoffLocation?.address || "Giao đến đâu?"}
+                        onPress={() => locationHandler('dropoff')}
                         type="sub"
                         size="large"
                         style={[

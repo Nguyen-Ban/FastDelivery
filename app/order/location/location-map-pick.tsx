@@ -30,27 +30,27 @@ const LocationMapPick = () => {
   const router = useRouter();
   const { type, locationType } = useLocalSearchParams();
   const { location } = useLocation();
-  const { setPickupLocation, setDeliveryLocation } = useOrder();
+  const { setPickupLocation, setDropoffLocation } = useOrder();
   const mapRef = useRef<MapView>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [places, setPlaces] = useState<PlaceItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [region, setRegion] = useState<Region>({
-    latitude: location?.latitude as number,//21.03835308269753,
-    longitude: location?.longitude as number,//105.78267549063561,
+    latitude: location?.position?.lat as number,//21.03835308269753,
+    longitude: location?.position?.lng as number,//105.78267549063561,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   });
 
   // Fetch nearby places when component mounts or location changes
   useEffect(() => {
-    if (location && location.latitude && location.longitude) {
+    if (location && location.position) {
       const newLocation = {
-        latitude: location.latitude,
-        longitude: location.longitude,
+        latitude: location.position.lat,
+        longitude: location.position.lng,
       };
       setSelectedLocation(newLocation);
-      fetchNearbyPlaces(location.longitude, location.latitude);
+      fetchNearbyPlaces(location.position.lng, location.position.lat);
     }
   }, [location]);
 
@@ -127,7 +127,7 @@ const LocationMapPick = () => {
       setPickupLocation(locationData);
       router.back();
     } else {
-      setDeliveryLocation(locationData);
+      setDropoffLocation(locationData);
       router.push({
         pathname: "/order/location/location-picked",
         params: {

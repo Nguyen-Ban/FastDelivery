@@ -3,31 +3,16 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import COLOR from "../../../../constants/Colors";
 import { useOrder } from "../../../../contexts/order.context";
+import { LocationPoint } from "@/types/Location";
 
-interface LocationPoint {
-  title: string;
-  address: string;
-  position: {
-    lat: number;
-    lng: number;
-  };
-}
 
-interface RouteOverviewProps {
-  pickupLocation: LocationPoint;
-  deliveryLocation: LocationPoint;
-}
-
-const RouteOverview: React.FC<RouteOverviewProps> = ({
-  pickupLocation,
-  deliveryLocation
-}) => {
-  const { setPickupLocation, setDeliveryLocation } = useOrder();
+const RouteOverview = () => {
+  const { pickupLocation, setPickupLocation, dropoffLocation, setDropoffLocation } = useOrder();
 
   const handleSwapLocations = () => {
     const tempPickup = pickupLocation;
-    setPickupLocation(deliveryLocation);
-    setDeliveryLocation(tempPickup);
+    setPickupLocation(dropoffLocation);
+    setDropoffLocation(tempPickup);
   };
 
   return (
@@ -46,8 +31,8 @@ const RouteOverview: React.FC<RouteOverviewProps> = ({
             <View style={styles.startPoint} />
           </View>
           <View style={styles.locationTextContainer}>
-            <Text style={styles.locationTitle}>{pickupLocation.title}</Text>
-            <Text style={styles.locationAddress}>{pickupLocation.address}</Text>
+            <Text style={styles.locationTitle}>{pickupLocation?.title}</Text>
+            <Text style={styles.locationAddress}>{pickupLocation?.address}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </View>
@@ -59,8 +44,8 @@ const RouteOverview: React.FC<RouteOverviewProps> = ({
             <View style={styles.endPoint} />
           </View>
           <View style={styles.locationTextContainer}>
-            <Text style={styles.locationTitle}>{deliveryLocation.title}</Text>
-            <Text style={styles.locationAddress}>{deliveryLocation.address}</Text>
+            <Text style={styles.locationTitle}>{dropoffLocation?.title}</Text>
+            <Text style={styles.locationAddress}>{dropoffLocation?.address}</Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color="#ccc" />
         </View>

@@ -4,8 +4,10 @@ import * as Keychain from 'react-native-keychain';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ApiResponse } from './types';
 
-const tokenAxios = axios.create({
-    baseURL: 'https://fast-delivery-be-production.up.railway.app/api',
+const BASE_URL = 'http://192.168.125.110:3000';
+
+const axiosInstance = axios.create({
+    baseURL: `${BASE_URL}/api`,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -29,7 +31,7 @@ const processQueue = (error: any = null) => {
 };
 
 // Add a request interceptor
-tokenAxios.interceptors.request.use(
+axiosInstance.interceptors.request.use(
     async (config) => {
         const token = await AsyncStorage.getItem('accessToken');
         if (token) {
@@ -43,7 +45,7 @@ tokenAxios.interceptors.request.use(
 );
 
 // Add a response interceptor
-tokenAxios.interceptors.response.use(
+axiosInstance.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
@@ -54,7 +56,7 @@ tokenAxios.interceptors.response.use(
                 return new Promise((resolve, reject) => {
                     failedQueue.push({ resolve, reject });
                 })
-                    .then(() => tokenAxios(originalRequest))
+                    .then(() => axiosInstance(originalRequest))
                     .catch((err) => Promise.reject(err));
             }
 
@@ -71,7 +73,7 @@ tokenAxios.interceptors.response.use(
                 if (response.data?.accessToken) {
                     originalRequest.headers.Authorization = `Bearer ${response.data.accessToken}`;
                     processQueue();
-                    return tokenAxios(originalRequest);
+                    return axiosInstance(originalRequest);
                 }
             } catch (refreshError) {
                 processQueue(refreshError);
@@ -93,7 +95,7 @@ const refreshToken = async () => {
     }
 
     try {
-        const response = await tokenAxios.post<ApiResponse>('/auth/refresh-token', {
+        const response = await axiosInstance.post<ApiResponse>('/auth/refresh-token', {
             refreshToken
         });
 
@@ -119,5 +121,5 @@ const refreshToken = async () => {
 //     },
 // });
 
-export default tokenAxios;
+export { axiosInstance, BASE_URL };
 

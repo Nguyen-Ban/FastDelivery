@@ -1,5 +1,5 @@
 import { ApiResponse } from "./types";
-import axiosInstance from './axios';
+import { axiosInstance } from './axios';
 
 interface UpdateProfileReqBody {
     fullName: string;

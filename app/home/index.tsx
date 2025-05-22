@@ -41,20 +41,16 @@ const HomeScreen = () => {
   } = useLocation();
   const [permissionModalVisible, setPermissionModalVisible] = useState(false);
 
-  // Check location permission when component mounts
+
   useEffect(() => {
-    // console.log('HomeScreen - Current location data:', location);
-    // console.log('HomeScreen - Location permission status:', hasLocationPermission);
+
 
     const checkLocationPermission = async () => {
       if (hasLocationPermission && !location) {
-        // console.log('HomeScreen - Permission granted but no location, getting current location');
         const currentLocation = await getCurrentLocation();
-        // console.log('HomeScreen - Fetched current location:', currentLocation);
       }
 
       if (!hasLocationPermission) {
-        // console.log('HomeScreen - No location permission, showing modal');
         setPermissionModalVisible(true);
       }
     };
@@ -63,9 +59,7 @@ const HomeScreen = () => {
   }, [hasLocationPermission, location]);
 
   const handleRequestPermission = async () => {
-    // console.log('HomeScreen - Requesting location permission');
     const granted = await requestLocationPermission();
-    // console.log('HomeScreen - Permission granted:', granted);
 
     if (granted) {
       setPermissionModalVisible(false);
@@ -97,7 +91,7 @@ const HomeScreen = () => {
 
   const services = [
     { id: "1", name: "Giao xe máy", icon: "motorcycle", type: "MOTORBIKE" },
-    { id: "6", name: "Giao xe tải", icon: "truck", type: "VAN" },
+    { id: "6", name: "Giao xe tải", icon: "truck", type: "CAR" },
     { id: "2", name: "Lịch sử", icon: "sticky-note" },
     { id: "3", name: "Chi tiêu", icon: "chart-simple" },
     { id: "7", name: "Chế độ tài xế", icon: "car-side" },
@@ -108,12 +102,11 @@ const HomeScreen = () => {
     require("../../assets/ad_3.png"),
   ];
 
-  const [selectedDeliveryType, setSelectedDeliveryType] = useState<'MOTORBIKE' | 'VAN' | null>(null);
+  const [selectedDeliveryType, setSelectedDeliveryType] = useState<'MOTORBIKE' | 'CAR' | null>(null);
 
-  const handleDeliverySelection = (type: 'MOTORBIKE' | 'VAN') => {
+  const handleDeliverySelection = (type: 'MOTORBIKE' | 'CAR') => {
     setSelectedDeliveryType(type);
-    // Store the selected type in AsyncStorage for persistence
-    AsyncStorage.setItem('selectedDeliveryType', type);
+
     router.push({
       pathname: '/order/location',
       params: { type }
@@ -133,7 +126,7 @@ const HomeScreen = () => {
       case "1":
         return () => handleDeliverySelection('MOTORBIKE');
       case "6":
-        return () => handleDeliverySelection('VAN');
+        return () => handleDeliverySelection('CAR');
       case "2":
         return "/user/events";
       case "3":

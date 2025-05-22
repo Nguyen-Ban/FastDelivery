@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -8,30 +8,123 @@ import {
   StatusBar,
   SafeAreaView,
   Modal,
+  Alert,
 } from "react-native";
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import MapView, { Marker } from "react-native-maps";
 import { useRouter } from "expo-router";
 
 import GLOBAL from "../../constants/GlobalStyles";
+import { useLocation } from "../../contexts/location.context";
+import { useAuth } from "../../contexts/auth.context";
+import socketDriverService from "../../services/socket.driver";
+import { useOrderDriver } from "@/contexts/order.driver.context";
+import { useSocketDriver } from "@/contexts/socker.driver.context";
 
 const Driver = () => {
+  const { connect, disconnect } = useSocketDriver();
+  const { hasOrder } = useOrderDriver();
   const [online, setOnline] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isOrderVisible, setIsOrderVisible] = useState(false);
   const [showEarningsModal, setShowEarningsModal] = useState(false);
   const [autoReceive, setAutoReceive] = useState(false);
   const router = useRouter();
+  const mapRef = useRef<MapView>(null);
+  const { location, getCurrentLocation } = useLocation();
+  const { user } = useAuth();
+  const locationUpdateInterval = useRef<NodeJS.Timeout>();
 
   // Display Menu Text
   const [isMenuTextVisible, setIsMenuTextVisible] = useState(false);
+
+  useEffect(() => {
+  }, [])
 
   useEffect(() => {
     const showEarnings = router.canGoBack();
     if (showEarnings) {
       setShowEarningsModal(true);
     }
+
+    // Cleanup socket listeners and interval when component unmounts
+    return () => {
+      socketDriverService.off('new_order');
+      socketDriverService.off('order_cancelled');
+      socketDriverService.off('order_accepted');
+      if (locationUpdateInterval.current) {
+        clearInterval(locationUpdateInterval.current);
+      }
+    };
   }, []);
+
+  // Effect to handle location updates when online
+  useEffect(() => {
+    if (online && location) {
+      // Start sending location updates every 5 seconds
+      locationUpdateInterval.current = setInterval(() => {
+        socketDriverService.emit('location:update', {
+          lng: location.position?.lng,
+          lat: location.position?.lat
+        });
+      }, 5000);
+
+      // Send initial location update
+      socketDriverService.emit('location:update', {
+        lng: location.position?.lng,
+        lat: location.position?.lat
+      });
+    } else {
+      // Clear interval when going offline
+      if (locationUpdateInterval.current) {
+        clearInterval(locationUpdateInterval.current);
+      }
+    }
+
+    return () => {
+      if (locationUpdateInterval.current) {
+        clearInterval(locationUpdateInterval.current);
+      }
+    };
+  }, [online, location]);
+
+  const handleLocatePress = async () => {
+    console.log('handleLocatePress');
+    const currentLocation = await getCurrentLocation();
+    console.log('currentLocation', currentLocation);
+    if (currentLocation && mapRef.current) {
+      mapRef.current.animateToRegion({
+        latitude: currentLocation.position?.lat as number,
+        longitude: currentLocation.position?.lng as number,
+        latitudeDelta: 0.001,
+        longitudeDelta: 0.001,
+      }, 500);
+    }
+  };
+
+  const handleOnlineStatusChange = async () => {
+    if (!user?.id) {
+      Alert.alert('Lỗi', 'Không thể xác thực người dùng');
+      return;
+    }
+    console.log('handleOnlineStatusChange');
+
+    const newStatus = !online;
+    setOnline(newStatus);
+
+    if (newStatus) {
+      try {
+        // Go online
+        await connect();
+      } catch (error) {
+        console.error('Error connecting to socket:', error);
+        Alert.alert('Lỗi', 'Không thể kết nối đến máy chủ');
+        setOnline(false); // Reset online status if connection fails
+      }
+    } else {
+      disconnect();
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -39,18 +132,21 @@ const Driver = () => {
 
       {/* Map View */}
       <MapView
+        ref={mapRef}
         style={styles.map}
         initialRegion={{
-          latitude: 10.7769,
-          longitude: 106.7009,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
+          latitude: location?.position?.lat || 10.7769,
+          longitude: location?.position?.lng || 106.7009,
+          latitudeDelta: 0.001,
+          longitudeDelta: 0.001,
         }}
       >
-        <Marker
-          coordinate={{ latitude: 10.7769, longitude: 106.7009 }}
-          title="Vị trí hiện tại"
-        />
+        {location && (
+          <Marker
+            coordinate={{ latitude: location.position?.lat as number, longitude: location.position?.lng as number }}
+            title="Vị trí hiện tại"
+          />
+        )}
       </MapView>
 
       {/* Header with menu and profile buttons */}
@@ -58,8 +154,8 @@ const Driver = () => {
         <TouchableOpacity
           style={styles.menuButton}
           onPress={() => router.push("/driver/menu")}
-          onLongPress={() => setIsMenuTextVisible(true)} // Hiển thị văn bản khi nhấn giữ
-          onPressOut={() => setIsMenuTextVisible(false)} // Ẩn văn bản khi thả tay
+          onLongPress={() => setIsMenuTextVisible(true)}
+          onPressOut={() => setIsMenuTextVisible(false)}
         >
           <Ionicons name="menu" size={24} color="#333" />
         </TouchableOpacity>
@@ -67,7 +163,7 @@ const Driver = () => {
 
       {/* Hiển thị văn bản "Menu" khi nhấn giữ */}
       {isMenuTextVisible && (
-      <Text style={styles.floatingText}>Menu</Text>
+        <Text style={styles.floatingText}>Menu</Text>
       )}
 
       {/* Calendar Button with Notification */}
@@ -77,10 +173,9 @@ const Driver = () => {
       >
         <View style={styles.calendarIconContainer}>
           <MaterialIcons name="event-note" size={24} color="#333" />
-          <View style={styles.notificationBadge} />
+          {hasOrder ? <View style={styles.notificationBadge} /> : null}
         </View>
       </TouchableOpacity>
-
 
       {/* Earnings Modal */}
       <Modal
@@ -105,11 +200,11 @@ const Driver = () => {
 
       {/* Action buttons on map */}
       <View style={styles.mapButtons}>
-        <TouchableOpacity style={styles.mapButton}>
+        <TouchableOpacity
+          style={styles.mapButton}
+          onPress={handleLocatePress}
+        >
           <Ionicons name="locate" size={24} color="#333" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.mapButton}>
-          <Ionicons name="refresh" size={24} color="#333" />
         </TouchableOpacity>
       </View>
 
@@ -126,7 +221,7 @@ const Driver = () => {
       <View style={styles.actionButtonContainer}>
         <TouchableOpacity
           style={styles.actionButton}
-          onPress={() => setOnline(!online)}
+          onPress={handleOnlineStatusChange}
         >
           <Ionicons name="power" size={24} color="white" />
           <Text style={styles.actionButtonText}>

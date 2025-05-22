@@ -1,90 +1,114 @@
+import { DELIVERY_TYPE } from '@/constants/DeliveryTypes';
+import { PACKAGE_TYPES } from '@/constants/PackageTypes';
+import { VEHICLE_TYPES } from '@/constants/VehicleTypes';
+import { LocationPoint } from '@/types/Location';
+import { SenderReceiver, GoodsDetails, SpecialDemands } from '@/types/OrderDetails';
 import React, { createContext, useContext, useState } from 'react';
 
-interface LocationPoint {
-    title: string;
-    address: string;
-    position: {
-        lat: number;
-        lng: number;
-    };
-}
-
-interface SenderReceiver {
-    name: string;
-    phone: string;
-    note?: string;
-}
-
-interface GoodsDetails {
-    weight: number;
-    length: number;
-    width: number;
-    height: number;
-    description?: string;
-}
-
 interface OrderContextType {
-    // Location information
-    pickupLocation: LocationPoint | null;
-    deliveryLocation: LocationPoint | null;
+    vehicleType: VEHICLE_TYPES;
+    deliveryType: DELIVERY_TYPE;
+    deliveryPrice: number;
+    note: string;
 
-    // Sender and receiver information
+    polyline: string | null;
+
+
     sender: SenderReceiver | null;
     receiver: SenderReceiver | null;
 
-    // Delivery details
-    deliveryType: 'VAN' | 'MOTORBIKE';
-    carType?: string; // Only for VAN deliveries
-    goodsDetails: GoodsDetails | null;
-    note: string;
-    specialDemands: string[];
+    pickupLocation: LocationPoint | null;
+    dropoffLocation: LocationPoint | null;
+
+    packageType: PACKAGE_TYPES | null;
+    weightKg: number | null;
+    lengthCm: number | null;
+    widthCm: number | null;
+    heightCm: number | null;
+    sizeName?: string | null;
+
+    specialDemands: SpecialDemands | null;
+    addonPrice: number;
 
     // State setters
-    setPickupLocation: (location: LocationPoint | null) => void;
-    setDeliveryLocation: (location: LocationPoint | null) => void;
+    setPolyline: (polyline: string | null) => void;
+    setVehicleType: (type: VEHICLE_TYPES) => void;
+    setDeliveryType: (type: DELIVERY_TYPE) => void;
+    setDeliveryPrice: (price: number) => void;
+    setNote: (note: string) => void;
     setSender: (sender: SenderReceiver | null) => void;
     setReceiver: (receiver: SenderReceiver | null) => void;
-    setDeliveryType: (type: 'VAN' | 'MOTORBIKE') => void;
-    setCarType: (type: string) => void;
-    setGoodsDetails: (details: GoodsDetails | null) => void;
-    setNote: (note: string) => void;
-    setSpecialDemands: (demands: string[]) => void;
+    setPickupLocation: (location: LocationPoint | null) => void;
+    setDropoffLocation: (location: LocationPoint | null) => void;
+    setPackageType: (type: PACKAGE_TYPES | null) => void;
+    setWeightKg: (weight: number | null) => void;
+    setLengthCm: (length: number | null) => void;
+    setWidthCm: (width: number | null) => void;
+    setHeightCm: (height: number | null) => void;
+    setSizeName: (name: string | null) => void;
+    setSpecialDemands: (demands: SpecialDemands | null) => void;
+    setAddonPrice: (price: number) => void;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
 export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [pickupLocation, setPickupLocation] = useState<LocationPoint | null>(null);
-    const [deliveryLocation, setDeliveryLocation] = useState<LocationPoint | null>(null);
+    const [vehicleType, setVehicleType] = useState<VEHICLE_TYPES>(VEHICLE_TYPES.VAN);
+    const [deliveryType, setDeliveryType] = useState<DELIVERY_TYPE>(DELIVERY_TYPE.ECONOMY);
+    const [deliveryPrice, setDeliveryPrice] = useState<number>(0);
+    const [packageType, setPackageType] = useState<PACKAGE_TYPES | null>(null);
+    const [weightKg, setWeightKg] = useState<number | null>(null);
+    const [lengthCm, setLengthCm] = useState<number | null>(null);
+    const [widthCm, setWidthCm] = useState<number | null>(null);
+    const [heightCm, setHeightCm] = useState<number | null>(null);
+    const [sizeName, setSizeName] = useState<string | null>(null);
+    const [addonPrice, setAddonPrice] = useState<number>(0);
+    const [polyline, setPolyline] = useState<string | null>(null);
+    const [note, setNote] = useState<string>('');
     const [sender, setSender] = useState<SenderReceiver | null>(null);
     const [receiver, setReceiver] = useState<SenderReceiver | null>(null);
-    const [deliveryType, setDeliveryType] = useState<'VAN' | 'MOTORBIKE'>('VAN');
-    const [carType, setCarType] = useState<string>('');
-    const [goodsDetails, setGoodsDetails] = useState<GoodsDetails | null>(null);
-    const [note, setNote] = useState<string>('');
-    const [specialDemands, setSpecialDemands] = useState<string[]>([]);
+    const [pickupLocation, setPickupLocation] = useState<LocationPoint | null>(null);
+    const [dropoffLocation, setDropoffLocation] = useState<LocationPoint | null>(null);
+    const [specialDemands, setSpecialDemands] = useState<SpecialDemands | null>(null);
 
     return (
         <OrderContext.Provider
             value={{
-                pickupLocation,
-                deliveryLocation,
+                polyline,
+                vehicleType,
+                deliveryType,
+                deliveryPrice,
+                note,
                 sender,
                 receiver,
-                deliveryType,
-                carType,
-                goodsDetails,
-                note,
+                pickupLocation,
+                dropoffLocation,
+                packageType,
+                weightKg,
+                lengthCm,
+                widthCm,
+                heightCm,
+                sizeName,
                 specialDemands,
-                setPickupLocation,
-                setDeliveryLocation,
+
+                addonPrice,
+                setPolyline,
+                setVehicleType,
+                setDeliveryType,
+                setDeliveryPrice,
+                setNote,
                 setSender,
                 setReceiver,
-                setDeliveryType,
-                setCarType,
-                setGoodsDetails,
-                setNote,
+                setPackageType,
+                setWeightKg,
+                setLengthCm,
+                setWidthCm,
+                setHeightCm,
+                setSizeName,
+                setPickupLocation,
+                setDropoffLocation,
                 setSpecialDemands,
+                setAddonPrice
             }}
         >
             {children}

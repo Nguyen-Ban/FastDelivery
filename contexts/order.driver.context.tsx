@@ -16,9 +16,58 @@ interface OrderDetailsForDriver {
     size: string | null;
 }
 
+interface OrderMain {
+    price: number | null;
+    vehicleType: VEHICLE_TYPES | null;
+    deliveryType: DELIVERY_TYPE | null;
+    note: string | null;
+}
+
+interface OrderSenderReceiver {
+    senderName: string | null;
+    senderPhoneNumber: string | null;
+    receiverName: string | null;
+    receiverPhoneNumber: string | null;
+}
+
+interface OrderLocation {
+    pickupTitle: string | null;
+    dropoffTitle: string | null;
+    pickupAddress: string | null;
+    dropoffAddress: string | null;
+    pickupLat: number | null;
+    pickupLng: number | null;
+    dropoffLat: number | null;
+    dropoffLng: number | null;
+}
+
+interface OrderDetail {
+    packageType: PACKAGE_TYPES | null;
+    weightKg: number | null;
+    lengthCm: number | null;
+    widthCm: number | null;
+    heightCm: number | null;
+    sizeName: string | null;
+}
+
+interface OrderSpecialDemand {
+    handDelivery?: boolean;
+    fragileDelivery?: boolean;
+    donateDriver?: number;
+    homeMoving?: boolean;
+    loading?: boolean;
+    businessValue?: number;
+    eDocument?: boolean;
+    waiting?: boolean;
+}
+
+
 interface OrderDriverContextType {
     hasOrder: boolean,
     setHasOrder: (hasOrder: boolean) => void;
+
+    polyline: string | null;
+    setPolyline: (polyline: string | null) => void;
 
     pickupDropoffDistance: number | null;
     setPickupDropoffDistance: (distance: number | null) => void;
@@ -26,49 +75,52 @@ interface OrderDriverContextType {
     driverPickupDistance: number | null;
     setDriverPickupDistance: (distance: number | null) => void;
 
-    price: number | null;
-    setPrice: (price: number | null) => void;
-
-    dropoffLocation: LocationForDriver | null;
-    setDropoffLocation: (location: LocationForDriver | null) => void;
-    pickupLocation: LocationForDriver | null;
-    setPickupLocation: (location: LocationForDriver | null) => void;
-
-    packageDetails: OrderDetailsForDriver | null;
-    setPackageDetails: (details: OrderDetailsForDriver | null) => void;
+    orderMain: OrderMain | null;
+    setOrderMain: (orderMain: OrderMain | null) => void;
+    orderSenderReceiver: OrderSenderReceiver | null;
+    setOrderSenderReceiver: (orderSenderReceiver: OrderSenderReceiver | null) => void;
+    orderLocation: OrderLocation | null;
+    setOrderLocation: (orderLocation: OrderLocation | null) => void;
+    orderDetail: OrderDetail | null;
+    setOrderDetail: (orderDetail: OrderDetail | null) => void;
+    orderSpecialDemand: OrderSpecialDemand | null;
+    setOrderSpecialDemand: (orderSpecialDemand: OrderSpecialDemand | null) => void;
 }
 
 const OrderDriverContext = createContext<OrderDriverContextType | undefined>(undefined);
 
 export const OrderDriverProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [hasOrder, setHasOrder] = useState<boolean>(false);
-    const [price, setPrice] = useState<number | null>(null);
-    const [dropoffLocation, setDropoffLocation] = useState<LocationForDriver | null>(null);
-    const [pickupLocation, setPickupLocation] = useState<LocationForDriver | null>(null);
-    const [packageDetails, setPackageDetails] = useState<OrderDetailsForDriver | null>(null);
     const [pickupDropoffDistance, setPickupDropoffDistance] = useState<number | null>(null);
     const [driverPickupDistance, setDriverPickupDistance] = useState<number | null>(null);
-
-
+    const [orderMain, setOrderMain] = useState<OrderMain | null>(null);
+    const [orderSenderReceiver, setOrderSenderReceiver] = useState<OrderSenderReceiver | null>(null);
+    const [orderLocation, setOrderLocation] = useState<OrderLocation | null>(null);
+    const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null);
+    const [orderSpecialDemand, setOrderSpecialDemand] = useState<OrderSpecialDemand | null>(null);
+    const [polyline, setPolyline] = useState<string | null>(null);
 
     return (
         <OrderDriverContext.Provider
             value={{
                 hasOrder,
                 setHasOrder,
-                price,
-                setPrice,
-                dropoffLocation,
-                setDropoffLocation,
-                pickupLocation,
-                setPickupLocation,
-                packageDetails,
-                setPackageDetails,
                 pickupDropoffDistance,
                 setPickupDropoffDistance,
                 driverPickupDistance,
                 setDriverPickupDistance,
-
+                orderMain,
+                setOrderMain,
+                orderSenderReceiver,
+                setOrderSenderReceiver,
+                orderLocation,
+                setOrderLocation,
+                orderDetail,
+                setOrderDetail,
+                orderSpecialDemand,
+                setOrderSpecialDemand,
+                polyline,
+                setPolyline,
             }}
         >
             {children}

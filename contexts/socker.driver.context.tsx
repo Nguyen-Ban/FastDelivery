@@ -15,12 +15,16 @@ const API_URL = `${BASE_URL}/driver`;
 interface ISocketDriverContext {
     socket: Socket | null;
     connect: () => Promise<void>;
+    emitEvent: (event: string, payload: any, callback?: (...args: any[]) => void) => void;
+
     disconnect: () => void;
 }
 
 const SocketDriverContext = createContext<ISocketDriverContext>({
     socket: null,
     connect: async () => { },
+    emitEvent: () => { },
+
     disconnect: () => { },
 });
 
@@ -54,6 +58,7 @@ export const SocketDriverProvider = ({ children }: { children: React.ReactNode }
             setConnected(true);
         });
 
+
         socket.on("disconnect", () => {
             console.log("Socket disconnected");
             setConnected(false);
@@ -61,6 +66,19 @@ export const SocketDriverProvider = ({ children }: { children: React.ReactNode }
 
         socketRef.current = socket;
     }, []);
+
+
+    const emitEvent = useCallback(
+        (event: string, payload: any, callback?: (...args: any[]) => void) => {
+            const socket = socketRef.current;
+            if (socket && socket.connected) {
+                socket.emit(event, payload, callback);
+            } else {
+                console.warn(`[SOCKET] Not connected. Cannot emit "${event}"`);
+            }
+        },
+        []
+    );
 
     const disconnect = useCallback(() => {
         if (socketRef.current) {
@@ -70,12 +88,17 @@ export const SocketDriverProvider = ({ children }: { children: React.ReactNode }
         }
     }, []);
 
+
+
     return (
         <SocketDriverContext.Provider
             value={{
                 socket: socketRef.current,
                 connect,
+                emitEvent,
+
                 disconnect,
+
             }}
         >
             {children}

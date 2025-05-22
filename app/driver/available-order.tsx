@@ -17,8 +17,8 @@ import { useOrderDriver } from '@/contexts/order.driver.context';
 
 const OrderDetails = () => {
     const router = useRouter();
-    const { price, pickupDropoffDistance, driverPickupDistance,
-        pickupLocation, dropoffLocation, packageDetails } = useOrderDriver();
+    const { pickupDropoffDistance, driverPickupDistance,
+        orderMain, orderDetail, orderLocation } = useOrderDriver();
     const [showPackageInfo, setShowPackageInfo] = useState(false);
 
     return (
@@ -39,7 +39,7 @@ const OrderDetails = () => {
                 {/* Price Section */}
                 <View style={styles.priceSection}>
                     <Text style={styles.priceLabel}>Cước phí</Text>
-                    <Text style={styles.price}>{`${price?.toLocaleString()}`}đ</Text>
+                    <Text style={styles.price}>{`${orderMain?.price?.toLocaleString()}`}đ</Text>
                     <View style={styles.paymentMethods}>
                         <View style={styles.paymentMethod}>
                             <Text style={styles.paymentMethodText}>Thẻ/Ví</Text>
@@ -65,8 +65,8 @@ const OrderDetails = () => {
                             <Text style={styles.locationLabel}>Điểm lấy hàng</Text>
                         </View>
                         <View style={styles.locationText}>
-                            <Text style={styles.locationName}>{`${pickupLocation?.title}`}</Text>
-                            <Text style={styles.locationAddress}>{`${pickupLocation?.address}`}</Text>
+                            <Text style={styles.locationName}>{`${orderLocation?.pickupTitle}`}</Text>
+                            <Text style={styles.locationAddress}>{`${orderLocation?.pickupAddress}`}</Text>
                         </View>
                     </View>
 
@@ -87,8 +87,8 @@ const OrderDetails = () => {
                             <Text style={styles.locationLabel}>Điểm trả hàng</Text>
                         </View>
                         <View style={styles.locationText}>
-                            <Text style={styles.locationName}>{`${dropoffLocation?.title}`}</Text>
-                            <Text style={styles.locationAddress}>{`${dropoffLocation?.address}`}</Text>
+                            <Text style={styles.locationName}>{`${orderLocation?.dropoffTitle}`}</Text>
+                            <Text style={styles.locationAddress}>{`${orderLocation?.dropoffAddress}`}</Text>
                         </View>
                     </View>
                 </View>
@@ -130,7 +130,7 @@ const OrderDetails = () => {
                                     <MaterialIcons name="category" size={20} color="#666" />
                                     <View style={styles.packageItemContent}>
                                         <Text style={styles.packageItemLabel}>Loại</Text>
-                                        <Text style={styles.packageItemValue}>{`${packageDetails?.packageType}`}</Text>
+                                        <Text style={styles.packageItemValue}>{`${orderDetail?.packageType}`}</Text>
                                     </View>
                                 </View>
                             </View>
@@ -139,7 +139,7 @@ const OrderDetails = () => {
                                     <MaterialIcons name="line-weight" size={20} color="#666" />
                                     <View style={styles.packageItemContent}>
                                         <Text style={styles.packageItemLabel}>Cân nặng</Text>
-                                        <Text style={styles.packageItemValue}>{`${packageDetails?.weightKg}`} kg</Text>
+                                        <Text style={styles.packageItemValue}>{`${orderDetail?.weightKg}`} kg</Text>
                                     </View>
                                 </View>
                             </View>
@@ -148,7 +148,7 @@ const OrderDetails = () => {
                                     <MaterialIcons name="straighten" size={20} color="#666" />
                                     <View style={styles.packageItemContent}>
                                         <Text style={styles.packageItemLabel}>Kích thước</Text>
-                                        <Text style={styles.packageItemValue}>{`${packageDetails?.size}`}</Text>
+                                        <Text style={styles.packageItemValue}>{`${orderDetail?.lengthCm} x ${orderDetail?.widthCm} x ${orderDetail?.heightCm} cm`}</Text>
                                     </View>
                                 </View>
                             </View>

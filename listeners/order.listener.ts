@@ -5,24 +5,26 @@ import { useOrderDriver } from "@/contexts/order.driver.context";
 
 export const OrderListener = () => {
   const { socket } = useSocketDriver();
-  const { setHasOrder, setPickupDropoffDistance, setDriverPickupDistance, setPrice, setPickupLocation, setDropoffLocation, setPackageDetails } = useOrderDriver();
+  const { setHasOrder, setPickupDropoffDistance, setDriverPickupDistance,
+    setOrderMain, setOrderDetail, setOrderLocation, setOrderSenderReceiver, setOrderSpecialDemand, setPolyline } = useOrderDriver();
 
   useEffect(() => {
     if (!socket) return;
     console.log("🚚 OrderListener mounted");
 
     const onRequest = (response: any) => {
-      console.log("🚚 Order request:", response.data.pickupDropoffDistance);
+      console.log("🚚 Order request:", response.data);
       if (response.success) {
         const data = response.data;
         setHasOrder(true);
         setPickupDropoffDistance(data.pickupDropoffDistance);
         setDriverPickupDistance(data.driverPickupDistance);
-        setPrice(data.price);
-        setPickupLocation(data.pickupLocation);
-        setDropoffLocation(data.dropoffLocation);
-        setPackageDetails(data.packageDetails);
-
+        setOrderMain(data.orderMain);
+        setOrderDetail(data.orderDetail);
+        setOrderLocation(data.orderLocation);
+        setOrderSenderReceiver(data.orderSenderReceiver);
+        setOrderSpecialDemand(data.orderSpecialDemand);
+        setPolyline(data.polyline);
       }
     };
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
     View,
     Text,
@@ -9,8 +9,12 @@ import {
     Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import { FontAwesome5 } from '@expo/vector-icons';
+import COLOR from '../../constants/Colors';
+import { decode } from '@here/flexpolyline';
 import { useRouter } from 'expo-router';
+import { useOrderDriver } from '../../contexts/order.driver.context';
 
 const DELIVERY_STATES = {
     GOING_TO_PICKUP: 'GOING_TO_PICKUP',
@@ -21,6 +25,48 @@ const DELIVERY_STATES = {
 const OnDelivery = () => {
     const router = useRouter();
     const [deliveryState, setDeliveryState] = useState(DELIVERY_STATES.GOING_TO_PICKUP);
+    const mapRef = useRef<MapView>(null);
+    const { orderLocation, polyline, orderDetail, orderMain, pickupDropoffDistance } = useOrderDriver();
+
+    // Decode polyline string
+    const polylineString = polyline || 'gfo}Eto~u`@_';
+    const decodedPolyline = decode(polylineString);
+    const pickupLat = orderLocation?.pickupLat;
+    const pickupLng = orderLocation?.pickupLng;
+    const dropoffLat = orderLocation?.dropoffLat;
+    const dropoffLng = orderLocation?.dropoffLng;
+
+    const routeCoordinates = pickupLat && pickupLng ? [
+        { latitude: pickupLat, longitude: pickupLng },
+        ...decodedPolyline.polyline.map(point => ({ latitude: point[0], longitude: point[1] }))
+    ] : decodedPolyline.polyline.map(point => ({ latitude: point[0], longitude: point[1] }));
+
+    // Calculate the center point between pickup and dropoff for initial map region
+    const initialRegion = pickupLat && pickupLng && dropoffLat && dropoffLng ? {
+        latitude: (pickupLat + dropoffLat) / 2,
+        longitude: (pickupLng + dropoffLng) / 2,
+        latitudeDelta: Math.max(0.01, Math.abs(pickupLat - dropoffLat) / 2),
+        longitudeDelta: Math.max(0.01, Math.abs(pickupLng - dropoffLng) / 2),
+    } : {
+        latitude: 10.762622,
+        longitude: 106.660172,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+    };
+
+    // Fit map to route when locations are available
+    useEffect(() => {
+        if (pickupLat && pickupLng && dropoffLat && dropoffLng && mapRef.current) {
+            const coordinates = [
+                { latitude: pickupLat, longitude: pickupLng },
+                { latitude: dropoffLat, longitude: dropoffLng }
+            ];
+            mapRef.current.fitToCoordinates(coordinates, {
+                edgePadding: { top: 50, right: 50, bottom: 200, left: 50 },
+                animated: true
+            });
+        }
+    }, [pickupLat, pickupLng, dropoffLat, dropoffLng]);
 
     const handleActionButton = () => {
         switch (deliveryState) {
@@ -55,17 +101,36 @@ const OnDelivery = () => {
 
             {/* Map View */}
             <MapView
+                ref={mapRef}
+                provider={PROVIDER_GOOGLE}
                 style={styles.map}
-                initialRegion={{
-                    latitude: 10.7769,
-                    longitude: 106.7009,
-                    latitudeDelta: 0.0922,
-                    longitudeDelta: 0.0421,
-                }}
+                initialRegion={initialRegion}
+                mapPadding={{ top: 40, right: 40, bottom: 200, left: 40 }}
             >
-                <Marker
-                    coordinate={{ latitude: 10.7769, longitude: 106.7009 }}
-                    title="Vị trí hiện tại"
+                {/* Pickup Marker */}
+                {pickupLat && pickupLng && (
+                    <Marker
+                        coordinate={{ latitude: pickupLat, longitude: pickupLng }}
+                        title="Điểm đón"
+                    >
+                        <View style={styles.motorcycleMarker}>
+                            <FontAwesome5 name="motorcycle" size={24} color={COLOR.orange50} />
+                        </View>
+                    </Marker>
+                )}
+                {/* Dropoff Marker */}
+                {dropoffLat && dropoffLng && (
+                    <Marker
+                        coordinate={{ latitude: dropoffLat, longitude: dropoffLng }}
+                        title="Điểm trả"
+                        pinColor="red"
+                    />
+                )}
+                {/* Route Line */}
+                <Polyline
+                    coordinates={routeCoordinates}
+                    strokeColor={COLOR.orange50}
+                    strokeWidth={4}
                 />
             </MapView>
 
@@ -91,12 +156,19 @@ const OnDelivery = () => {
                 </View>
 
                 <View style={styles.customerInfo}>
-                    <Text style={styles.customerName}>Nguyen Phuong Trinh</Text>
-                    <Text style={styles.locationAddress}>
-                        Eddie's New York Deli & Diner{'\n'}
-                        73 Đường Pasteur, Phường Bến Nghé, Quận 1, Thành phố Hồ Chí Minh, 70000, VNM
-                    </Text>
-                    <Text style={styles.price}>16.000đ <Text style={styles.paymentMethod}>Thẻ/Ví</Text></Text>
+                    <Text style={styles.infoValue}>{pickupDropoffDistance ? `${pickupDropoffDistance} m` : '---'}</Text>
+
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                        <Text style={styles.infoTag}>{orderDetail?.packageType || '---'}</Text>
+                        <Text style={styles.infoTag}>{orderDetail?.weightKg ? `${orderDetail.weightKg} kg` : '---'}</Text>
+                        <Text style={styles.infoTag}>
+                            {orderDetail?.lengthCm && orderDetail?.widthCm && orderDetail?.heightCm
+                                ? `${orderDetail.lengthCm} x ${orderDetail.widthCm} x ${orderDetail.heightCm} cm`
+                                : '---'}
+                        </Text>
+                    </View>
+
+                    <Text style={styles.infoValue}>Giá: {orderMain?.price ? `${orderMain.price.toLocaleString()}đ` : '---'}</Text>
                 </View>
 
                 <View style={styles.actionButtons}>
@@ -252,6 +324,28 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
+    motorcycleMarker: {
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 6,
+        elevation: 2,
+    },
+    infoTag: {
+        fontSize: 15,
+        fontWeight: '500',
+        color: '#222',
+        backgroundColor: '#F5F5F5',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 8,
+        marginRight: 6,
+    },
+    infoValue: {
+        fontSize: 15,
+        color: '#222',
+        fontWeight: '500',
+        marginBottom: 2,
+    },
 });
 
-export default OnDelivery; 
+export default OnDelivery;

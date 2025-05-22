@@ -16,7 +16,7 @@ const Driver = sequelize.define('Driver', {
         field: 'license_number'
     },
     vehicleType: {
-        type: DataTypes.ENUM('MOTORBIKE', 'VAN'),
+        type: DataTypes.ENUM('MOTORBIKE', 'VAN', 'PICKUP_TRUCK', 'TRUCK'),
         allowNull: false,
         field: 'vehicle_type'
     },

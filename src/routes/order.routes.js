@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { getOrderList } = require('../controllers/order.controller');
+const { getOrderList, getPrices } = require('../controllers/order.controller');
 const validate = require('../validations/validate');
 const { authenticateToken } = require('../middleware/auth.middleware');
 const { checkRole } = require('../middleware/auth.middleware');
 
 
-
+router.get('/prices', getPrices);
 
 // router.post('/:id/review', authenticateToken, checkRole(['CUSTOMER']), validate(reviewOrderValidation), reviewOrder);
 router.get('/customer/:id/list', authenticateToken, checkRole(['CUSTOMER']), getOrderList);

@@ -73,6 +73,4 @@ module.exports = {
     blacklistAccessToken,
     isAccessTokenBlacklisted,
     clearRefreshToken,
-    ACCESS_TOKEN_SECRET,
-    REFRESH_TOKEN_SECRET
 };

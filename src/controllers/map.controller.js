@@ -1,4 +1,4 @@
-const { suggestLocation, reverseGeocode, getDistanceBasedOnRoadRoute } = require("../services/map.service")
+const { suggestLocation, reverseGeocode, getInfoBasedOnRoadRoute, getPolyline } = require("../services/map.service")
 
 const suggestPlaces = async (req, res) => {
     const query = req.query.q;
@@ -69,15 +69,16 @@ const getPlacesFromLocation = async (req, res) => {
 
 const getDistanceBetweenTwoLocation = async (req, res) => {
     const { transportType, orgLat, orgLng, desLat, desLng } = req.query;
-    const transportMode = transportType === 'MOTORBIKE' ? 'scooter' : 'car'
 
     try {
-        const distance = await getDistanceBasedOnRoadRoute(transportMode, { lat: orgLat, lng: orgLng }, { lat: desLat, lng: desLng });
+        const { length: distance } = await getInfoBasedOnRoadRoute(transportType, { lat: orgLat, lng: orgLng }, { lat: desLat, lng: desLng });
         if (distance) {
             res.status(200).json({
                 success: true,
                 message: "Distance calculated successfully",
-                data: distance
+                data: {
+                    distance
+                }
             });
         } else {
             res.status(404).json({
@@ -94,8 +95,38 @@ const getDistanceBetweenTwoLocation = async (req, res) => {
     }
 }
 
+const fetchPolyline = async (req, res) => {
+    const { transportType, orgLat, orgLng, desLat, desLng } = req.query;
+    console.log(transportType, orgLat, orgLng, desLat, desLng);
+
+    try {
+        const polyline = await getPolyline(transportType, { lat: orgLat, lng: orgLng }, { lat: desLat, lng: desLng });
+        if (polyline) {
+            res.status(200).json({
+                success: true,
+                message: "Polyline calculated successfully",
+                data: {
+                    polyline
+                }
+            });
+        } else {
+            res.status(404).json({
+                success: false,
+                message: "No polyline found",
+            });
+        }
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: "Error calculating polyline",
+            error: error.message
+        });
+    }
+}
+
 module.exports = {
     suggestPlaces,
     getPlacesFromLocation,
-    getDistanceBetweenTwoLocation
+    getDistanceBetweenTwoLocation,
+    fetchPolyline
 }

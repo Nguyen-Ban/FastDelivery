@@ -38,11 +38,6 @@ const OrderDetail = sequelize.define('OrderDetail', {
         type: DataTypes.STRING,
         allowNull: true,
         field: 'size_name'
-    },
-    deliveryInsurance: {
-        type: DataTypes.ENUM('NO_INSURANCE', 'STANDARD', 'SILVER', 'GOLD'),
-        allowNull: false,
-        field: 'delivery_insurance'
     }
 }, {
     tableName: 'order_detail',

@@ -1,35 +1,44 @@
 const redisClient = require('../config/redis');
 const { sequelize } = require("../config/database");
 
-const { matchDriver } = require('../services/algo.service');
-const { Order, OrderLocation, OrderDetail, OrderAddon, OrderSenderReceiver } = require('../models/index');
+const { matchDriver } = require('../services/driver.service');
+const { Order, OrderLocation, OrderDetail, OrderSenderReceiver, OrderSpecialDemand, Driver } = require('../models/index');
 const { where } = require('sequelize');
 const { getSocket } = require('../services/websocket/driver');
+const logger = require('../config/logger');
+const { getPolyline, getInfoBasedOnRoadRoute } = require('../services/map.service');
 module.exports = (io, socket) => {
     socket.on('order:create', async (data) => {
+        logger.info('[OrderListener] order init', data.orderMain);
         const t = await sequelize.transaction();
         const customerId = socket.userId;
 
         try {
-            const { price, transportType, orderSenderReceiver, orderLocation, orderDetail, orderAddon } = data;
-            const { pickupLat, pickupLng } = orderLocation;
-            const { id: driverId } = await matchDriver(transportType, { pickupLat, pickupLng }, orderDetail);
+            const { orderMain, orderSenderReceiver, orderLocation, orderDetail, orderSpecialDemand } = data;
+            const { pickupLat, pickupLng, dropoffLat, dropoffLng } = orderLocation;
+            const { vehicleType } = orderMain;
+            const { id: driverId } = await matchDriver(vehicleType, { pickupLat, pickupLng }, data);
 
-            const { id: orderId } = await Order.create({ customerId, driverId, transportType, price }, { transaction: t });
+            const { id: orderId } = await Order.create({ customerId, driverId, ...orderMain }, { transaction: t });
 
             await OrderSenderReceiver.create({ orderId, ...orderSenderReceiver }, { transaction: t });
             await OrderLocation.create({ orderId, ...orderLocation }, { transaction: t });
             await OrderDetail.create({ orderId, ...orderDetail }, { transaction: t });
-            await OrderAddon.create({ orderId, ...orderAddon }, { transaction: t });
+            await OrderSpecialDemand.create({ orderId, ...orderSpecialDemand }, { transaction: t });
 
             await t.commit(); // Commit transaction nếu không có lỗi
+            const driver = await Driver.findByPk(driverId);
+            const driverName = driver.user.fullName;
 
             const payload = {
                 success: true,
                 message: 'Order created successfully',
                 data: {
                     orderId,
-                    driverId
+                    driverName,
+                    driverLisenceNumber: driver.licenseNumber,
+                    driverVehicleType: driver.vehicleType,
+                    driverVehiclePlate: driver.vehiclePlate,
                 }
             }
 
@@ -37,6 +46,7 @@ module.exports = (io, socket) => {
             const driverSocket = getSocket(driverId);
             driverSocket.emit('order:create', payload)
         } catch (error) {
+            console.error(error);
             await t.rollback(); // rollback nếu có lỗi
 
             socket.emit('order:create', {

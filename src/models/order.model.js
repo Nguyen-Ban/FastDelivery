@@ -18,15 +18,24 @@ const Order = sequelize.define('Order', {
         allowNull: true,
         field: 'driver_id'
     },
-    transportType: {
-        type: DataTypes.ENUM('MOTORBIKE', 'CAR'),
+    vehicleType: {
+        type: DataTypes.ENUM('MOTORBIKE', 'VAN', 'PICKUP_TRUCK', 'TRUCK'),
         allowNull: false,
         field: 'transport_type'
+    },
+    deliveryType: {
+        type: DataTypes.ENUM('ECONOMY', 'EXPRESS'),
+        allowNull: false,
+        field: 'delivery_type'
     },
     price: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
         field: 'price'
+    },
+    note: {
+        type: DataTypes.STRING,
+        field: 'note'
     },
     status: {
         type: DataTypes.ENUM('ASSIGNED', 'PICKED_UP', 'DELIVERED', 'CANCELLED'),

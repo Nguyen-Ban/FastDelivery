@@ -2,7 +2,7 @@ const User = require('./user.model');
 const Driver = require('./driver.model');
 const Order = require('./order.model');
 const OrderDetail = require('./order.detail');
-const OrderAddon = require('./order.addon');
+const OrderSpecialDemand = require('./order.specialDemand');
 const OrderLocation = require('./order.location');
 const Message = require('./message.model');
 const DeviceToken = require('./deviceToken.model');
@@ -93,14 +93,14 @@ Order.hasOne(OrderDetail, {
 });
 
 // OrderAddon associations
-OrderAddon.belongsTo(Order, {
+OrderSpecialDemand.belongsTo(Order, {
     foreignKey: 'orderId',
     as: 'order'
 });
 
-Order.hasOne(OrderAddon, {
+Order.hasOne(OrderSpecialDemand, {
     foreignKey: 'orderId',
-    as: 'addon'
+    as: 'specialDemand'
 });
 
 
@@ -159,7 +159,7 @@ module.exports = {
     Driver,
     Order,
     OrderDetail,
-    OrderAddon,
+    OrderSpecialDemand,
     OrderLocation,
     OrderSenderReceiver,
     Message,

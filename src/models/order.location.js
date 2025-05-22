@@ -9,15 +9,20 @@ const OrderLocation = sequelize.define('OrderLocation', {
         allowNull: false,
         field: 'order_id'
     },
+    pickupTitle: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        field: 'pickup_title'
+    },
+    dropoffTitle: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        field: 'dropoff_title'
+    },
     pickupAddress: {
         type: DataTypes.STRING,
         allowNull: false,
         field: 'pickup_address'
-    },
-    dropoffAddress: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        field: 'dropoff_address'
     },
     pickupLat: {
         type: DataTypes.DECIMAL(9, 6),
@@ -28,6 +33,11 @@ const OrderLocation = sequelize.define('OrderLocation', {
         type: DataTypes.DECIMAL(9, 6),
         allowNull: false,
         field: 'pickup_lng'
+    },
+    dropoffAddress: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        field: 'dropoff_address'
     },
     dropoffLat: {
         type: DataTypes.DECIMAL(9, 6),

@@ -1,6 +1,6 @@
 const redisClient = require('../config/redis');
 const { Driver } = require('../models/index');
-const { driverDirectionSupport } = require('../services/algo.service');
+const { driverDirectionSupport } = require('../services/driver.service');
 
 module.exports = (io, socket) => {
     socket.on('location:update', async (data) => {

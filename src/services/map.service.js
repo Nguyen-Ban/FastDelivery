@@ -28,14 +28,32 @@ const reverseGeocode = async (lat, lng) => {
     }
 };
 
-const getDistanceBasedOnRoadRoute = async (transportMode, origin, destination) => {
+const getInfoBasedOnRoadRoute = async (transportType, origin, destination) => {
     try {
-        const res = await axios.get(`https://router.hereapi.com/v8/routes?transportMode=${transportMode}&origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&return=summary&apikey=${HERE_API_KEY}`);
-        return res.data.routes[0].sections[0].summary.distance;
+        const transportMode = transportType === 'MOTORBIKE' ? 'scooter' : 'car';
+        const res = await axios.get(`https://router.hereapi.com/v8/routes?transportMode=${transportMode}&origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&return=summary&routingMode=fast&departureTime=${new Date().toISOString()}&apikey=${HERE_API_KEY}`);
+        return res.data.routes[0].sections[0].summary;
     } catch (error) {
         console.error('Error getting driver to order duration:', error);
         return null;
     }
 }
 
-module.exports = { suggestLocation, reverseGeocode, getDistanceBasedOnRoadRoute };
+const getPolyline = async (transportType, origin, destination) => {
+    try {
+        const transportMode = transportType === 'MOTORBIKE' ? 'scooter' : 'car';
+
+        const res = await axios.get(`https://router.hereapi.com/v8/routes?transportMode=${transportMode}&origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&return=polyline&lang=vi&apikey=${HERE_API_KEY}`);
+
+        const section = res.data.routes[0].sections[0];
+        const polyline = section.polyline;
+        console.log('Polyline:', polyline);
+
+        return polyline;
+    } catch (error) {
+        console.error('Error getting route direction:', error);
+        return null;
+    }
+}
+
+module.exports = { suggestLocation, reverseGeocode, getInfoBasedOnRoadRoute, getPolyline };

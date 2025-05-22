@@ -2,18 +2,9 @@ const { default: axios } = require("axios");
 const redisClient = require("../config/redis");
 const { getSocket } = require("./websocket/driver");
 const { Driver } = require("../models/index");
+const { getInfoBasedOnRoadRoute } = require("./map.service");
 
 const HERE_API_KEY = process.env.HERE_API_KEY;
-
-const getDurationBasedOnRoadRoute = async (transportMode, origin, destination) => {
-    try {
-        const res = await axios.get(`https://router.hereapi.com/v8/routes?transportMode=${transportMode}&origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&return=summary&apikey=${HERE_API_KEY}`);
-        return res.data.routes[0].sections[0].summary.duration;
-    } catch (error) {
-        console.error('Error getting driver to order duration:', error);
-        return null;
-    }
-}
 
 const getAvailableNearestDrivers = async (transportType, orderPickUpLocation) => {
     const { pickupLat: lat, pickupLng: lng } = orderPickUpLocation;
@@ -24,12 +15,13 @@ const getAvailableNearestDrivers = async (transportType, orderPickUpLocation) =>
         driverKeys.map(id => redisClient.geopos('drivers:locations', id))
     );
 
-    const transportMode = transportType === 'MOTORBIKE' ? 'scooter' : 'car'
 
     const drivers = driverKeys.map((id, index) => ({
         id,
-        duration: driverLocations[index][0] ? getDurationBasedOnRoadRoute(transportMode,
-            { lng: driverLocations[index][0][0], lat: driverLocations[index][0][1] }, { lat, lng }) : null,
+        duration: driverLocations[index][0] ? getInfoBasedOnRoadRoute(transportType,
+            { lng: driverLocations[index][0][0], lat: driverLocations[index][0][1] }, { lat, lng }).duration : null,
+        lng: parseFloat(driverLocations[index][0][0]),
+        lat: parseFloat(driverLocations[index][0][1])
     }));
 
     drivers.sort((a, b) => a.duration - b.duration);
@@ -37,13 +29,44 @@ const getAvailableNearestDrivers = async (transportType, orderPickUpLocation) =>
     return drivers; // [{id, lng, lat}]
 }
 
+const getOrderDetail = async (orderData, driverPos) => {
+    const { orderMain, orderLocation, orderDetail } = orderData;
+    const { price } = orderMain;
+    const pickupDropoffSummary = await getInfoBasedOnRoadRoute(orderMain.vehicleType,
+        { lat: orderLocation.pickupLat, lng: orderLocation.pickupLng },
+        { lat: orderLocation.dropoffLat, lng: orderLocation.dropoffLng });
+    const pickupDropoffDistance = pickupDropoffSummary.length;
+
+    const driverPickupSummary = await getInfoBasedOnRoadRoute(orderMain.vehicleType,
+        { lat: orderLocation.pickupLat, lng: orderLocation.pickupLng }, { lat: driverPos.lat, lng: driverPos.lng });
+    const driverPickupDistance = driverPickupSummary.length;
+
+    const pickupLocation = { title: orderLocation.pickupTitle, address: orderLocation.pickupAddress }
+    const dropoffLocation = { title: orderLocation.dropoffTitle, address: orderLocation.dropoffAddress }
+    const packageDetails = {
+        packageType: orderDetail.packageType,
+        weightKg: orderDetail.weightKg,
+        size: `${orderDetail.lengthCm} x ${orderDetail.widthCm} x ${orderDetail.heightCm} cm`
+    }
 
 
-const matchDriver = async (transportType, orderPickUpLocation, orderDetail) => {
+    return {
+        price,
+        pickupDropoffDistance,
+        driverPickupDistance,
+        pickupLocation,
+        dropoffLocation,
+        packageDetails,
+    }
+}
+
+
+const matchDriver = async (transportType, orderPickUpLocation, orderData) => {
     let resDriver = null;
     const drivers = await getAvailableNearestDrivers(transportType, orderPickUpLocation)
     for (const driver of drivers) {
         const socket = getSocket(driver.id);
+        const orderDetail = await getOrderDetail(orderData, driver);
         socket.emit('order:request', {
             success: true,
             message: 'Order request',
@@ -87,12 +110,13 @@ const waitForDriverResponse = async (socket) => {
 }
 
 const driverDirectionSupport = async (transportType, driverLocation, orderLocation) => {
-    const transportMode = transportType === 'MOTORBIKE' ? 'scooter' : 'car'
-    return await directRoute(transportMode, driverLocation, orderLocation);
+    return await directRoute(transportType, driverLocation, orderLocation);
 }
 
-const directRoute = async (transportMode, origin, destination) => {
+const directRoute = async (transportType, origin, destination) => {
     try {
+        const transportMode = transportType === 'MOTORBIKE' ? 'scooter' : 'car'
+
         const res = await axios.get(`https://router.hereapi.com/v8/routes?transportMode=${transportMode}&origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&return=summary,polyline,actions,instructions&lang=vi&apikey=${HERE_API_KEY}`);
 
         const section = res.data.routes[0].sections[0];

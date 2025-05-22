@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require('../config/database');
 
-const OrderAddon = sequelize.define('OrderAddon', {
+const OrderSpecialDemand = sequelize.define('OrderSpecialDemand', {
     orderId: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -50,8 +50,8 @@ const OrderAddon = sequelize.define('OrderAddon', {
         field: 'waiting'
     },
 }, {
-    tableName: 'order_addon',
+    tableName: 'order_special_demand',
     timestamps: false
 });
 
-module.exports = OrderAddon;
+module.exports = OrderSpecialDemand;

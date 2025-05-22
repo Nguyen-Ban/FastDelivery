@@ -92,6 +92,7 @@ const checkSocketRole = (allowedRoles) => {
       if (!activeRole) {
         return next(new Error('Missing role in socket headers (role)'));
       }
+      console.log('activeRole', allowedRoles, activeRole);
 
       if (!allowedRoles.includes(activeRole)) {
         return next(new Error('Permission denied for this role'));

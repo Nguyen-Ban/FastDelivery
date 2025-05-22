@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Linking} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE, Region } from 'react-native-maps';
@@ -66,7 +66,6 @@ const DeliveryPage = () => {
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
     };
-
     // Function to fit map to route bounds
     const fitMapToRoute = () => {
         if (!pickupLocation?.position || !dropoffLocation?.position || !mapRef.current) return;
@@ -88,6 +87,19 @@ const DeliveryPage = () => {
             fitMapToRoute();
         }
     }, [pickupLocation, dropoffLocation]);
+
+    const handleCallDriver = () => {
+        const phoneNumber = orderData.driver.phone;
+        if (phoneNumber) {
+            Linking.openURL(`tel:${phoneNumber}`);
+        }
+    };
+
+    const handleChatDriver = () => {
+        // Implement chat functionality here
+        console.log('Chat with driver');
+    };
+
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
@@ -200,7 +212,7 @@ const DeliveryPage = () => {
 
                     {/* Fixed Footer with Action Buttons */}
                     <View style={styles.panelFooter}>
-                        <TouchableOpacity style={styles.actionButton}>
+                        <TouchableOpacity style={styles.actionButton} onPress={handleCallDriver}>
                             <Ionicons name="call" size={24} color={COLOR.orange50} />
                             <Text style={styles.actionText}>Gọi tài xế</Text>
                         </TouchableOpacity>

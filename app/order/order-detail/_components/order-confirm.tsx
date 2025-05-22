@@ -134,7 +134,8 @@ const OrderConfirm = () => {
 
       // Navigate to delivery screen
       router.push({
-        pathname: "/order/delivery"
+        pathname: "/order/finding-driver",
+        // params: { orderId: response.orderId }
       });
     } catch (error) {
       console.error('Error creating order:', error);

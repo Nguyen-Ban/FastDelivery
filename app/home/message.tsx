@@ -15,6 +15,7 @@ import COLOR from "../../constants/Colors";
 import GLOBAL from "../../constants/GlobalStyles";
 import InfoCard from "@/components/InfoCard";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import { router } from "expo-router";
 
 const Message = () => {
   //hard code for UI
@@ -34,7 +35,9 @@ const Message = () => {
           <InfoCard
             title={item.title}
             subtitle={item.subtitle}
-            onPress={() => {}}
+            onPress={() => {
+              router.push("/user/chat");
+            }}
             icon={<FontAwesome6 name="user" size={24} color={COLOR.black} />}
             iconContainerStyle={{
               paddingRight: 20,

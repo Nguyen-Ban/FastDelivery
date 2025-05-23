@@ -16,6 +16,7 @@ import COLOR from '../../constants/Colors';
 import { decode } from '@here/flexpolyline';
 import { useRouter } from 'expo-router';
 import { useOrderDriver } from '../../contexts/order.driver.context';
+import { useLocation } from '@/contexts';
 const motorbikeIcon = require('../../assets/motorbike.png'); // Replace with your motorcycle icon path
 const carIcon = require('../../assets/car.png'); // Replace with your car icon path
 const DELIVERY_STATES = {
@@ -28,6 +29,7 @@ const OnDelivery = () => {
     const router = useRouter();
     const [deliveryState, setDeliveryState] = useState(DELIVERY_STATES.GOING_TO_PICKUP);
     const mapRef = useRef<MapView>(null);
+    const { location } = useLocation();
     const { orderLocation, driverPickupPolyline, orderDetail, orderMain, pickupDropoffDistance } = useOrderDriver();
 
     // Decode polyline string
@@ -38,10 +40,11 @@ const OnDelivery = () => {
     const dropoffLat = orderLocation?.dropoffLat;
     const dropoffLng = orderLocation?.dropoffLng;
 
-    const routeCoordinates = pickupLat && pickupLng && dropoffLat && dropoffLng ? [
-        { latitude: pickupLat, longitude: pickupLng },
-        ...decodedPolyline.polyline.map(point => ({ latitude: point[0], longitude: point[1] })), { latitude: dropoffLat, longitude: dropoffLng }
+    const routeCoordinates = pickupLat && pickupLng && location?.position ? [
+        { latitude: location?.position?.lat, longitude: location?.position?.lng },
+        ...decodedPolyline.polyline.map(point => ({ latitude: point[0], longitude: point[1] })), { latitude: pickupLat, longitude: pickupLng }
     ] : decodedPolyline.polyline.map(point => ({ latitude: point[0], longitude: point[1] }));
+
 
     // Calculate the center point between pickup and dropoff for initial map region
     const initialRegion = pickupLat && pickupLng && dropoffLat && dropoffLng ? {
@@ -110,9 +113,9 @@ const OnDelivery = () => {
                 mapPadding={{ top: 40, right: 40, bottom: 200, left: 40 }}
             >
                 {/* Pickup Marker */}
-                {pickupLat && pickupLng && (
+                {location?.position?.lat && location.position.lng && (
                     <Marker
-                        coordinate={{ latitude: pickupLat, longitude: pickupLng }}
+                        coordinate={{ latitude: location?.position?.lat, longitude: location?.position?.lng }}
                         title="Điểm đón"
                         anchor={{ x: 0.5, y: 0.5 }} // Chính giữa icon
                     >
@@ -126,9 +129,9 @@ const OnDelivery = () => {
                     </Marker>
                 )}
                 {/* Dropoff Marker */}
-                {dropoffLat && dropoffLng && (
+                {pickupLat && pickupLng && (
                     <Marker
-                        coordinate={{ latitude: dropoffLat, longitude: dropoffLng }}
+                        coordinate={{ latitude: pickupLat, longitude: pickupLng }}
                         title="Điểm trả"
                         pinColor="red"
                     />

@@ -45,8 +45,8 @@ const DirectRoute = () => {
                     latitudeDelta: 0.002,
                     longitudeDelta: 0.002,
                 }}
-                showsUserLocation={true}
-                showsMyLocationButton={true}
+            // showsUserLocation={true}
+            // showsMyLocationButton={true}
             >
                 <Marker coordinate={currentLocation} title="Vị trí của bạn" />
             </MapView>

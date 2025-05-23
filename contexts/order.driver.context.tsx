@@ -63,11 +63,16 @@ interface OrderSpecialDemand {
 
 
 interface OrderDriverContextType {
+    orderId: string | null;
+    setOrderId: (orderId: string | null) => void;
     hasOrder: boolean,
     setHasOrder: (hasOrder: boolean) => void;
 
-    polyline: string | null;
-    setPolyline: (polyline: string | null) => void;
+    driverPickupPolyline: string | null;
+    setDriverPickupPolyline: (polyline: string | null) => void;
+
+    pickupDropoffPolyline: string | null;
+    setPickupDropoffPolyline: (polyline: string | null) => void;
 
     pickupDropoffDistance: number | null;
     setPickupDropoffDistance: (distance: number | null) => void;
@@ -90,6 +95,7 @@ interface OrderDriverContextType {
 const OrderDriverContext = createContext<OrderDriverContextType | undefined>(undefined);
 
 export const OrderDriverProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [orderId, setOrderId] = useState<string | null>(null);
     const [hasOrder, setHasOrder] = useState<boolean>(false);
     const [pickupDropoffDistance, setPickupDropoffDistance] = useState<number | null>(null);
     const [driverPickupDistance, setDriverPickupDistance] = useState<number | null>(null);
@@ -98,11 +104,13 @@ export const OrderDriverProvider: React.FC<{ children: React.ReactNode }> = ({ c
     const [orderLocation, setOrderLocation] = useState<OrderLocation | null>(null);
     const [orderDetail, setOrderDetail] = useState<OrderDetail | null>(null);
     const [orderSpecialDemand, setOrderSpecialDemand] = useState<OrderSpecialDemand | null>(null);
-    const [polyline, setPolyline] = useState<string | null>(null);
-
+    const [pickupDropoffPolyline, setPickupDropoffPolyline] = useState<string | null>(null);
+    const [driverPickupPolyline, setDriverPickupPolyline] = useState<string | null>(null);
     return (
         <OrderDriverContext.Provider
             value={{
+                orderId,
+                setOrderId,
                 hasOrder,
                 setHasOrder,
                 pickupDropoffDistance,
@@ -119,8 +127,10 @@ export const OrderDriverProvider: React.FC<{ children: React.ReactNode }> = ({ c
                 setOrderDetail,
                 orderSpecialDemand,
                 setOrderSpecialDemand,
-                polyline,
-                setPolyline,
+                pickupDropoffPolyline,
+                setPickupDropoffPolyline,
+                driverPickupPolyline,
+                setDriverPickupPolyline,
             }}
         >
             {children}

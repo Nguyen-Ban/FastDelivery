@@ -11,11 +11,13 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import { FontAwesome5 } from '@expo/vector-icons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import COLOR from '../../constants/Colors';
 import { decode } from '@here/flexpolyline';
 import { useRouter } from 'expo-router';
 import { useOrderDriver } from '../../contexts/order.driver.context';
-
+const motorbikeIcon = require('../../assets/motorbike.png'); // Replace with your motorcycle icon path
+const carIcon = require('../../assets/car.png'); // Replace with your car icon path
 const DELIVERY_STATES = {
     GOING_TO_PICKUP: 'GOING_TO_PICKUP',
     PICKING_UP: 'PICKING_UP',
@@ -26,19 +28,19 @@ const OnDelivery = () => {
     const router = useRouter();
     const [deliveryState, setDeliveryState] = useState(DELIVERY_STATES.GOING_TO_PICKUP);
     const mapRef = useRef<MapView>(null);
-    const { orderLocation, polyline, orderDetail, orderMain, pickupDropoffDistance } = useOrderDriver();
+    const { orderLocation, driverPickupPolyline, orderDetail, orderMain, pickupDropoffDistance } = useOrderDriver();
 
     // Decode polyline string
-    const polylineString = polyline || 'gfo}Eto~u`@_';
+    const polylineString = driverPickupPolyline || 'gfo}Eto~u`@_';
     const decodedPolyline = decode(polylineString);
     const pickupLat = orderLocation?.pickupLat;
     const pickupLng = orderLocation?.pickupLng;
     const dropoffLat = orderLocation?.dropoffLat;
     const dropoffLng = orderLocation?.dropoffLng;
 
-    const routeCoordinates = pickupLat && pickupLng ? [
+    const routeCoordinates = pickupLat && pickupLng && dropoffLat && dropoffLng ? [
         { latitude: pickupLat, longitude: pickupLng },
-        ...decodedPolyline.polyline.map(point => ({ latitude: point[0], longitude: point[1] }))
+        ...decodedPolyline.polyline.map(point => ({ latitude: point[0], longitude: point[1] })), { latitude: dropoffLat, longitude: dropoffLng }
     ] : decodedPolyline.polyline.map(point => ({ latitude: point[0], longitude: point[1] }));
 
     // Calculate the center point between pickup and dropoff for initial map region
@@ -112,9 +114,14 @@ const OnDelivery = () => {
                     <Marker
                         coordinate={{ latitude: pickupLat, longitude: pickupLng }}
                         title="Điểm đón"
+                        anchor={{ x: 0.5, y: 0.5 }} // Chính giữa icon
                     >
                         <View style={styles.motorcycleMarker}>
-                            <FontAwesome5 name="motorcycle" size={24} color={COLOR.orange50} />
+                            {orderMain?.vehicleType === 'MOTORBIKE' ? (
+                                <FontAwesome5 name="motorcycle" size={24} color={COLOR.orange50} />
+                            ) : (
+                                <MaterialCommunityIcons name="car" size={24} color={COLOR.orange50} />
+                            )}
                         </View>
                     </Marker>
                 )}

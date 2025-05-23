@@ -8,8 +8,10 @@ import Payment from "./payment";
 import mapService from "@/services/map.service";
 import { VEHICLE_TYPES } from "@/constants/VehicleTypes";
 import { LocationPoint } from "@/types/Location";
+import { useSockerCustomer } from "@/contexts/socker.customer.context";
 
 const OrderConfirm = () => {
+  const { connect, disconnect, emitEvent } = useSockerCustomer();
   const [selectedMethod, setSelectedMethod] = useState('sendercash');
   const router = useRouter();
   const {
@@ -128,9 +130,9 @@ const OrderConfirm = () => {
         orderSpecialDemand: specialDemands
       };
 
-      await SocketCustomerService.connect();
+      await connect();
       // Emit order:create event
-      SocketCustomerService.emit('order:create', orderData);
+      emitEvent('order:create', orderData);
 
       // Navigate to delivery screen
       router.push({

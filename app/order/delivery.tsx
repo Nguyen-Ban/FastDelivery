@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Linking} from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE, Region } from 'react-native-maps';
-import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import COLOR from '../../constants/Colors';
 import { decode } from '@here/flexpolyline';
@@ -16,7 +16,7 @@ const PANEL_HEIGHT = SCREEN_HEIGHT * 0.45;
 
 const DeliveryPage = () => {
     const router = useRouter();
-    const { pickupLocation, dropoffLocation, polyline } = useOrder();
+    const { pickupLocation, dropoffLocation, polyline, vehicleType, driverInfo, orderId } = useOrder();
     const mapRef = useRef<MapView>(null);
 
     // Mock order data (will be replaced with API data later)
@@ -120,10 +120,9 @@ const DeliveryPage = () => {
                                 longitude: pickupLocation.position.lng
                             }}
                             title="Điểm đón"
+                            pinColor={COLOR.orange50}
                         >
-                            <View style={styles.motorcycleMarker}>
-                                <FontAwesome5 name="motorcycle" size={24} color={COLOR.orange50} />
-                            </View>
+
                         </Marker>
                     )}
 
@@ -135,7 +134,7 @@ const DeliveryPage = () => {
                                 longitude: dropoffLocation.position.lng
                             }}
                             title="Điểm trả"
-                            pinColor="red"
+                            pinColor={COLOR.green40}
                         />
                     )}
 
@@ -177,7 +176,7 @@ const DeliveryPage = () => {
                                 </View>
                                 <View>
                                     <Text style={styles.statusText}>{orderData.status}</Text>
-                                    <Text style={styles.orderId}>Mã đơn: {orderData.orderId}</Text>
+                                    <Text style={styles.orderId}>Mã đơn: {orderId}</Text>
                                 </View>
                             </View>
                             <Ionicons name="chevron-forward" size={24} color="#666" />
@@ -187,27 +186,38 @@ const DeliveryPage = () => {
                     {/* Driver Information */}
                     <View style={styles.driverSection}>
                         <Text style={styles.sectionTitle}>Thông tin tài xế</Text>
-                        <View style={styles.driverInfo}>
-                            <View style={styles.infoRow}>
-                                <View style={styles.infoIcon}>
-                                    <FontAwesome5 name="user" size={20} color="#666" />
+                        <ScrollView style={{ maxHeight: 120 }}>
+                            <View style={styles.driverInfo}>
+                                <View style={styles.infoRow}>
+                                    <View style={styles.infoIcon}>
+                                        <FontAwesome5 name="user" size={20} color="#666" />
+                                    </View>
+                                    <View style={styles.infoContent}>
+                                        <Text style={styles.infoLabel}>Tài xế</Text>
+                                        <Text style={styles.infoValue}>{driverInfo?.fullName}</Text>
+                                    </View>
                                 </View>
-                                <View style={styles.infoContent}>
-                                    <Text style={styles.infoLabel}>Tài xế</Text>
-                                    <Text style={styles.infoValue}>{orderData.driver.name}</Text>
-                                </View>
-                            </View>
 
-                            <View style={styles.infoRow}>
-                                <View style={styles.infoIcon}>
-                                    <Ionicons name="call-outline" size={20} color="#666" />
+                                <View style={styles.infoRow}>
+                                    <View style={styles.infoIcon}>
+                                        <Ionicons name="call-outline" size={20} color="#666" />
+                                    </View>
+                                    <View style={styles.infoContent}>
+                                        <Text style={styles.infoLabel}>Liên hệ</Text>
+                                        <Text style={styles.infoValue}>{driverInfo?.phoneNumber}</Text>
+                                    </View>
                                 </View>
-                                <View style={styles.infoContent}>
-                                    <Text style={styles.infoLabel}>Liên hệ</Text>
-                                    <Text style={styles.infoValue}>{orderData.driver.phone}</Text>
+                                <View style={styles.infoRow}>
+                                    <View style={styles.infoIcon}>
+                                        <Ionicons name="call-outline" size={20} color="#666" />
+                                    </View>
+                                    <View style={styles.infoContent}>
+                                        <Text style={styles.infoLabel}>Liên hệ</Text>
+                                        <Text style={styles.infoValue}>{driverInfo?.vehiclePlate}</Text>
+                                    </View>
                                 </View>
                             </View>
-                        </View>
+                        </ScrollView>
                     </View>
 
                     {/* Fixed Footer with Action Buttons */}
@@ -391,4 +401,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default DeliveryPage; 
+export default DeliveryPage;

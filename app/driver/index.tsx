@@ -22,7 +22,7 @@ import { useOrderDriver } from "@/contexts/order.driver.context";
 import { useSocketDriver } from "@/contexts/socker.driver.context";
 
 const Driver = () => {
-  const { connect, disconnect } = useSocketDriver();
+  const { connect, disconnect, emitEvent } = useSocketDriver();
   const { hasOrder } = useOrderDriver();
   const [online, setOnline] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -60,14 +60,16 @@ const Driver = () => {
 
   // Effect to handle location updates when online
   useEffect(() => {
+    console.log('Location update effect:', online, location);
     if (online && location) {
       // Start sending location updates every 5 seconds
-      locationUpdateInterval.current = setInterval(() => {
-        socketDriverService.emit('location:update', {
-          lng: location.position?.lng,
-          lat: location.position?.lat
-        });
-      }, 5000);
+      // locationUpdateInterval.current = setInterval(() => {
+      console.log('Sending location update:')
+      emitEvent('location:update', {
+        lng: location.position?.lng,
+        lat: location.position?.lat
+      });
+      // }, 3000);
 
       // Send initial location update
       socketDriverService.emit('location:update', {
@@ -140,6 +142,7 @@ const Driver = () => {
           latitudeDelta: 0.001,
           longitudeDelta: 0.001,
         }}
+
       >
         {location && (
           <Marker

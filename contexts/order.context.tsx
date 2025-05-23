@@ -5,7 +5,20 @@ import { LocationPoint } from '@/types/Location';
 import { SenderReceiver, GoodsDetails, SpecialDemands } from '@/types/OrderDetails';
 import React, { createContext, useContext, useState } from 'react';
 
+interface DriverInfo {
+    id: string;
+    fullName: string;
+    phoneNumber: string;
+    vehiclePlate: string;
+}
+
 interface OrderContextType {
+    driverInfo: DriverInfo | null;
+    setDriverInfo: (info: DriverInfo | null) => void;
+
+    orderId: string | null;
+    setOrderId: (id: string | null) => void;
+
     vehicleType: VEHICLE_TYPES;
     deliveryType: DELIVERY_TYPE;
     deliveryPrice: number;
@@ -53,6 +66,8 @@ interface OrderContextType {
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
 
 export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [driverInfo, setDriverInfo] = useState<DriverInfo | null>(null);
+    const [orderId, setOrderId] = useState<string | null>(null);
     const [vehicleType, setVehicleType] = useState<VEHICLE_TYPES>(VEHICLE_TYPES.VAN);
     const [deliveryType, setDeliveryType] = useState<DELIVERY_TYPE>(DELIVERY_TYPE.ECONOMY);
     const [deliveryPrice, setDeliveryPrice] = useState<number>(0);
@@ -74,6 +89,10 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return (
         <OrderContext.Provider
             value={{
+                driverInfo,
+                setDriverInfo,
+                orderId,
+                setOrderId,
                 polyline,
                 vehicleType,
                 deliveryType,

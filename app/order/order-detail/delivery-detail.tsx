@@ -4,9 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import COLOR from '../../../constants/Colors';
+import { useOrder } from '@/contexts/order.context';
 
 const DeliveryDetailPage = () => {
     const router = useRouter();
+    const { specialDemands, packageType,
+        orderId, sender, receiver,
+        pickupLocation, dropoffLocation,
+        weightKg, lengthCm, widthCm, heightCm, sizeName, note, addonPrice, deliveryPrice } = useOrder();
 
     // Mock order data (có thể thay đổi khi tích hợp API)
     const orderDetails = {
@@ -51,14 +56,14 @@ const DeliveryDetailPage = () => {
     type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
     type SpecialTag = { label: string; icon: MaterialIconName };
     const specialTags: SpecialTag[] = [];
-    if (orderDetails.specialRequests.handDelivery) specialTags.push({ label: 'Giao tận tay', icon: 'hand' as MaterialIconName });
-    if (orderDetails.specialRequests.fragileDelivery) specialTags.push({ label: 'Hàng dễ vỡ', icon: 'broken-image' as MaterialIconName });
-    if (orderDetails.specialRequests.waiting) specialTags.push({ label: 'Tài xế chờ', icon: 'timer' as MaterialIconName });
-    if (orderDetails.specialRequests.donateDriver > 0) specialTags.push({ label: `Tip tài xế: ${orderDetails.specialRequests.donateDriver.toLocaleString()}đ`, icon: 'volunteer-activism' as MaterialIconName });
-    if (orderDetails.specialRequests.businessValue > 0) specialTags.push({ label: `Giá trị khai báo: ${orderDetails.specialRequests.businessValue.toLocaleString()}đ`, icon: 'attach-money' as MaterialIconName });
-    if (orderDetails.specialRequests.eDocument) specialTags.push({ label: 'Chứng từ điện tử', icon: 'description' as MaterialIconName });
-    if (orderDetails.specialRequests.homeMoving) specialTags.push({ label: 'Chuyển nhà', icon: 'home' as MaterialIconName });
-    if (orderDetails.specialRequests.loading) specialTags.push({ label: 'Cần bốc xếp', icon: 'local-shipping' as MaterialIconName });
+    if (specialDemands?.handDelivery) specialTags.push({ label: 'Giao tận tay', icon: 'hand' as MaterialIconName });
+    if (specialDemands?.fragileDelivery) specialTags.push({ label: 'Hàng dễ vỡ', icon: 'broken-image' as MaterialIconName });
+    if (specialDemands?.waiting) specialTags.push({ label: 'Tài xế chờ', icon: 'timer' as MaterialIconName });
+    if (specialDemands?.donateDriver && specialDemands?.donateDriver > 0) specialTags.push({ label: `Tip tài xế: ${specialDemands?.donateDriver.toLocaleString()}đ`, icon: 'volunteer-activism' as MaterialIconName });
+    if (specialDemands?.businessValue && specialDemands?.businessValue > 0) specialTags.push({ label: `Giá trị khai báo: ${specialDemands?.businessValue.toLocaleString()}đ`, icon: 'attach-money' as MaterialIconName });
+    if (specialDemands?.eDocument) specialTags.push({ label: 'Chứng từ điện tử', icon: 'description' as MaterialIconName });
+    if (specialDemands?.homeMoving) specialTags.push({ label: 'Chuyển nhà', icon: 'home' as MaterialIconName });
+    if (specialDemands?.loading) specialTags.push({ label: 'Cần bốc xếp', icon: 'local-shipping' as MaterialIconName });
 
     const packageTypeLabel: Record<string, string> = {
         FOOD: 'Đồ ăn',
@@ -97,14 +102,14 @@ const DeliveryDetailPage = () => {
                         <MaterialIcons name="place" size={22} color={COLOR.orange50} style={{ marginRight: 8 }} />
                         <View>
                             <Text style={styles.addressLabel}>Điểm lấy hàng</Text>
-                            <Text style={styles.addressText}>{orderDetails.pickupAddress}</Text>
+                            <Text style={styles.addressText}>{pickupLocation?.address}</Text>
                         </View>
                     </View>
                     <View style={styles.addressBox}>
                         <MaterialIcons name="place" size={22} color={COLOR.orange50} style={{ marginRight: 8 }} />
                         <View>
                             <Text style={styles.addressLabel}>Điểm trả hàng</Text>
-                            <Text style={styles.addressText}>{orderDetails.dropoffAddress}</Text>
+                            <Text style={styles.addressText}>{dropoffLocation?.address}</Text>
                         </View>
                     </View>
                 </View>
@@ -114,19 +119,20 @@ const DeliveryDetailPage = () => {
                     <View style={styles.personBox}>
                         <Ionicons name="person-circle-outline" size={28} color={COLOR.orange50} style={{ marginRight: 8 }} />
                         <View>
-                            <Text style={styles.personLabel}>Người nhận</Text>
-                            <Text style={styles.personName}>{orderDetails.receiver.name}</Text>
-                            <Text style={styles.personPhone}>{orderDetails.receiver.phone}</Text>
+                            <Text style={styles.personLabel}>Người gửi</Text>
+                            <Text style={styles.personName}>{sender?.name}</Text>
+                            <Text style={styles.personPhone}>{sender?.phoneNumber}</Text>
                         </View>
                     </View>
                     <View style={styles.personBox}>
                         <Ionicons name="person-circle-outline" size={28} color={COLOR.orange50} style={{ marginRight: 8 }} />
                         <View>
-                            <Text style={styles.personLabel}>Người gửi</Text>
-                            <Text style={styles.personName}>{orderDetails.sender.name}</Text>
-                            <Text style={styles.personPhone}>{orderDetails.sender.phone}</Text>
+                            <Text style={styles.personLabel}>Người nhận</Text>
+                            <Text style={styles.personName}>{receiver?.name}</Text>
+                            <Text style={styles.personPhone}>{receiver?.phoneNumber}</Text>
                         </View>
                     </View>
+
 
                 </View>
 
@@ -136,20 +142,15 @@ const DeliveryDetailPage = () => {
                     <View style={styles.itemCard}>
                         <View style={styles.itemRow}>
                             <MaterialIcons name="category" size={20} color="#666" style={{ marginRight: 6 }} />
-                            <Text style={styles.itemType}>{packageTypeLabel[orderDetails.item.packageType] || orderDetails.item.packageType}</Text>
+                            <Text style={styles.itemType}>{packageType}</Text>
                         </View>
-                        <Text style={styles.itemName}>{orderDetails.item.name}</Text>
                         <View style={styles.itemRow}>
                             <MaterialIcons name="straighten" size={18} color="#666" style={{ marginRight: 4 }} />
-                            <Text style={styles.itemDetails}>Kích thước: {orderDetails.item.size}</Text>
+                            <Text style={styles.itemDetails}>Kích thước: {`${lengthCm} x ${widthCm} x ${heightCm} cm`}</Text>
                         </View>
                         <View style={styles.itemRow}>
                             <MaterialIcons name="line-weight" size={18} color="#666" style={{ marginRight: 4 }} />
-                            <Text style={styles.itemDetails}>Cân nặng: {orderDetails.item.weight} kg</Text>
-                        </View>
-                        <View style={styles.itemRow}>
-                            <MaterialIcons name="attach-money" size={18} color="#666" style={{ marginRight: 4 }} />
-                            <Text style={styles.itemDetails}>Giá trị: {orderDetails.item.value.toLocaleString()}đ</Text>
+                            <Text style={styles.itemDetails}>Cân nặng: {weightKg} kg</Text>
                         </View>
                     </View>
                 </View>
@@ -186,7 +187,7 @@ const DeliveryDetailPage = () => {
                         <View style={styles.paymentRow}>
                             <Text style={styles.paymentLabel}>Tổng cộng:</Text>
                             <Text style={[styles.paymentValue, styles.totalAmount]}>
-                                đ{orderDetails.payment.totalAmount.toLocaleString()}
+                                đ{(addonPrice + deliveryPrice).toLocaleString()}
                             </Text>
                         </View>
                     </View>
@@ -196,7 +197,7 @@ const DeliveryDetailPage = () => {
                 {orderDetails.notes && (
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Ghi chú</Text>
-                        <Text style={styles.notesText}>{orderDetails.notes}</Text>
+                        <Text style={styles.notesText}>{note}</Text>
                     </View>
                 )}
             </ScrollView>

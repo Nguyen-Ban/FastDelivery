@@ -11,7 +11,7 @@
       "supportsTablet": true
     },
     "android": {
-      "windowSoftInputMode": "adjustPan"
+      "package": "com.ddxcg.FastDelivery"
     },
     "web": {
       "bundler": "metro",
@@ -22,6 +22,8 @@
       [
         "expo-splash-screen",
         {
+          "resizeMode": "contain",
+          "image": "./assets/logo.png",
           "backgroundColor": "#ffffff"
         }
       ],

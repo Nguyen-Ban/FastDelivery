@@ -196,7 +196,7 @@ const OrderDetailPage = () => {
                 {orderDetails.notes && (
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Ghi chú</Text>
-                        <Text style={styles.notesText}>{orderDetails.notes}</Text>
+                        <Text style={styles.notesText}>{orderMain?.note}</Text>
                     </View>
                 )}
             </ScrollView>

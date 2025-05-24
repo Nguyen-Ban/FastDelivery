@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import COLOR from '../../constants/Colors';
 import { decode } from '@here/flexpolyline';
 import { useOrder } from '../../contexts/order.context';
+import FindingDriverPanel from './_components/finding-driver-panel';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -16,7 +17,8 @@ const PANEL_HEIGHT = SCREEN_HEIGHT * 0.45;
 
 const DeliveryPage = () => {
     const router = useRouter();
-    const { pickupLocation, dropoffLocation, polyline, vehicleType, driverInfo, orderId } = useOrder();
+    const { pickupLocation, dropoffLocation, polyline,
+        vehicleType, driverInfo, orderId, driverFound } = useOrder();
     const mapRef = useRef<MapView>(null);
 
     // Mock order data (will be replaced with API data later)
@@ -35,6 +37,7 @@ const DeliveryPage = () => {
             totalFee: 132000,
         },
     });
+    const [showFinding, setShowFinding] = useState(true);
 
     // Decode polyline string
     const polylineString = polyline || 'gfo}Eto~u`@_';
@@ -87,6 +90,15 @@ const DeliveryPage = () => {
             fitMapToRoute();
         }
     }, [pickupLocation, dropoffLocation]);
+
+    // Hiển thị panel tìm tài xế cho đến khi driverFound là true
+    useEffect(() => {
+        if (driverFound) {
+            setShowFinding(false);
+        } else {
+            setShowFinding(true);
+        }
+    }, [driverFound]);
 
     const handleCallDriver = () => {
         const phoneNumber = orderData.driver.phone;
@@ -154,84 +166,81 @@ const DeliveryPage = () => {
                     <Ionicons name="arrow-back" size={24} color="white" />
                 </TouchableOpacity>
 
-                {/* Zoom Button */}
-                {/* <TouchableOpacity
-                    style={styles.zoomButton}
-                    onPress={fitMapToRoute}
-                >
-                    <Ionicons name="locate" size={24} color="white" />
-                </TouchableOpacity> */}
-
-                {/* Fixed Info Panel */}
+                {/* Bottom Panel */}
                 <View style={styles.infoPanel}>
-                    {/* Order Summary - Clickable to go to details */}
-                    <TouchableOpacity
-                        style={styles.orderSummary}
-                        onPress={() => router.push('/order/order-detail/delivery-detail')}
-                    >
-                        <View style={styles.orderHeader}>
-                            <View style={styles.orderStatus}>
-                                <View style={styles.statusIndicator}>
-                                    <FontAwesome5 name="truck" size={24} color={COLOR.orange50} />
+                    {showFinding ? (
+                        <FindingDriverPanel onCancel={() => router.back()} />
+                    ) : (
+                        <>
+                            {/* Order Summary - Clickable to go to details */}
+                            <TouchableOpacity
+                                style={styles.orderSummary}
+                                onPress={() => router.push('/order/order-detail/delivery-detail')}
+                            >
+                                <View style={styles.orderHeader}>
+                                    <View style={styles.orderStatus}>
+                                        <View style={styles.statusIndicator}>
+                                            <FontAwesome5 name="truck" size={24} color={COLOR.orange50} />
+                                        </View>
+                                        <View>
+                                            <Text style={styles.statusText}>{orderData.status}</Text>
+                                            <Text style={styles.orderId}>Mã đơn: {orderId}</Text>
+                                        </View>
+                                    </View>
+                                    <Ionicons name="chevron-forward" size={24} color="#666" />
                                 </View>
-                                <View>
-                                    <Text style={styles.statusText}>{orderData.status}</Text>
-                                    <Text style={styles.orderId}>Mã đơn: {orderId}</Text>
-                                </View>
+                            </TouchableOpacity>
+
+                            {/* Driver Information */}
+                            <View style={styles.driverSection}>
+                                <Text style={styles.sectionTitle}>Thông tin tài xế</Text>
+                                <ScrollView style={{ maxHeight: 120 }}>
+                                    <View style={styles.driverInfo}>
+                                        <View style={styles.infoRow}>
+                                            <View style={styles.infoIcon}>
+                                                <FontAwesome5 name="user" size={20} color="#666" />
+                                            </View>
+                                            <View style={styles.infoContent}>
+                                                <Text style={styles.infoLabel}>Tài xế</Text>
+                                                <Text style={styles.infoValue}>{driverInfo?.fullName}</Text>
+                                            </View>
+                                        </View>
+
+                                        <View style={styles.infoRow}>
+                                            <View style={styles.infoIcon}>
+                                                <Ionicons name="call-outline" size={20} color="#666" />
+                                            </View>
+                                            <View style={styles.infoContent}>
+                                                <Text style={styles.infoLabel}>Liên hệ</Text>
+                                                <Text style={styles.infoValue}>{driverInfo?.phoneNumber}</Text>
+                                            </View>
+                                        </View>
+                                        <View style={styles.infoRow}>
+                                            <View style={styles.infoIcon}>
+                                                <Ionicons name="call-outline" size={20} color="#666" />
+                                            </View>
+                                            <View style={styles.infoContent}>
+                                                <Text style={styles.infoLabel}>Liên hệ</Text>
+                                                <Text style={styles.infoValue}>{driverInfo?.vehiclePlate}</Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                </ScrollView>
                             </View>
-                            <Ionicons name="chevron-forward" size={24} color="#666" />
-                        </View>
-                    </TouchableOpacity>
 
-                    {/* Driver Information */}
-                    <View style={styles.driverSection}>
-                        <Text style={styles.sectionTitle}>Thông tin tài xế</Text>
-                        <ScrollView style={{ maxHeight: 120 }}>
-                            <View style={styles.driverInfo}>
-                                <View style={styles.infoRow}>
-                                    <View style={styles.infoIcon}>
-                                        <FontAwesome5 name="user" size={20} color="#666" />
-                                    </View>
-                                    <View style={styles.infoContent}>
-                                        <Text style={styles.infoLabel}>Tài xế</Text>
-                                        <Text style={styles.infoValue}>{driverInfo?.fullName}</Text>
-                                    </View>
-                                </View>
-
-                                <View style={styles.infoRow}>
-                                    <View style={styles.infoIcon}>
-                                        <Ionicons name="call-outline" size={20} color="#666" />
-                                    </View>
-                                    <View style={styles.infoContent}>
-                                        <Text style={styles.infoLabel}>Liên hệ</Text>
-                                        <Text style={styles.infoValue}>{driverInfo?.phoneNumber}</Text>
-                                    </View>
-                                </View>
-                                <View style={styles.infoRow}>
-                                    <View style={styles.infoIcon}>
-                                        <Ionicons name="call-outline" size={20} color="#666" />
-                                    </View>
-                                    <View style={styles.infoContent}>
-                                        <Text style={styles.infoLabel}>Liên hệ</Text>
-                                        <Text style={styles.infoValue}>{driverInfo?.vehiclePlate}</Text>
-                                    </View>
-                                </View>
+                            {/* Fixed Footer with Action Buttons */}
+                            <View style={styles.panelFooter}>
+                                <TouchableOpacity style={styles.actionButton} onPress={handleCallDriver}>
+                                    <Ionicons name="call" size={24} color={COLOR.orange50} />
+                                    <Text style={styles.actionText}>Gọi tài xế</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/user/chat')}>
+                                    <Ionicons name="chatbubble-ellipses" size={24} color={COLOR.orange50} />
+                                    <Text style={styles.actionText}>Nhắn tin</Text>
+                                </TouchableOpacity>
                             </View>
-                        </ScrollView>
-                    </View>
-
-                    {/* Fixed Footer with Action Buttons */}
-                    <View style={styles.panelFooter}>
-                        <TouchableOpacity style={styles.actionButton} onPress={handleCallDriver}>
-                            <Ionicons name="call" size={24} color={COLOR.orange50} />
-                            <Text style={styles.actionText}>Gọi tài xế</Text>
-                        </TouchableOpacity>
-
-                        <TouchableOpacity style={styles.actionButton}>
-                            <Ionicons name="chatbubble-ellipses" size={24} color={COLOR.orange50} />
-                            <Text style={styles.actionText}>Nhắn tin</Text>
-                        </TouchableOpacity>
-                    </View>
+                        </>
+                    )}
                 </View>
             </SafeAreaView>
         </GestureHandlerRootView>

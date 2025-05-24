@@ -44,7 +44,7 @@ const Driver = () => {
   useEffect(() => {
     const showEarnings = router.canGoBack();
     if (showEarnings) {
-      setShowEarningsModal(true);
+      setShowEarningsModal(false);
     }
 
     // Cleanup socket listeners and interval when component unmounts

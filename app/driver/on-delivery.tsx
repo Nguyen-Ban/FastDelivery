@@ -182,7 +182,7 @@ const OnDelivery = () => {
                 </View>
 
                 <View style={styles.actionButtons}>
-                    <TouchableOpacity style={styles.actionButton}>
+                    <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/user/chat')}>
                         <Ionicons name="chatbubble-outline" size={24} color="#333" />
                         <Text style={styles.actionButtonText}>Nhắn tin</Text>
                     </TouchableOpacity>

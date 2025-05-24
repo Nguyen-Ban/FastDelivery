@@ -10,7 +10,7 @@ import { io, Socket } from "socket.io-client";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { BASE_URL } from "@/services/axios";
 
-const API_URL = `${BASE_URL}/driver`;
+const API_URL = `${BASE_URL}`;
 
 interface ISocketDriverContext {
     socket: Socket | null;

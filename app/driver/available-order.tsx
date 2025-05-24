@@ -14,12 +14,21 @@ import {
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useOrderDriver } from '@/contexts/order.driver.context';
+import { useSocketDriver } from '@/contexts/socker.driver.context';
 
 const OrderDetails = () => {
     const router = useRouter();
+    const { emitEvent } = useSocketDriver();
     const { pickupDropoffDistance, driverPickupDistance,
         orderMain, orderDetail, orderLocation } = useOrderDriver();
     const [showPackageInfo, setShowPackageInfo] = useState(false);
+
+    const handleOnAccept = () => {
+        emitEvent('order:request', {
+            success: true,
+        })
+        router.push('/driver/on-delivery')
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -96,7 +105,7 @@ const OrderDetails = () => {
                 {/* Accept Button */}
                 <TouchableOpacity
                     style={styles.acceptButton}
-                    onPress={() => router.push("../driver/on-delivery")}
+                    onPress={handleOnAccept}
                 >
                     <Text style={styles.acceptButtonText}>Nhận chuyến</Text>
                     <View style={styles.timeContainer}>

@@ -6,7 +6,7 @@ import { useEffect } from "react";
 
 export const OrderCustomerListener = () => {
   const { socket } = useSockerCustomer();
-  const { setDriverInfo, setOrderId } = useOrder();
+  const { setDriverInfo, setOrderId, setDriverFound } = useOrder();
 
   useEffect(() => {
     if (!socket) return;
@@ -18,10 +18,12 @@ export const OrderCustomerListener = () => {
         const data = response.data;
         setDriverInfo(data.driverInfo);
         setOrderId(data.orderId);
+        setDriverFound(true);
       }
     };
 
     socket.on("order:create", onRequest);
+
 
     return () => {
       socket.off("order:create", onRequest);

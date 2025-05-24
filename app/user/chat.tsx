@@ -33,6 +33,7 @@ const ChatScreen = () => {
     { id: "3", text: "I'm good, thanks! How about you?", sender: "other" },
     { id: "4", text: "Doing well, thank you!", sender: "me" },
   ]);
+  const [input, setInput] = useState("");
   return (
     <KeyboardAvoidingView style={GLOBAL.home_container}>
       <View style={styles.header}>
@@ -70,8 +71,23 @@ const ChatScreen = () => {
       </ScrollView>
 
       <View style={styles.message_input_view}>
-        <TextInput style={styles.text_input}></TextInput>
-        <TouchableOpacity onPress={() => {}}>
+        <TextInput
+          style={styles.text_input}
+          value={input}
+          onChangeText={setInput}
+          placeholder="Nhập tin nhắn..."
+        />
+        <TouchableOpacity
+          onPress={() => {
+            if (input.trim()) {
+              setMessages([
+                ...messages,
+                { id: Date.now().toString(), text: input, sender: "me" },
+              ]);
+              setInput("");
+            }
+          }}
+        >
           <Ionicons name="send" size={25} color={COLOR.black} />
         </TouchableOpacity>
       </View>

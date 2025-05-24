@@ -12,7 +12,18 @@ interface DriverInfo {
     vehiclePlate: string;
 }
 
+type Message = {
+    id: string;
+    text: string;
+    senderId: string; // 🟢 user ID của người gửi
+    senderName: string;
+    createdAt: string;
+};
+
 interface OrderContextType {
+    // State variables and their setters
+    driverFound: boolean;
+    setDriverFound: (found: boolean) => void;
     driverInfo: DriverInfo | null;
     setDriverInfo: (info: DriverInfo | null) => void;
 
@@ -85,10 +96,12 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [pickupLocation, setPickupLocation] = useState<LocationPoint | null>(null);
     const [dropoffLocation, setDropoffLocation] = useState<LocationPoint | null>(null);
     const [specialDemands, setSpecialDemands] = useState<SpecialDemands | null>(null);
-
+    const [driverFound, setDriverFound] = useState<boolean>(false);
     return (
         <OrderContext.Provider
             value={{
+                driverFound,
+                setDriverFound,
                 driverInfo,
                 setDriverInfo,
                 orderId,

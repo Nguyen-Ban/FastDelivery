@@ -1,51 +1,31 @@
-import { axiosInstance } from './axios';
-import { ApiResponse } from './types';
+import { registerDeviceReqBody, unregisterDeviceReqBody } from '@/types/user';
+import RestApiService from './rest.api';
+import { ApiResponse } from '@/types';
 
-interface registerDeviceReqBody {
-    userId: string;
-    token: string;
-    platform: string;
-}
-
-interface unregisterDeviceReqBody {
-    token: string;
-}
-
-const notificationService = {
-    async registerDevice(request: registerDeviceReqBody): Promise<ApiResponse> {
+const NotificationService = {
+    async registerDevice(reqBody: registerDeviceReqBody): Promise<ApiResponse> {
         try {
-            const response = await axiosInstance.post<ApiResponse>('/notification/register-device', request);
-            return response.data;
+            const res = await RestApiService.postRequest('/notification/register-device', reqBody)
+            return res;
         } catch (error: any) {
-            if (error.response) {
-                console.log('❌ RESPONSE ERROR:', error.response.status, error.response.data);
-            } else if (error.request) {
-                console.log('❌ REQUEST ERROR:', error.request);
-            } else {
-                console.log('❌ ERROR:', error);
+            if (error.response?.status === 400) {
+                return { success: false };
             }
             throw error;
         }
     },
 
-    async unregisterDevice(request: unregisterDeviceReqBody): Promise<ApiResponse> {
+    async unregisterDevice(reqBody: unregisterDeviceReqBody): Promise<ApiResponse> {
         try {
-            const response = await axiosInstance.post<ApiResponse>('/notification/unregister-device', request);
-            return response.data;
+            const res = await RestApiService.postRequest('/notification/unregister-device', reqBody)
+            return res;
         } catch (error: any) {
-            if (error.response) {
-                console.log('❌ RESPONSE ERROR:', error.response.status, error.response.data);
-            } else if (error.request) {
-                console.log('❌ REQUEST ERROR:', error.request);
-            } else {
-                console.log('❌ ERROR:', error);
-            }
             throw error;
         }
     }
 }
 
-export default notificationService;
+export default NotificationService;
 
 
 

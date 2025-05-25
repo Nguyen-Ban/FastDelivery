@@ -18,19 +18,20 @@ import GLOBAL from "../../constants/GlobalStyles";
 
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { GENDER } from "@/types";
 
 const UserInfo = () => {
   const router = useRouter();
   const { phoneNumber } = useLocalSearchParams<{ phoneNumber: string }>();
-  const [name, setName] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [date, setDate] = React.useState(new Date());
-  const [gender, setGender] = React.useState("");
-  const [dateShow, setDateShow] = React.useState(false);
+  const [name, setName] = useState<string>("");
+  const [email, setEmail] = useState<string>("");
+  const [date, setDate] = useState<Date>(new Date());
+  const [gender, setGender] = useState<GENDER>(GENDER.MALE);
+  const [dateShow, setDateShow] = useState(false);
   const [items, setItems] = useState([
-    { label: "Nam", value: "MALE" },
-    { label: "Nữ", value: "FEMALE" },
-    { label: "Khác", value: "OTHERS" },
+    { label: "Nam", value: GENDER.MALE },
+    { label: "Nữ", value: GENDER.FEMALE },
+    { label: "Khác", value: GENDER.OTHERS },
   ]);
   const [value, setValue] = useState(null);
   const [label, setLabel] = useState(null);
@@ -50,7 +51,7 @@ const UserInfo = () => {
     router.push({
       pathname: "../authentication/enter-passcode",
       params: {
-        phoneNumber: phoneNumber as string,
+        phoneNumber: phoneNumber,
         fullName: name,
         email,
         gender: value,

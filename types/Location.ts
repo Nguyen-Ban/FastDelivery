@@ -1,14 +1,16 @@
+import { Location } from "./models";
 
-
-interface LocationPoint {
-    title: string;
-    address: string;
-    position: Position | null;
+interface LocationState {
+    location?: Location;
+    hasLocationPermission: boolean;
+    isLoading: boolean;
+    error?: string;
 }
 
-interface Position {
-    lat: number;
-    lng: number;
+
+interface LocationContextType extends LocationState {
+    requestLocationPermission: () => Promise<boolean>;
+    getCurrentLocation: () => Promise<Location | null>;
 }
 
-export type { LocationPoint, Position };
+export { LocationContextType, LocationState }

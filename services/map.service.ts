@@ -1,72 +1,37 @@
-
-import { Position } from '@/types/Location';
+import { ApiResponse, Coordinate, VEHICLE_TYPES } from '@/types';
 import { axiosInstance } from './axios';
-import { ApiResponse } from './types';
-
-interface SuggestPlaceReqBody {
-    userLocation: {
-        lng: number,
-        lat: number
-    }
-}
+import RestApiService from './rest.api';
+import { SuggestPlaceReqBody } from '@/types';
 
 const mapService = {
 
-    async getAddressFromLocation(lng: number, lat: number) {
+    async fetchLocationFromCoord(coord: Coordinate): Promise<ApiResponse> {
         try {
-            const response = await axiosInstance.get<ApiResponse>('/map/revgeocode', {
-                params: {
-                    lng, lat
-                }
-            });
-            return response.data;
+            const res = await RestApiService.getRequest('/map/revgeocode', { lat: coord.lat, lng: coord.lng })
+            return res;
         } catch (error: any) {
-            if (error.response) {
-                console.log('❌ RESPONSE ERROR:', error.response.status, error.response.data);
-            } else if (error.request) {
-                console.log('❌ NO RESPONSE:', error.request);
-            } else {
-                console.log('❌ AXIOS ERROR:', error.message);
-            }
             throw error;
         }
     },
-    async getSuggestPlaces(q: string, request: SuggestPlaceReqBody) {
-        try {
-            const response = await axiosInstance.post<ApiResponse>('/map/suggest', request, {
-                params: {
-                    q
-                }
-            });
-            return response.data;
-        } catch (error: any) {
-            if (error.response) {
-                console.log('❌ RESPONSE ERROR:', error.response.status, error.response.data);
-            } else if (error.request) {
-                console.log('❌ NO RESPONSE:', error.request);
-            } else {
-                console.log('❌ AXIOS ERROR:', error.message);
-            }
-            throw error;
-        }
-    },
-    async getPolyline(vehicleType: string, origin: Position | null, destination: Position | null) {
-        try {
-            const response = await axiosInstance.get<ApiResponse>('/map/polyline', {
-                params: {
-                    transportType: vehicleType, orgLat: origin?.lat, orgLng: origin?.lng, desLat: destination?.lat, desLng: destination?.lng
-                }
-            });
-            return response.data;
-        } catch (error: any) {
 
-            if (error.response) {
-                console.log('❌ RESPONSE ERROR:', error.response.status, error.response.data);
-            } else if (error.request) {
-                console.log('❌ NO RESPONSE:', error.request);
-            } else {
-                console.log('❌ AXIOS ERROR:', error.message);
-            }
+    async fetchSuggestPlaces(coord: Coordinate, query: string): Promise<ApiResponse> {
+        try {
+            const res = await RestApiService.getRequest('/map/suggest', { lat: coord.lat, lng: coord.lng, q: query })
+            return res;
+        } catch (error: any) {
+            throw error;
+        }
+    },
+
+    async getPolyline(vehicleType: VEHICLE_TYPES, origin: Coordinate, destination: Coordinate): Promise<ApiResponse> {
+        try {
+            const res = await RestApiService.getRequest('/map/polyline', {
+                vehicleType: vehicleType,
+                origin: `${origin.lat},${origin.lng}`,
+                destination: `${destination.lat},${destination.lng}`
+            })
+            return res;
+        } catch (error: any) {
             throw error;
         }
     },

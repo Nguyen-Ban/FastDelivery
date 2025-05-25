@@ -66,15 +66,15 @@ const Driver = () => {
       // locationUpdateInterval.current = setInterval(() => {
       console.log('Sending location update:')
       emitEvent('location:update', {
-        lng: location.position?.lng,
-        lat: location.position?.lat
+        lng: location.coord?.lng,
+        lat: location.coord?.lat
       });
       // }, 3000);
 
       // Send initial location update
       socketDriverService.emit('location:update', {
-        lng: location.position?.lng,
-        lat: location.position?.lat
+        lng: location.coord?.lng,
+        lat: location.coord?.lat
       });
     } else {
       // Clear interval when going offline
@@ -96,8 +96,8 @@ const Driver = () => {
     console.log('currentLocation', currentLocation);
     if (currentLocation && mapRef.current) {
       mapRef.current.animateToRegion({
-        latitude: currentLocation.position?.lat as number,
-        longitude: currentLocation.position?.lng as number,
+        latitude: currentLocation.coord?.lat as number,
+        longitude: currentLocation.coord?.lng as number,
         latitudeDelta: 0.001,
         longitudeDelta: 0.001,
       }, 500);
@@ -137,8 +137,8 @@ const Driver = () => {
         ref={mapRef}
         style={styles.map}
         initialRegion={{
-          latitude: location?.position?.lat || 10.7769,
-          longitude: location?.position?.lng || 106.7009,
+          latitude: location?.coord?.lat || 10.7769,
+          longitude: location?.coord?.lng || 106.7009,
           latitudeDelta: 0.001,
           longitudeDelta: 0.001,
         }}
@@ -146,7 +146,7 @@ const Driver = () => {
       >
         {location && (
           <Marker
-            coordinate={{ latitude: location.position?.lat as number, longitude: location.position?.lng as number }}
+            coordinate={{ latitude: location.coord?.lat as number, longitude: location.coord?.lng as number }}
             title="Vị trí hiện tại"
           />
         )}
@@ -172,7 +172,7 @@ const Driver = () => {
       {/* Calendar Button with Notification */}
       <TouchableOpacity
         style={styles.calendarButton}
-        onPress={() => router.push("/driver/available-order")}
+        onPress={() => router.push("/driver/order/available-order")}
       >
         <View style={styles.calendarIconContainer}>
           <MaterialIcons name="event-note" size={24} color="#333" />
@@ -255,7 +255,7 @@ const Driver = () => {
 
         <TouchableOpacity
           style={styles.navItem}
-          onPress={() => router.push("/driver/delivery-settings")}
+          onPress={() => router.push("/driver/menu/delivery-settings")}
         >
           <Ionicons name="ellipsis-horizontal" size={22} color="#666" />
           <Text style={styles.navText}>Cài đặt</Text>

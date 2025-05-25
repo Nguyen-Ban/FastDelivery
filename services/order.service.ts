@@ -1,27 +1,18 @@
-import { Position } from '@/types/Location';
-import { axiosInstance } from './axios';
-import { ApiResponse } from './types';
+import { ApiResponse, Coordinate, VEHICLE_TYPES } from '@/types';
+import RestApiService from './rest.api';
 
 
 const orderService = {
 
-    async getPrices(vehicleType: string, origin: Position | null, destination: Position | null) {
+    async getPrices(vehicleType: VEHICLE_TYPES, origin: Coordinate, destination: Coordinate): Promise<ApiResponse> {
         try {
-            const response = await axiosInstance.get<ApiResponse>('/order/prices', {
-                params: {
-                    transportType: vehicleType, orgLat: origin?.lat, orgLng: origin?.lng, desLat: destination?.lat, desLng: destination?.lng
-                }
-            });
-            return response.data;
+            const res = await RestApiService.getRequest('/order/prices', {
+                vehicleType: vehicleType,
+                origin: `${origin.lat},${origin.lng}`,
+                destination: `${destination.lat},${destination.lng}`
+            })
+            return res;
         } catch (error: any) {
-
-            if (error.response) {
-                console.log('❌ RESPONSE ERROR:', error.response.status, error.response.data);
-            } else if (error.request) {
-                console.log('❌ NO RESPONSE:', error.request);
-            } else {
-                console.log('❌ AXIOS ERROR:', error.message);
-            }
             throw error;
         }
     },

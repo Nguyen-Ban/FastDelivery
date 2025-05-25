@@ -18,7 +18,7 @@ import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
 const AuthMethod = () => {
   const phoneInput = useRef(null);
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState<string>("");
   const [isFocused, setIsFocused] = useState(false);
   const [isDisabled, setIsDisabled] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -41,9 +41,9 @@ const AuthMethod = () => {
         Alert.alert("Lỗi", "Số điện thoại không hợp lệ");
         return;
       }
-    
 
-      const response = await authService.startAuth({ 
+
+      const response = await authService.startAuth({
         phoneNumber: parsedNumber.format('E.164') // Format E.164 chuẩn quốc tế
       });
 
@@ -51,7 +51,7 @@ const AuthMethod = () => {
         if (response.nextStep === 'login') {
           router.push({
             pathname: "./enter-passcode",
-            params: { 
+            params: {
               phoneNumber: parsedNumber.format('E.164'),
               flow: 'login'
             }
@@ -116,7 +116,7 @@ const AuthMethod = () => {
       </View>
       <Button
         title="Google"
-        onPress={() => {}}
+        onPress={() => { }}
         size="large"
         type="sub"
         leftImg={<FontAwesome6 name="google" size={20} color="black" />}

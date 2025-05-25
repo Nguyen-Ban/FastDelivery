@@ -45,12 +45,16 @@ export const useNotification = () => {
 
       // Register device with backend
       try {
-        await notificationService.registerDevice({
+        const res = await notificationService.registerDevice({
           userId,
           token,
           platform: Platform.OS
         });
-        console.log('Device registered for notifications');
+        if (res.success) {
+          console.log('Device registered for notifications');
+        } else {
+          console.log('Device already registered')
+        }
       } catch (error) {
         console.error('Error registering device:', error);
       }

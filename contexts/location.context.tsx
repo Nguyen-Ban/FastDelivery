@@ -6,40 +6,31 @@ import React, {
     useRef,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as Location from 'expo-location';
+import * as ExpoLocation from 'expo-location';
 import mapService from '../services/map.service';
-import { LocationPoint } from '@/types/Location';
-
-interface LocationContextType {
-    location: LocationPoint | null;
-    hasLocationPermission: boolean;
-    isLoading: boolean;
-    error: string | null;
-    requestLocationPermission: () => Promise<boolean>;
-    getCurrentLocation: () => Promise<LocationPoint | null>;
-}
+import { Location, LocationContextType } from '@/types';
 
 const LocationContext = createContext<LocationContextType | undefined>(undefined);
 
 export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [location, setLocation] = useState<LocationPoint | null>(null);
+    const [location, setLocation] = useState<Location>();
     const [hasLocationPermission, setHasLocationPermission] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [error, setError] = useState<string>();
     const isWatching = useRef(false);
 
     const fetchAndFormatLocation = async (
-        latitude: number,
-        longitude: number
-    ): Promise<LocationPoint | null> => {
+        lat: number,
+        lng: number
+    ): Promise<Location | null> => {
         try {
-            const res = await mapService.getAddressFromLocation(longitude, latitude);
+            const res = await mapService.fetchLocationFromCoord({ lat, lng });
             if (res.success && res.data.length > 0) {
                 const loc = res.data[0];
                 return {
                     title: loc.title,
                     address: loc.address,
-                    position: { lat: latitude, lng: longitude },
+                    coord: { lat, lng },
                 };
             }
         } catch (err) {
@@ -48,7 +39,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return null;
     };
 
-    const saveLocation = async (loc: LocationPoint) => {
+    const saveLocation = async (loc: Location) => {
         setLocation(loc);
         await AsyncStorage.setItem('userLocation', JSON.stringify(loc));
     };
@@ -57,9 +48,9 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         if (isWatching.current) return;
         isWatching.current = true;
 
-        await Location.watchPositionAsync(
+        await ExpoLocation.watchPositionAsync(
             {
-                accuracy: Location.Accuracy.Balanced,
+                accuracy: ExpoLocation.Accuracy.Balanced,
                 timeInterval: 3000,
                 distanceInterval: 3,
             },
@@ -75,7 +66,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         try {
             const json = await AsyncStorage.getItem('userLocation');
             if (json) {
-                const saved: LocationPoint = JSON.parse(json);
+                const saved: Location = JSON.parse(json);
                 setLocation(saved);
                 return saved;
             }
@@ -85,7 +76,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return null;
     };
 
-    const getCurrentLocation = async (): Promise<LocationPoint | null> => {
+    const getCurrentLocation = async (): Promise<Location | null> => {
         if (!hasLocationPermission) {
             setError('Location permission not granted');
             return null;
@@ -99,11 +90,11 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         // Nếu chưa có, thì thử lấy lastKnown trước
         try {
             setIsLoading(true);
-            setError(null);
+            setError("");
 
             // Fallback nếu lastKnown không có
-            const current = await Location.getCurrentPositionAsync({
-                accuracy: Location.Accuracy.Balanced,
+            const current = await ExpoLocation.getCurrentPositionAsync({
+                accuracy: ExpoLocation.Accuracy.Balanced,
             });
 
             const formatted = await fetchAndFormatLocation(current.coords.latitude, current.coords.longitude);
@@ -124,10 +115,10 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const requestLocationPermission = async (): Promise<boolean> => {
         setIsLoading(true);
-        setError(null);
+        setError("");
 
         try {
-            const { status } = await Location.requestForegroundPermissionsAsync();
+            const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
             const granted = status === 'granted';
             setHasLocationPermission(granted);
 
@@ -150,7 +141,7 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         const initialize = async () => {
             const saved = await loadSavedLocation();
 
-            const { status } = await Location.getForegroundPermissionsAsync();
+            const { status } = await ExpoLocation.getForegroundPermissionsAsync();
             const granted = status === 'granted';
             setHasLocationPermission(granted);
 

@@ -18,8 +18,11 @@ import { useAuth } from "../../contexts/auth.context";
 const EnterPasscode = () => {
   const router = useRouter();
   const navigation = useNavigation();
-  const { phoneNumber, fullName, email, gender, dateOfBirth, flow } = useLocalSearchParams();
-  const [passcode, setPasscode] = useState("");
+  const { phoneNumber, fullName, email, gender, dateOfBirth, flow } = useLocalSearchParams<{
+    phoneNumber: string, fullName: string, email: string,
+    gender: string, dateOfBirth: string, flow: string
+  }>();
+  const [passcode, setPasscode] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const { login } = useAuth();
@@ -39,25 +42,22 @@ const EnterPasscode = () => {
       let response;
 
       if (isRegisterFlow) {
-        // Flow đăng ký
         response = await authService.register({
-          phoneNumber: phoneNumber as string,
-          fullName: fullName as string,
-          email: email as string,
-          gender: gender as string,
-          dateOfBirth: new Date(dateOfBirth as string),
+          phoneNumber: phoneNumber,
+          fullName: fullName,
+          email: email,
+          gender: gender,
+          dateOfBirth: new Date(dateOfBirth),
           passcode: passcode
         });
 
         if (response.success) {
-          // After registration, log in automatically
-          await login(phoneNumber as string, passcode);
+          await login(phoneNumber, passcode);
         } else {
           Alert.alert("Lỗi", response.message || "Đăng ký không thành công");
           setPasscode("");
         }
       } else {
-        // Flow đăng nhập - use the context login function
         await login(phoneNumber as string, passcode);
       }
     } catch (error) {

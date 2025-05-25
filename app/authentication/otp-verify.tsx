@@ -17,8 +17,8 @@ import authService from "../../services/auth.service";
 
 const OTPVerify = () => {
   const router = useRouter();
-  const { phoneNumber } = useLocalSearchParams();
-  const [otp, setOtp] = useState("");
+  const { phoneNumber } = useLocalSearchParams<{ phoneNumber: string }>();
+  const [otp, setOtp] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
   const otpRef = useRef<OtpInputRef>(null);
 
@@ -28,7 +28,7 @@ const OTPVerify = () => {
       try {
         setIsLoading(true);
         const response = await authService.verifyOtp({
-          phoneNumber: phoneNumber as string,
+          phoneNumber: phoneNumber,
           otp: otp
         });
 

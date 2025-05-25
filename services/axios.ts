@@ -2,7 +2,7 @@ import axios from "axios";
 import authService from "./auth.service";
 import * as Keychain from "react-native-keychain";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ApiResponse } from "./types";
+import { ApiResponse } from "@/types";
 
 const BASE_URL = "http://192.168.125.110:3000";
 
@@ -117,12 +117,5 @@ const refreshToken = async () => {
         return { success: false, message: "Failed to refresh token" };
     }
 };
-
-// const plainAxios = axios.create({
-//     baseURL: 'http://192.168.47.110:3000/api',
-//     headers: {
-//         'Content-Type': 'application/json',
-//     },
-// });
 
 export { axiosInstance, BASE_URL };

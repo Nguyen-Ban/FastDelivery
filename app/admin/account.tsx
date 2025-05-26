@@ -8,16 +8,47 @@ import {
   StatusBar,
   Platform,
 } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { FontAwesome5, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+type User = {
+  fullName?: string;
+  email?: string;
+  // Add other user properties if needed
+};
 
 const AccountScreen = () => {
   const router = useRouter();
+  const [user, setUser] = useState<User | null>(null)
 
-  const handleLogout = () => {
-    // TODO: Implement logout logic
-    router.replace("/authentication/auth-method");
+  useEffect(() => {
+  const loadUserInfo = async () => {
+    try {
+      const userInfoString = await AsyncStorage.getItem("user");
+      console.log("Dữ liệu userInfo:", userInfoString); // 👈 in ra kiểm tra
+      if (userInfoString) {
+        const userData = JSON.parse(userInfoString);
+        setUser(userData);
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy userInfo:", error);
+    }
+  };
+
+  loadUserInfo();
+}, []);
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("accessToken");
+      await AsyncStorage.removeItem("refreshToken");
+      await AsyncStorage.removeItem("user");
+      router.push("/authentication/auth-method");
+    } catch (error) {
+      console.error("Lỗi khi đăng xuất:", error);
+    }
   };
 
   return (
@@ -27,8 +58,8 @@ const AccountScreen = () => {
         <View style={styles.profileSection}>
           <FontAwesome5 name="user-circle" size={60} color="#00BFA5" />
           <View style={styles.profileInfo}>
-            <Text style={styles.name}>Admin</Text>
-            <Text style={styles.email}>admin@fastdelivery.com</Text>
+            <Text style={styles.name}>{user?.fullName || '...'}</Text>
+            <Text style={styles.email}>{user?.email || '...'}</Text>
           </View>
         </View>
 

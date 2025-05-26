@@ -1,27 +1,52 @@
-import React from "react";
-import { View, Text, StyleSheet, FlatList, Alert, Platform, StatusBar } from "react-native";
+import React, { useEffect, useState, useCallback } from "react";
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  FlatList, 
+  Alert, 
+  Platform, 
+  StatusBar, 
+  RefreshControl,
+  ActivityIndicator,
+  TouchableOpacity 
+} from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
-import { TouchableOpacity } from "react-native";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface DriverRegister {
   id: string;
+  userId: string;
   name: string;
   phone: string;
+  email?: string;
   vehicleType: string;
-  licensePlate: string;
-  status: "pending" | "approved" | "rejected";
+  vehiclePlate: string;
+  licenseNumber: string;
+  approvalStatus: "PENDING" | "APPROVED" | "REJECTED" | "BANNED";
   documents: string[];
   createdAt: string;
+}
+
+interface ApiResponse<T> {
+  success: boolean;
+  message: string;
+  data: T;
+  error?: string;
 }
 
 const RegisterCard = ({
   register,
   onApprove,
   onReject,
+  onBan,
+  loading,
 }: {
   register: DriverRegister;
   onApprove: (id: string) => void;
   onReject: (id: string) => void;
+  onBan: (id: string) => void;
+  loading: boolean;
 }) => (
   <View style={styles.registerCard}>
     <View style={styles.registerHeader}>
@@ -30,6 +55,9 @@ const RegisterCard = ({
         <View style={styles.nameContainer}>
           <Text style={styles.userName}>{register.name}</Text>
           <Text style={styles.userPhone}>{register.phone}</Text>
+          {register.email && (
+            <Text style={styles.userEmail}>{register.email}</Text>
+          )}
         </View>
       </View>
       <Text style={styles.date}>{register.createdAt}</Text>
@@ -44,39 +72,61 @@ const RegisterCard = ({
       <DetailItem
         icon="id-card"
         label="Biển số"
-        value={register.licensePlate}
+        value={register.vehiclePlate}
+      />
+      <DetailItem
+        icon="id-badge"
+        label="Số GPLX"
+        value={register.licenseNumber}
       />
     </View>
 
-    {register.status === "pending" && (
+    {register.approvalStatus === "PENDING" && (
       <View style={styles.actionButtons}>
         <TouchableOpacity
-          style={[styles.button, styles.rejectButton]}
-          onPress={() => onReject(register.id)}
+          style={[styles.button, styles.banButton]}
+          onPress={() => onBan(register.userId)}
+          disabled={loading}
         >
-          <Text style={[styles.buttonText, styles.rejectButtonText]}>Từ chối</Text>
+          <Text style={[styles.buttonText, styles.banButtonText]}>
+            Cấm
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.rejectButton]}
+          onPress={() => onReject(register.userId)}
+          disabled={loading}
+        >
+          <Text style={[styles.buttonText, styles.rejectButtonText]}>
+            Từ chối
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.button, styles.approveButton]}
-          onPress={() => onApprove(register.id)}
+          onPress={() => onApprove(register.userId)}
+          disabled={loading}
         >
-          <Text style={[styles.buttonText, styles.approveButtonText]}>Duyệt</Text>
+          <Text style={[styles.buttonText, styles.approveButtonText]}>
+            Duyệt
+          </Text>
         </TouchableOpacity>
       </View>
     )}
 
-    {register.status !== "pending" && (
+    {register.approvalStatus !== "PENDING" && (
       <View
         style={[
           styles.statusBadge,
           {
             backgroundColor:
-              register.status === "approved" ? "#00BFA5" : "#FF6B6B",
+              register.approvalStatus === "APPROVED" ? "#00BFA5" : 
+              register.approvalStatus === "BANNED" ? "#FF9800" : "#FF6B6B",
           },
         ]}
       >
         <Text style={styles.statusText}>
-          {register.status === "approved" ? "Đã duyệt" : "Đã từ chối"}
+          {register.approvalStatus === "APPROVED" ? "Đã duyệt" : 
+           register.approvalStatus === "BANNED" ? "Đã cấm" : "Đã từ chối"}
         </Text>
       </View>
     )}
@@ -99,81 +149,169 @@ const DetailItem = ({
   </View>
 );
 
-export default function DriverRegistersScreen() {
-  // Dữ liệu mẫu - sẽ được thay thế bằng dữ liệu thực từ API
-  const [registers, setRegisters] = React.useState<DriverRegister[]>([
-    {
-      id: "1",
-      name: "Phạm Văn X",
-      phone: "0123456789",
-      vehicleType: "Xe máy",
-      licensePlate: "59-Y1 23456",
-      status: "pending",
-      documents: ["cmnd.jpg", "banglai.jpg"],
-      createdAt: "2024-01-15",
-    },
-    {
-      id: "2",
-      name: "Trần Thị Y",
-      phone: "0987654321",
-      vehicleType: "Xe tải nhỏ",
-      licensePlate: "51-K2 34567",
-      status: "approved",
-      documents: ["cmnd.jpg", "banglai.jpg"],
-      createdAt: "2024-01-14",
-    },
-    {
-      id: "3",
-      name: "Lê Văn Z",
-      phone: "0369852147",
-      vehicleType: "Xe máy",
-      licensePlate: "59-M3 45678",
-      status: "rejected",
-      documents: ["cmnd.jpg", "banglai.jpg"],
-      createdAt: "2024-01-13",
-    },
-  ]);
+// API Configuration
+const API_BASE_URL = "http://192.168.100.200:3000/api"; // Change this to your actual API URL
 
-  const handleApprove = (id: string) => {
+class DriverApiService {
+  private static async getAuthToken(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem('accessToken');
+    } catch (error) {
+      console.error('Error getting auth token:', error);
+      return null;
+    }
+  }
+
+  private static async makeAuthenticatedRequest(
+    endpoint: string,
+    options: RequestInit = {}
+  ): Promise<Response> {
+    const token = await this.getAuthToken();
+    
+    return fetch(`${API_BASE_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : '',
+        'role': 'SYSADMIN',
+        ...options.headers,
+      },
+    });
+  }
+
+  static async getDriverList(): Promise<ApiResponse<DriverRegister[]>> {
+    try {
+      const response = await this.makeAuthenticatedRequest('/driver/list');
+      return await response.json();
+    } catch (error) {
+      throw new Error(`Failed to fetch driver list: ${error}`);
+    }
+  }
+
+  static async updateDriverStatus(
+    driverId: string, 
+    action: 'approve' | 'reject' | 'ban'
+  ): Promise<ApiResponse<any>> {
+    try {
+      const response = await this.makeAuthenticatedRequest(
+        `/driver/register/${driverId}?action=${action}`,
+        { method: 'PATCH' }
+      );
+      return await response.json();
+    } catch (error) {
+      throw new Error(`Failed to update driver status: ${error}`);
+    }
+  }
+}
+
+export default function DriverRegistersScreen() {
+  const [registers, setRegisters] = useState<DriverRegister[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const fetchDrivers = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await DriverApiService.getDriverList();
+      
+      if (response.success) {
+        setRegisters(response.data);
+      } else {
+        Alert.alert('Lỗi', response.message || 'Không thể tải danh sách tài xế');
+      }
+    } catch (error) {
+      console.error('Error fetching drivers:', error);
+      Alert.alert('Lỗi', 'Không thể kết nối đến server');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchDrivers();
+    setRefreshing(false);
+  }, [fetchDrivers]);
+
+  useEffect(() => {
+    fetchDrivers();
+  }, [fetchDrivers]);
+
+  const handleStatusUpdate = async (
+    id: string, 
+    action: 'approve' | 'reject' | 'ban',
+    confirmMessage: string,
+    successMessage: string
+  ) => {
     Alert.alert(
       "Xác nhận",
-      "Bạn có chắc chắn muốn duyệt yêu cầu này?",
+      confirmMessage,
       [
         { text: "Hủy", style: "cancel" },
         {
-          text: "Duyệt",
-          onPress: () => {
-            setRegisters((prev) =>
-              prev.map((req) =>
-                req.id === id ? { ...req, status: "approved" } : req
-              )
-            );
+          text: action === 'approve' ? "Duyệt" : action === 'ban' ? "Cấm" : "Từ chối",
+          style: action === 'reject' || action === 'ban' ? "destructive" : "default",
+          onPress: async () => {
+            try {
+              setActionLoading(true);
+              const response = await DriverApiService.updateDriverStatus(id, action);
+              
+              if (response.success) {
+                Alert.alert('Thành công', successMessage);
+                // Refresh the list
+                await fetchDrivers();
+              } else {
+                Alert.alert('Lỗi', response.message || `Không thể ${action} tài xế`);
+              }
+            } catch (error) {
+              console.error(`Error ${action} driver:`, error);
+              Alert.alert('Lỗi', 'Không thể kết nối đến server');
+            } finally {
+              setActionLoading(false);
+            }
           },
         },
       ]
     );
+  };
+
+  const handleApprove = (id: string) => {
+    handleStatusUpdate(
+      id, 
+      'approve', 
+      "Bạn có chắc chắn muốn duyệt yêu cầu này?",
+      "Đã duyệt tài xế thành công"
+    );
+    console.log(`Approved driver with ID: ${id}`);
   };
 
   const handleReject = (id: string) => {
-    Alert.alert(
-      "Xác nhận",
+    handleStatusUpdate(
+      id, 
+      'reject', 
       "Bạn có chắc chắn muốn từ chối yêu cầu này?",
-      [
-        { text: "Hủy", style: "cancel" },
-        {
-          text: "Từ chối",
-          style: "destructive",
-          onPress: () => {
-            setRegisters((prev) =>
-              prev.map((req) =>
-                req.id === id ? { ...req, status: "rejected" } : req
-              )
-            );
-          },
-        },
-      ]
+      "Đã từ chối tài xế thành công"
     );
   };
+
+  const handleBan = (id: string) => {
+    handleStatusUpdate(
+      id, 
+      'ban', 
+      "Bạn có chắc chắn muốn cấm tài xế này?",
+      "Đã cấm tài xế thành công"
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#00BFA5" />
+        <Text style={styles.loadingText}>Đang tải danh sách tài xế...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -182,21 +320,27 @@ export default function DriverRegistersScreen() {
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>
-              {registers.filter((r) => r.status === "pending").length}
+              {registers.filter((r) => r.approvalStatus === "PENDING").length}
             </Text>
             <Text style={styles.statLabel}>Chờ duyệt</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>
-              {registers.filter((r) => r.status === "approved").length}
+              {registers.filter((r) => r.approvalStatus === "APPROVED").length}
             </Text>
             <Text style={styles.statLabel}>Đã duyệt</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>
-              {registers.filter((r) => r.status === "rejected").length}
+              {registers.filter((r) => r.approvalStatus === "REJECTED").length}
             </Text>
             <Text style={styles.statLabel}>Đã từ chối</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>
+              {registers.filter((r) => r.approvalStatus === "BANNED").length}
+            </Text>
+            <Text style={styles.statLabel}>Đã cấm</Text>
           </View>
         </View>
       </View>
@@ -208,10 +352,21 @@ export default function DriverRegistersScreen() {
             register={item}
             onApprove={handleApprove}
             onReject={handleReject}
+            onBan={handleBan}
+            loading={actionLoading}
           />
         )}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <FontAwesome5 name="users" size={48} color="#cccccc" />
+            <Text style={styles.emptyText}>Không có tài xế nào</Text>
+          </View>
+        }
       />
     </View>
   );
@@ -222,6 +377,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#ffffff",
     paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+  },
+  centered: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666666',
   },
   header: {
     backgroundColor: "#ffffff",
@@ -251,9 +415,10 @@ const styles = StyleSheet.create({
     color: "#00BFA5",
   },
   statLabel: {
-    fontSize: 14,
+    fontSize: 12,
     color: "#666666",
     marginTop: 4,
+    textAlign: 'center',
   },
   listContainer: {
     padding: 16,
@@ -265,6 +430,11 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: "#eee",
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   registerHeader: {
     flexDirection: "row",
@@ -275,9 +445,11 @@ const styles = StyleSheet.create({
   userInfo: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
   },
   nameContainer: {
     marginLeft: 12,
+    flex: 1,
   },
   userName: {
     fontSize: 16,
@@ -288,6 +460,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666666",
     marginTop: 2,
+  },
+  userEmail: {
+    fontSize: 12,
+    color: "#888888",
+    marginTop: 1,
   },
   date: {
     fontSize: 12,
@@ -307,27 +484,30 @@ const styles = StyleSheet.create({
   detailLabel: {
     fontSize: 14,
     color: "#666666",
+    minWidth: 70,
   },
   detailValue: {
     fontSize: 14,
     color: "#000000",
     fontWeight: "500",
+    flex: 1,
   },
   actionButtons: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    gap: 12,
+    gap: 8,
     marginTop: 16,
   },
   button: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
+    minWidth: 60,
   },
   buttonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "500",
   },
   rejectButton: {
@@ -344,6 +524,14 @@ const styles = StyleSheet.create({
   approveButtonText: {
     color: "#ffffff",
   },
+  banButton: {
+    backgroundColor: "#ffffff",
+    borderWidth: 1,
+    borderColor: "#FF9800",
+  },
+  banButtonText: {
+    color: "#FF9800",
+  },
   statusBadge: {
     alignSelf: "flex-start",
     paddingHorizontal: 12,
@@ -355,5 +543,15 @@ const styles = StyleSheet.create({
     color: "#ffffff",
     fontSize: 12,
     fontWeight: "500",
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 48,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#999999',
+    marginTop: 16,
   },
 });

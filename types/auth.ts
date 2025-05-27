@@ -1,4 +1,4 @@
-import { User } from "./models";
+import { User } from "./user";
 
 interface StartAuthReqBody {
     phoneNumber: string

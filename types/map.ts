@@ -1,4 +1,4 @@
-import { Coordinate } from "./models";
+import { Coordinate } from "./location"
 
 interface SuggestPlaceReqBody {
     coord: Coordinate,

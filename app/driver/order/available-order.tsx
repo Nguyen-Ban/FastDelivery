@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -13,21 +13,81 @@ import {
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useOrderDriver } from '@/contexts/order.driver.context';
-import { useSocketDriver } from '@/contexts/socker.driver.context';
+import socket from '@/services/socket';
+import { OrderDetail, OrderLocation, OrderMain } from '@/types';
 
 const OrderDetails = () => {
     const router = useRouter();
-    const { emitEvent } = useSocketDriver();
-    const { pickupDropoffDistance, driverPickupDistance,
-        orderMain, orderDetail, orderLocation } = useOrderDriver();
+
     const [showPackageInfo, setShowPackageInfo] = useState(false);
+    const [orderMain, setOrderMain] = useState<OrderMain>();
+    const [orderDetail, setOrderDetail] = useState<OrderDetail>();
+    const [pickupDropoffDistance, setPickupDropoffDistance] = useState(0);
+    const [driverPickupDistance, setDriverPickupDistance] = useState(0);
+    const [orderLocation, setOrderLocation] = useState<OrderLocation>();
+    const [pickupDropoffPolyline, setPickupDropoffPolyline] = useState<string>();
+    const [driverPickupPolyline, setDriverPickupPolyline] = useState<string>();
+    const [ttl, setTtl] = useState<number | undefined>();
+
+    useEffect(() => {
+        console.log('Fetching order details...');
+        socket.emit('order:available', {}, (response) => {
+            if (response.success) {
+                console.log(response);
+                setOrderMain(response.data.orderMain);
+                setOrderDetail(response.data.orderDetail);
+                setPickupDropoffDistance(response.data.pickupDropoffDistance);
+                setDriverPickupDistance(response.data.driverPickupDistance);
+                setOrderLocation(response.data.orderLocation);
+                setTtl(response.data.ttl);
+                setPickupDropoffPolyline(response.data.pickupDropoffPolyline);
+                setDriverPickupPolyline(response.data.driverPickupPolyline);
+            } else {
+                console.error('Error fetching order details:', response.error);
+            }
+        });
+    }, []);
+
+    // Countdown TTL
+    useEffect(() => {
+        if (!ttl || ttl <= 0) return;
+        const interval = setInterval(() => {
+            setTtl((prev) => {
+                if (!prev || prev <= 1) {
+                    // Reset all order data when TTL expires
+                    setOrderMain(undefined);
+                    setOrderDetail(undefined);
+                    setPickupDropoffDistance(0);
+                    setDriverPickupDistance(0);
+                    setOrderLocation(undefined);
+                    setTtl(undefined);
+                    clearInterval(interval);
+                    setDriverPickupPolyline(undefined);
+                    setPickupDropoffPolyline(undefined);
+                    return undefined;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [ttl]);
 
     const handleOnAccept = () => {
-        emitEvent('order:request', {
-            success: true,
+        socket.emit('order:reply', {
+            accepted: true,
         })
-        router.push('/driver/on-delivery')
+        router.push({
+            pathname: '/driver/delivery/on-delivery',
+
+            params: {
+                orderMain: JSON.stringify(orderMain),
+                driverPickupPolyline: driverPickupPolyline,
+                pickupDropoffPolyline: pickupDropoffPolyline,
+                orderLocation: JSON.stringify(orderLocation),
+                pickupDropoffDistance: pickupDropoffDistance,
+                orderDetail: JSON.stringify(orderDetail),
+            }
+        })
     }
 
     return (
@@ -109,7 +169,7 @@ const OrderDetails = () => {
                 >
                     <Text style={styles.acceptButtonText}>Nhận chuyến</Text>
                     <View style={styles.timeContainer}>
-                        <Text style={styles.timeText}>24</Text>
+                        <Text style={styles.timeText}>{ttl ?? 0}</Text>
                     </View>
                 </TouchableOpacity>
             </ScrollView>
@@ -384,4 +444,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default OrderDetails; 
+export default OrderDetails;

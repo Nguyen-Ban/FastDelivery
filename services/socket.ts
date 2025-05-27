@@ -1,6 +1,8 @@
 import { io, Socket } from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from './axios';
+import { ROLE } from '@/types';
+import { useCallback } from 'react';
 
 const API_URL = `${BASE_URL}`;
 
@@ -17,7 +19,7 @@ class SocketService {
         return SocketService.instance;
     }
 
-    public async connect(): Promise<void> {
+    public async connect(role: ROLE): Promise<void> {
         if (!this.socket) {
             try {
                 const accessToken = await AsyncStorage.getItem('accessToken');
@@ -31,7 +33,7 @@ class SocketService {
                         polling: {
                             extraHeaders: {
                                 token: accessToken,
-                                role: 'CUSTOMER'
+                                role: role
                             }
                         }
                     }
@@ -70,12 +72,17 @@ class SocketService {
         }
     }
 
-    public emit(event: string, data: any): void {
-        if (this.socket) {
-            console.log('emit')
-            this.socket.emit(event, data);
-        }
-    }
+
+    public emit = useCallback(
+        (event: string, payload: any, callback?: (...args: any[]) => void) => {
+            if (this.socket && this.socket.connected) {
+                this.socket.emit(event, payload, callback);
+            } else {
+                console.warn(`[SOCKET] Not connected. Cannot emit "${event}"`);
+            }
+        },
+        []
+    );
 
     public on(event: string, callback: (data: any) => void): void {
         if (this.socket) {
@@ -94,4 +101,4 @@ class SocketService {
     }
 }
 
-export default SocketService.getInstance(); 
+export default SocketService.getInstance();

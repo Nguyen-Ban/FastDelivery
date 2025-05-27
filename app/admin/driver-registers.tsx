@@ -1,18 +1,19 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  FlatList, 
-  Alert, 
-  Platform, 
-  StatusBar, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  Alert,
+  Platform,
+  StatusBar,
   RefreshControl,
   ActivityIndicator,
-  TouchableOpacity 
+  TouchableOpacity
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BASE_URL } from "@/services/axios";
 
 interface DriverRegister {
   id: string;
@@ -119,14 +120,14 @@ const RegisterCard = ({
           styles.statusBadge,
           {
             backgroundColor:
-              register.approvalStatus === "APPROVED" ? "#00BFA5" : 
-              register.approvalStatus === "BANNED" ? "#FF9800" : "#FF6B6B",
+              register.approvalStatus === "APPROVED" ? "#00BFA5" :
+                register.approvalStatus === "BANNED" ? "#FF9800" : "#FF6B6B",
           },
         ]}
       >
         <Text style={styles.statusText}>
-          {register.approvalStatus === "APPROVED" ? "Đã duyệt" : 
-           register.approvalStatus === "BANNED" ? "Đã cấm" : "Đã từ chối"}
+          {register.approvalStatus === "APPROVED" ? "Đã duyệt" :
+            register.approvalStatus === "BANNED" ? "Đã cấm" : "Đã từ chối"}
         </Text>
       </View>
     )}
@@ -150,7 +151,7 @@ const DetailItem = ({
 );
 
 // API Configuration
-const API_BASE_URL = "http://192.168.100.200:3000/api"; // Change this to your actual API URL
+const API_BASE_URL = `${BASE_URL}/api`; // Change this to your actual API URL
 
 class DriverApiService {
   private static async getAuthToken(): Promise<string | null> {
@@ -167,7 +168,7 @@ class DriverApiService {
     options: RequestInit = {}
   ): Promise<Response> {
     const token = await this.getAuthToken();
-    
+
     return fetch(`${API_BASE_URL}${endpoint}`, {
       ...options,
       headers: {
@@ -189,7 +190,7 @@ class DriverApiService {
   }
 
   static async updateDriverStatus(
-    driverId: string, 
+    driverId: string,
     action: 'approve' | 'reject' | 'ban'
   ): Promise<ApiResponse<any>> {
     try {
@@ -214,7 +215,7 @@ export default function DriverRegistersScreen() {
     try {
       setLoading(true);
       const response = await DriverApiService.getDriverList();
-      
+
       if (response.success) {
         setRegisters(response.data);
       } else {
@@ -239,7 +240,7 @@ export default function DriverRegistersScreen() {
   }, [fetchDrivers]);
 
   const handleStatusUpdate = async (
-    id: string, 
+    id: string,
     action: 'approve' | 'reject' | 'ban',
     confirmMessage: string,
     successMessage: string
@@ -256,7 +257,7 @@ export default function DriverRegistersScreen() {
             try {
               setActionLoading(true);
               const response = await DriverApiService.updateDriverStatus(id, action);
-              
+
               if (response.success) {
                 Alert.alert('Thành công', successMessage);
                 // Refresh the list
@@ -278,8 +279,8 @@ export default function DriverRegistersScreen() {
 
   const handleApprove = (id: string) => {
     handleStatusUpdate(
-      id, 
-      'approve', 
+      id,
+      'approve',
       "Bạn có chắc chắn muốn duyệt yêu cầu này?",
       "Đã duyệt tài xế thành công"
     );
@@ -288,8 +289,8 @@ export default function DriverRegistersScreen() {
 
   const handleReject = (id: string) => {
     handleStatusUpdate(
-      id, 
-      'reject', 
+      id,
+      'reject',
       "Bạn có chắc chắn muốn từ chối yêu cầu này?",
       "Đã từ chối tài xế thành công"
     );
@@ -297,8 +298,8 @@ export default function DriverRegistersScreen() {
 
   const handleBan = (id: string) => {
     handleStatusUpdate(
-      id, 
-      'ban', 
+      id,
+      'ban',
       "Bạn có chắc chắn muốn cấm tài xế này?",
       "Đã cấm tài xế thành công"
     );

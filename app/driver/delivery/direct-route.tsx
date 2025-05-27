@@ -11,8 +11,6 @@ const DirectRoute = () => {
     const instruction = '50 m\nVòng ngược lại';
     const nextStep = 'Sau đó rẽ phải';
     const distance = '120 m';
-    const duration = '1 phút';
-    const arrivalTime = '14:51';
     const currentLocation = { latitude: 10.762622, longitude: 106.660172 };
 
     useEffect(() => {
@@ -56,8 +54,7 @@ const DirectRoute = () => {
                     <Ionicons name="close" size={28} color="#333" />
                 </TouchableOpacity>
                 <View style={styles.bottomInfo}>
-                    <Text style={styles.bottomTime}>{duration}</Text>
-                    <Text style={styles.bottomDistance}>{distance} • {arrivalTime}</Text>
+                    <Text style={styles.bottomDistance}>{distance}</Text>
                 </View>
             </View>
         </View>

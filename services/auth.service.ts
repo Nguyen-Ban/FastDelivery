@@ -1,6 +1,5 @@
 import { ApiResponse, LoginReqBody, RegisterReqBody, StartAuthReqBody, VerifyOtpReqBody } from '@/types';
-import { axiosInstance } from './axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import RestApiService from './rest.api';
 
 const authService = {

@@ -1,15 +1,18 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import COLOR from "../../../../../constants/Colors";
 import { useOrder } from "../../../../../contexts/order.context";
-import { LocationPoint } from "@/types/Location";
 
 
 const RouteOverview = () => {
   const { pickupLocation, setPickupLocation, dropoffLocation, setDropoffLocation } = useOrder();
 
   const handleSwapLocations = () => {
+    if (!pickupLocation || !dropoffLocation) {
+      Alert.alert("Thông báo", "Vui lòng chọn cả hai địa điểm trước khi hoán đổi.");
+      return;
+    }
     const tempPickup = pickupLocation;
     setPickupLocation(dropoffLocation);
     setDropoffLocation(tempPickup);

@@ -1,15 +1,16 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import COLOR from '../../../../constants/Colors';
+import COLOR from '../../../constants/Colors';
 import { useOrder } from '@/contexts/order.context';
 
 const DeliveryDetailPage = () => {
     const router = useRouter();
+    const { orderId } = useLocalSearchParams<{ orderId: string }>();
     const { specialDemands, packageType,
-        orderId, sender, receiver,
+        sender, receiver,
         pickupLocation, dropoffLocation,
         weightKg, lengthCm, widthCm, heightCm, sizeName, note, addonPrice, deliveryPrice } = useOrder();
 
@@ -187,7 +188,7 @@ const DeliveryDetailPage = () => {
                         <View style={styles.paymentRow}>
                             <Text style={styles.paymentLabel}>Tổng cộng:</Text>
                             <Text style={[styles.paymentValue, styles.totalAmount]}>
-                                đ{(addonPrice + deliveryPrice).toLocaleString()}
+                                {(addonPrice + deliveryPrice).toLocaleString()}đ
                             </Text>
                         </View>
                     </View>

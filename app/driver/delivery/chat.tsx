@@ -12,68 +12,45 @@ import {
 
 import GLOBAL from "../../../constants/GlobalStyles";
 import COLOR from "@/constants/Colors";
-
-import InfoCard from "@/components/InfoCard";
-import Button from "@/components/Button/ButtonComponent";
 import { router } from "expo-router";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useState } from "react";
-import ChatService from "@/services/chat.service";
 import { useAuth } from "@/contexts";
-import { useSearchParams } from "expo-router/build/hooks";
-
-interface IChatProps {
-  orderId: string
-}
-
-interface Message {
-  id: string,
-  content: string,
-  senderId?: string,
-  orderId: string
-}
+import { useLocalSearchParams } from "expo-router/build/hooks";
+import { Message } from "@/types";
+import socket from "@/services/socket";
 
 const ChatScreen = () => {
   const { user } = useAuth();
-  const searchParams = useSearchParams();
-  const orderId: string = searchParams.get('orderId') || '1';
-  const driver = {
-    name: "Nguyễn Văn A",
-    phone: "0123456789",
-    vehicleType: "MOTORCYCLE",
-    vehiclePlate: "59A1-23456",
-  };
+  const { orderId } = useLocalSearchParams<{ orderId: string }>();
+  const [customerName, setCustomerName] = useState();
   const [messages, setMessages] = useState<Message[]>([]);
 
   const messagesRef = useRef<Message[]>([]);
 
-  useEffect(() => {
-    console.log('enter chat')
-    const initChat = async () => {
-      // Bước 1: Load từ local cache
-      const cached: any[] = [];
-      setMessages(cached);
-
-      // Bước 2: Join room và lấy lịch sử chat từ server
-      ChatService.joinRoom(orderId);
-      ChatService.fetchMessageHistory(orderId, (data) => {
-        if (data.success) {
-          setMessages(data.messageHistory)
-        }
-      });
-
-      // Bước 4: Lắng nghe tin nhắn mới real-time
-      ChatService.listenNewMessage((msg: any) => {
-        messagesRef.current.unshift(msg)
-        setMessages([...messagesRef.current]);
-      });
-    };
-    initChat();
-  }, [orderId]);
-
   const [input, setInput] = useState("");
+
+  useEffect(() => {
+    socket.emit('chat:getCustomerName', { orderId }, (response) => {
+      if (response.success) setCustomerName(response.data.customerName)
+    })
+
+    socket.emit('chat:getMessageHistory', { orderId }, (response) => {
+      if (response.success) setMessages(response.data.message)
+    })
+
+    socket.on('chat:newMessage', (response) => {
+      if (response.success) setMessages([...messages, response.data.message])
+    })
+
+
+    return () => {
+      socket.off('chat:newMessage');
+    };
+  }, [])
+
   return (
     <KeyboardAvoidingView style={GLOBAL.home_container}>
       <View style={styles.header}>
@@ -89,7 +66,7 @@ const ChatScreen = () => {
           >
             <FontAwesome6 name="arrow-left" size={30} color="black" />
           </TouchableOpacity>
-          <Text style={styles.title}>{driver.name}</Text>
+          <Text style={styles.title}>{customerName}</Text>
         </LinearGradient>
       </View>
       {/* ScrollView to display messages */}

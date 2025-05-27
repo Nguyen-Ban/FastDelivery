@@ -11,7 +11,7 @@ import {
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import COLOR from "../../../../../constants/Colors";
 import { useOrder } from "@/contexts/order.context";
-import { VEHICLE_TYPES } from "@/constants/VehicleTypes";
+import { VEHICLE_TYPES } from "@/types";
 
 const { width } = Dimensions.get("window");
 

@@ -10,47 +10,40 @@ import GLOBAL from "../../../../constants/GlobalStyles";
 import { useLocation } from "../../../../contexts/location.context";
 import mapService from "../../../../services/map.service";
 import { useOrder } from "../../../../contexts/order.context";
+import { MapLocation } from "@/types";
 
 interface Location {
   latitude: number;
   longitude: number;
 }
 
-interface PlaceItem {
-  id: string;
-  title: string;
-  address: string;
-  position: {
-    lat: number;
-    lng: number;
-  };
-}
+
 
 const LocationMapPick = () => {
   const router = useRouter();
-  const { type, locationType } = useLocalSearchParams();
+  const { orderType, locationType } = useLocalSearchParams();
   const { location } = useLocation();
   const { setPickupLocation, setDropoffLocation } = useOrder();
   const mapRef = useRef<MapView>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-  const [places, setPlaces] = useState<PlaceItem[]>([]);
+  const [places, setPlaces] = useState<MapLocation[]>([]);
   const [loading, setLoading] = useState(false);
   const [region, setRegion] = useState<Region>({
-    latitude: location?.position?.lat as number,//21.03835308269753,
-    longitude: location?.position?.lng as number,//105.78267549063561,
+    latitude: location?.coord?.lat as number,//21.03835308269753,
+    longitude: location?.coord?.lng as number,//105.78267549063561,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   });
 
   // Fetch nearby places when component mounts or location changes
   useEffect(() => {
-    if (location && location.position) {
+    if (location && location.coord) {
       const newLocation = {
-        latitude: location.position.lat,
-        longitude: location.position.lng,
+        latitude: location.coord.lat,
+        longitude: location.coord.lng,
       };
       setSelectedLocation(newLocation);
-      fetchNearbyPlaces(location.position.lng, location.position.lat);
+      fetchNearbyPlaces(location.coord.lng, location.coord.lat);
     }
   }, [location]);
 
@@ -70,7 +63,7 @@ const LocationMapPick = () => {
   const fetchNearbyPlaces = async (lng: number, lat: number) => {
     setLoading(true);
     try {
-      const response = await mapService.getAddressFromLocation(lng, lat);
+      const response = await mapService.fetchLocationFromCoord({ lng, lat });
       if (response.success && response.data) {
         setPlaces(response.data);
       }
@@ -87,10 +80,10 @@ const LocationMapPick = () => {
     fetchNearbyPlaces(longitude, latitude);
   };
 
-  const handlePlaceSelect = (place: PlaceItem) => {
+  const handlePlaceSelect = (place: MapLocation) => {
     const newLocation = {
-      latitude: place.position.lat,
-      longitude: place.position.lng
+      latitude: place.coord.lat,
+      longitude: place.coord.lng
     };
     setSelectedLocation(newLocation);
 
@@ -98,8 +91,8 @@ const LocationMapPick = () => {
     if (mapRef.current) {
       mapRef.current.animateToRegion({
         ...region,
-        latitude: place.position.lat,
-        longitude: place.position.lng
+        latitude: place.coord.lat,
+        longitude: place.coord.lng
       }, 300);
     }
   };
@@ -110,14 +103,14 @@ const LocationMapPick = () => {
     // Find the selected place from places array
     const selectedPlace = places.find(
       place =>
-        place.position.lat === selectedLocation.latitude &&
-        place.position.lng === selectedLocation.longitude
+        place.coord.lat === selectedLocation.latitude &&
+        place.coord.lng === selectedLocation.longitude
     );
 
     const locationData = {
       title: selectedPlace ? selectedPlace.title : "Địa điểm đã chọn",
       address: selectedPlace ? selectedPlace.address : "Địa điểm đã chọn",
-      position: {
+      coord: {
         lat: selectedLocation.latitude,
         lng: selectedLocation.longitude
       }
@@ -129,23 +122,23 @@ const LocationMapPick = () => {
     } else {
       setDropoffLocation(locationData);
       router.push({
-        pathname: "/order/location/location-picked",
+        pathname: "/customer/order/location/location-picked",
         params: {
           address: locationData.address,
           latitude: selectedLocation.latitude.toString(),
           longitude: selectedLocation.longitude.toString(),
-          type
+          orderType
         }
       });
     }
   };
 
-  const renderPlaceItem = ({ item }: { item: PlaceItem }) => (
+  const renderPlaceItem = ({ item }: { item: MapLocation }) => (
     <TouchableOpacity
       style={[
         styles.placeItem,
-        selectedLocation?.latitude === item.position.lat &&
-          selectedLocation?.longitude === item.position.lng ?
+        selectedLocation?.latitude === item.coord.lat &&
+          selectedLocation?.longitude === item.coord.lng ?
           styles.selectedPlace : null
       ]}
       onPress={() => handlePlaceSelect(item)}
@@ -176,8 +169,8 @@ const LocationMapPick = () => {
 
         {places.map(place => {
           const isSelected =
-            selectedLocation?.latitude === place.position.lat &&
-            selectedLocation?.longitude === place.position.lng;
+            selectedLocation?.latitude === place.coord.lat &&
+            selectedLocation?.longitude === place.coord.lng;
 
           // Only render non-selected places as small dots
           if (!isSelected) {
@@ -185,8 +178,8 @@ const LocationMapPick = () => {
               <Circle
                 key={place.id}
                 center={{
-                  latitude: place.position.lat,
-                  longitude: place.position.lng
+                  latitude: place.coord.lat,
+                  longitude: place.coord.lng
                 }}
                 radius={8}
                 strokeColor={COLOR.blue40}

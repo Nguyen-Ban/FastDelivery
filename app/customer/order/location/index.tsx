@@ -10,20 +10,20 @@ import GLOBAL from "../../../../constants/GlobalStyles";
 import { useLocation } from "../../../../contexts/location.context";
 import { useOrder } from "../../../../contexts/order.context";
 import { useAuth } from "../../../../contexts/auth.context";
-import { VEHICLE_TYPES } from "@/types";
+import { LOCATION_TYPE, ORDER_TYPES, VEHICLE_TYPES } from "@/types";
 
 const Order = () => {
     const router = useRouter();
-    const { type } = useLocalSearchParams();
+    const { orderType } = useLocalSearchParams();
     const { location } = useLocation();
     const { user } = useAuth();
     const { pickupLocation, dropoffLocation, setPickupLocation, setSender, setVehicleType } = useOrder();
 
     useEffect(() => {
         // Set vehicle type based on the type parameter
-        if (type === 'CAR') {
+        if (orderType === ORDER_TYPES.CAR_DELIVERY) {
             setVehicleType(VEHICLE_TYPES.VAN);
-        } else if (type === 'MOTORBIKE') {
+        } else if (orderType === ORDER_TYPES.MOTORBIKE_DELIVERY) {
             setVehicleType(VEHICLE_TYPES.MOTORBIKE);
         }
     }, []);
@@ -34,7 +34,7 @@ const Order = () => {
             setPickupLocation({
                 title: "Vị trí của bạn",
                 address: location.address || "Địa điểm chưa xác định",
-                position: {
+                coord: {
                     lat: location?.coord?.lat as number,
                     lng: location?.coord?.lng as number,
                 },
@@ -50,11 +50,11 @@ const Order = () => {
         }
     }, [location, pickupLocation, setPickupLocation, user, setSender]);
 
-    const locationHandler = (locationType: 'pickup' | 'dropoff') => {
+    const locationHandler = (locationType: LOCATION_TYPE) => {
         router.push({
             pathname: "/customer/order/location/location-pick",
             params: {
-                type,
+                orderType,
                 locationType
             }
         });
@@ -78,7 +78,7 @@ const Order = () => {
                             <FontAwesome6 name="arrow-left" size={30} color="black" />
                         </TouchableOpacity>
                         <Text style={styles.title}>
-                            {type === 'CAR' ? 'Giao hàng xe tải' : 'Giao hàng xe máy'}
+                            {orderType === ORDER_TYPES.CAR_DELIVERY ? 'Giao hàng xe tải' : 'Giao hàng xe máy'}
                         </Text>
                     </View>
                     <TouchableOpacity>
@@ -88,7 +88,7 @@ const Order = () => {
                 <View style={styles.locationPickCard}>
                     <Button
                         title={pickupLocation?.address || "Chọn điểm lấy hàng"}
-                        onPress={() => locationHandler('pickup')}
+                        onPress={() => locationHandler(LOCATION_TYPE.PICKUP)}
                         type="sub"
                         size="large"
                         style={[
@@ -102,7 +102,7 @@ const Order = () => {
                     />
                     <Button
                         title={dropoffLocation?.address || "Giao đến đâu?"}
-                        onPress={() => locationHandler('dropoff')}
+                        onPress={() => locationHandler(LOCATION_TYPE.DROP_OFF)}
                         type="sub"
                         size="large"
                         style={[

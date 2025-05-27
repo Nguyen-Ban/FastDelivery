@@ -1,4 +1,19 @@
-import { Location } from "./models";
+interface Coordinate {
+    lat: number,
+    lng: number
+}
+
+interface Location {
+    title: string;
+    address: string;
+    coord: Coordinate
+}
+
+interface MapLocation extends Location {
+    id: string;
+    distance?: number;
+}
+
 
 interface LocationState {
     location?: Location;
@@ -13,4 +28,7 @@ interface LocationContextType extends LocationState {
     getCurrentLocation: () => Promise<Location | null>;
 }
 
-export { LocationContextType, LocationState }
+export {
+    LocationContextType, LocationState, MapLocation,
+    Coordinate, Location
+};

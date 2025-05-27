@@ -19,24 +19,15 @@ import GLOBAL from "../../../../constants/GlobalStyles";
 import mapService from "../../../../services/map.service";
 import { useLocation } from "../../../../contexts/location.context";
 import { useOrder } from "../../../../contexts/order.context";
+import { LOCATION_TYPE, MapLocation } from "@/types";
 
 
-interface SuggestedLocation {
-  id: string;
-  title: string;
-  address: string;
-  distance: number; // in meters
-  position: {
-    lat: number;
-    lng: number;
-  }
-}
 
 const Location = () => {
   const router = useRouter();
-  const { type, locationType } = useLocalSearchParams();
+  const { orderType, locationType } = useLocalSearchParams();
   const [searchText, setSearchText] = useState("");
-  const [suggestedLocations, setSuggestedLocations] = useState<SuggestedLocation[]>([]);
+  const [suggestedLocations, setSuggestedLocations] = useState<MapLocation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { location } = useLocation();
@@ -55,12 +46,10 @@ const Location = () => {
     setError(null);
 
     try {
-      const response = await mapService.getSuggestPlaces(text, {
-        userLocation: {
-          lat: location?.position?.lat as number,
-          lng: location?.position?.lng as number
-        }
-      });
+      const response = await mapService.fetchSuggestPlaces({
+        lat: location?.coord?.lat as number,
+        lng: location?.coord?.lng as number
+      }, text,);
       if (response.success && response.data) {
         setSuggestedLocations(response.data);
       } else {
@@ -76,25 +65,26 @@ const Location = () => {
     }
   };
 
-  const handleLocationSelect = (location: SuggestedLocation) => {
+  const handleLocationSelect = (location: MapLocation) => {
     const selectedLocation = {
       title: location.title,
       address: location.address,
-      position: location.position
+      coord: location.coord
     };
 
-    if (locationType === 'pickup') {
+    if (locationType === LOCATION_TYPE.PICKUP) {
       setPickupLocation(selectedLocation);
       router.back();
     } else {
       setDropoffLocation(selectedLocation);
       router.push({
-        pathname: "/order/location/location-picked",
+        pathname: "/customer/order/location/location-picked",
         params: {
           address: location.address,
-          latitude: location.position.lat.toString(),
-          longitude: location.position.lng.toString(),
-          type
+          latitude: location.coord.lat.toString(),
+          longitude: location.coord.lng.toString(),
+          orderType,
+          locationType
         },
       });
     }
@@ -111,7 +101,7 @@ const Location = () => {
   const renderLocationItem = ({
     item,
   }: {
-    item: SuggestedLocation;
+    item: MapLocation;
   }) => (
     <TouchableOpacity
       style={styles.locationItem}
@@ -188,8 +178,8 @@ const Location = () => {
         <Button
           title="Chọn trên bản đồ"
           onPress={() => router.push({
-            pathname: "/order/location/location-map-pick",
-            params: { type }
+            pathname: "/customer/order/location/location-map-pick",
+            params: { orderType }
           })}
           type="primary"
           size="large"

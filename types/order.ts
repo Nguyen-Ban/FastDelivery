@@ -1,38 +1,12 @@
 import { DELIVERY_TYPE, PACKAGE_TYPES, VEHICLE_TYPES } from "./enums";
 
-interface User {
-    id: string,
-    fullName: string,
-    phoneNumber: string,
-    email: string,
-    passcode?: string
-}
-
-interface Coordinate {
-    lat: number,
-    lng: number
-}
-
-interface Location {
-    title: string;
-    address: string;
-    coord: Coordinate
-}
-
 interface Order {
     orderMain: OrderMain;
-    orderSenderReceiver: OrderSenderReceiver;
+    orderSender: OrderPerson
+    Receiver: OrderPerson;
     orderLocation: OrderLocation;
     orderDetail: OrderDetail;
     orderSpecialDemand: OrderSpecialDemand;
-}
-
-interface ApiResponse<T = any> {
-    success: boolean;
-    message?: string;
-    data?: T;
-    nextStep?: string;
-    error?: string;
 }
 
 interface OrderMain {
@@ -42,11 +16,14 @@ interface OrderMain {
     note?: string;
 }
 
+interface OrderPerson {
+    name?: string;
+    phoneNumber?: string;
+}
+
 interface OrderSenderReceiver {
-    senderName?: string;
-    senderPhoneNumber?: string;
-    receiverName?: string;
-    receiverPhoneNumber?: string;
+    sender?: OrderPerson;
+    receiver?: OrderPerson;
 }
 
 interface OrderLocation {
@@ -81,8 +58,7 @@ interface OrderSpecialDemand {
 }
 
 export {
-    User, Coordinate, Order,
-    OrderMain, OrderSenderReceiver, OrderDetail,
-    OrderLocation, OrderSpecialDemand, Location,
-    ApiResponse
+    Order, OrderSenderReceiver,
+    OrderMain, OrderPerson, OrderDetail,
+    OrderLocation, OrderSpecialDemand
 }

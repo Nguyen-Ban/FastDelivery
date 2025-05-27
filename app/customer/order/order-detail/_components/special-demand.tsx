@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from "react-nati
 import { Ionicons } from "@expo/vector-icons";
 import COLOR from "../../../../../constants/Colors";
 import { useOrder } from "../../../../../contexts/order.context";
-import { SpecialDemands } from "@/types/OrderDetails";
+import { OrderSpecialDemand } from "@/types";
 
 
 
@@ -130,8 +130,8 @@ const SpecialDemand = () => {
     setAddonPrice(newTotalPrice);
   };
 
-  const mapSelectedDemandsToSpecialDemands = (selectedDemands: string[]): SpecialDemands => {
-    const specialDemands: SpecialDemands = {};
+  const mapSelectedDemandsToSpecialDemands = (selectedDemands: string[]): OrderSpecialDemand => {
+    const specialDemands: OrderSpecialDemand = {};
 
     selectedDemands.forEach(id => {
       switch (id) {

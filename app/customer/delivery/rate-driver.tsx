@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView,
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import COLOR from '../../../../constants/Colors';
+import COLOR from '../../../constants/Colors';
 
 const RateDriver = () => {
   const { driverName = 'Nguyễn Văn A', orderId } = useLocalSearchParams();
@@ -30,7 +30,7 @@ const RateDriver = () => {
 
   const handleSubmit = () => {
     Alert.alert('Đánh giá thành công', `Cảm ơn bạn đã đánh giá tài xế!`);
-    router.replace('/home');
+    router.replace('/customer/home');
   };
 
   return (
@@ -38,7 +38,7 @@ const RateDriver = () => {
       {/* Back Button */}
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => router.replace('/home')}
+        onPress={() => router.replace('/customer/home')}
       >
         <Ionicons name="arrow-back" size={24} color="white" />
       </TouchableOpacity>

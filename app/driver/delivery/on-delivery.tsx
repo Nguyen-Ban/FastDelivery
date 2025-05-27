@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     View,
     Text,
@@ -8,17 +8,16 @@ import {
     StatusBar,
     Platform,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
-import { FontAwesome5 } from '@expo/vector-icons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import COLOR from '../../../constants/Colors';
-import { decode } from '@here/flexpolyline';
-import { useRouter } from 'expo-router';
-import { useOrderDriver } from '../../../contexts/order.driver.context';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useLocation } from '@/contexts';
-const motorbikeIcon = require('../../assets/motorbike.png'); // Replace with your motorcycle icon path
-const carIcon = require('../../assets/car.png'); // Replace with your car icon path
+import { decode } from '@here/flexpolyline';
+import COLOR from '@/constants/Colors';
+import { VEHICLE_TYPES } from '@/types';
+import socket from '@/services/socket';
+
+
 const DELIVERY_STATES = {
     GOING_TO_PICKUP: 'GOING_TO_PICKUP',
     PICKING_UP: 'PICKING_UP',
@@ -27,51 +26,23 @@ const DELIVERY_STATES = {
 
 const OnDelivery = () => {
     const router = useRouter();
+    const params = useLocalSearchParams();
+    const orderMain = JSON.parse(params.orderMain as string);
+    const orderDetail = JSON.parse(params.orderDetail as string) || {};
+    const orderLocation = JSON.parse(params.orderLocation as string) || {};
+    const pickupDropoffDistance = parseFloat(params.pickupDropoffDistance as string) || 0;
+    const pickupDropoffPolyline = params.pickupDropoffPolyline as string
+    const driverPickupPolyline = params.driverPickupPolyline as string
     const [deliveryState, setDeliveryState] = useState(DELIVERY_STATES.GOING_TO_PICKUP);
+
+    const vehicleType = VEHICLE_TYPES.MOTORBIKE
+    const pickupLat = orderLocation.pickupLat;
+    const pickupLng = orderLocation.pickupLng;
+    const dropoffLat = orderLocation.dropoffLat;
+    const dropoffLng = orderLocation.dropoffLng;
     const mapRef = useRef<MapView>(null);
     const { location } = useLocation();
-    const { orderLocation, driverPickupPolyline, orderDetail, orderMain, pickupDropoffDistance } = useOrderDriver();
 
-    // Decode polyline string
-    const polylineString = driverPickupPolyline || 'gfo}Eto~u`@_';
-    const decodedPolyline = decode(polylineString);
-    const pickupLat = orderLocation?.pickupLat;
-    const pickupLng = orderLocation?.pickupLng;
-    const dropoffLat = orderLocation?.dropoffLat;
-    const dropoffLng = orderLocation?.dropoffLng;
-
-    const routeCoordinates = pickupLat && pickupLng && location?.coord ? [
-        { latitude: location?.coord?.lat, longitude: location?.coord?.lng },
-        ...decodedPolyline.polyline.map(point => ({ latitude: point[0], longitude: point[1] })), { latitude: pickupLat, longitude: pickupLng }
-    ] : decodedPolyline.polyline.map(point => ({ latitude: point[0], longitude: point[1] }));
-
-
-    // Calculate the center point between pickup and dropoff for initial map region
-    const initialRegion = pickupLat && pickupLng && dropoffLat && dropoffLng ? {
-        latitude: (pickupLat + dropoffLat) / 2,
-        longitude: (pickupLng + dropoffLng) / 2,
-        latitudeDelta: Math.max(0.01, Math.abs(pickupLat - dropoffLat) / 2),
-        longitudeDelta: Math.max(0.01, Math.abs(pickupLng - dropoffLng) / 2),
-    } : {
-        latitude: 10.762622,
-        longitude: 106.660172,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
-    };
-
-    // Fit map to route when locations are available
-    useEffect(() => {
-        if (pickupLat && pickupLng && dropoffLat && dropoffLng && mapRef.current) {
-            const coordinates = [
-                { latitude: pickupLat, longitude: pickupLng },
-                { latitude: dropoffLat, longitude: dropoffLng }
-            ];
-            mapRef.current.fitToCoordinates(coordinates, {
-                edgePadding: { top: 50, right: 50, bottom: 200, left: 50 },
-                animated: true
-            });
-        }
-    }, [pickupLat, pickupLng, dropoffLat, dropoffLng]);
 
     const handleActionButton = () => {
         switch (deliveryState) {
@@ -100,6 +71,51 @@ const OnDelivery = () => {
         }
     };
 
+    const driverPickupDecoded = driverPickupPolyline ? decode(driverPickupPolyline).polyline : [];
+    const pickupDropoffDecoded = pickupDropoffPolyline ? decode(pickupDropoffPolyline).polyline : [];
+
+    // Calculate the center point between pickup and dropoff for initial map region
+    const routeCoordinates = [
+        location?.coord ? { latitude: location.coord.lat, longitude: location.coord.lng } : null,
+        ...driverPickupDecoded.map(point => ({ latitude: point[0], longitude: point[1] })),
+        pickupLat && pickupLng ? { latitude: pickupLat, longitude: pickupLng } : null,
+        ...pickupDropoffDecoded.map(point => ({ latitude: point[0], longitude: point[1] })),
+        dropoffLat && dropoffLng ? { latitude: dropoffLat, longitude: dropoffLng } : null,
+    ].filter((p): p is { latitude: number; longitude: number } => !!p);
+
+
+    // Calculate the center point between pickup and dropoff for initial map region
+    const initialRegion = pickupLat && pickupLng && dropoffLat && dropoffLng ? {
+        latitude: (pickupLat + dropoffLat) / 2,
+        longitude: (pickupLng + dropoffLng) / 2,
+        latitudeDelta: Math.max(0.01, Math.abs(pickupLat - dropoffLat) / 2),
+        longitudeDelta: Math.max(0.01, Math.abs(pickupLng - dropoffLng) / 2),
+    } : {
+        latitude: 10.762622,
+        longitude: 106.660172,
+        latitudeDelta: 0.0922,
+        longitudeDelta: 0.0421,
+    };
+
+
+    // Fit map to route when locations are available
+    useEffect(() => {
+        if (pickupLat && pickupLng && dropoffLat && dropoffLng && mapRef.current) {
+            const coordinates = [
+                { latitude: pickupLat, longitude: pickupLng },
+                { latitude: dropoffLat, longitude: dropoffLng },
+                { latitude: location?.coord?.lat, longitude: location?.coord?.lng },
+            ];
+            mapRef.current.fitToCoordinates(coordinates, {
+                edgePadding: { top: 50, right: 50, bottom: 200, left: 50 },
+                animated: true
+            });
+        }
+    }, [pickupLat, pickupLng, dropoffLat, dropoffLng]);
+
+
+
+
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
@@ -116,11 +132,11 @@ const OnDelivery = () => {
                 {location?.coord?.lat && location.coord.lng && (
                     <Marker
                         coordinate={{ latitude: location?.coord?.lat, longitude: location?.coord?.lng }}
-                        title="Điểm đón"
+                        title="Vị trí của bạn"
                         anchor={{ x: 0.5, y: 0.5 }} // Chính giữa icon
                     >
                         <View style={styles.motorcycleMarker}>
-                            {orderMain?.vehicleType === 'MOTORBIKE' ? (
+                            {vehicleType === 'MOTORBIKE' ? (
                                 <FontAwesome5 name="motorcycle" size={24} color={COLOR.orange50} />
                             ) : (
                                 <MaterialCommunityIcons name="car" size={24} color={COLOR.orange50} />
@@ -132,8 +148,15 @@ const OnDelivery = () => {
                 {pickupLat && pickupLng && (
                     <Marker
                         coordinate={{ latitude: pickupLat, longitude: pickupLng }}
-                        title="Điểm trả"
-                        pinColor="red"
+                        title="Điểm lấy hàng"
+                        pinColor={COLOR.orange50}
+                    />
+                )}
+                {dropoffLat && dropoffLng && (
+                    <Marker
+                        coordinate={{ latitude: dropoffLat, longitude: dropoffLng }}
+                        title="Điểm trả hàng"
+                        pinColor={COLOR.green40}
                     />
                 )}
                 {/* Route Line */}
@@ -144,20 +167,21 @@ const OnDelivery = () => {
                 />
             </MapView>
 
+
             {/* Customer Info Card */}
             <View style={styles.customerCard}>
                 <View style={styles.customerHeader}>
                     <View style={styles.headerButtons}>
                         <TouchableOpacity
                             style={styles.detailButton}
-                            onPress={() => router.push("/driver/order/order-detail")}
+                            onPress={() => router.push("/driver/delivery/order-detail")}
                         >
                             <Ionicons name="document-text-outline" size={20} color="#007AFF" />
                             <Text style={styles.detailText}>Chi tiết đơn hàng</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             style={styles.directionButton}
-                            onPress={() => router.push("/driver/order/direct-route")}
+                            onPress={() => router.push("/driver/delivery/direct-route")}
                         >
                             <Ionicons name="navigate" size={20} color="#007AFF" />
                             <Text style={styles.directionText}>Điều hướng</Text>
@@ -166,23 +190,16 @@ const OnDelivery = () => {
                 </View>
 
                 <View style={styles.customerInfo}>
-                    <Text style={styles.infoValue}>{pickupDropoffDistance ? `${pickupDropoffDistance} m` : '---'}</Text>
-
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                        <Text style={styles.infoTag}>{orderDetail?.packageType || '---'}</Text>
-                        <Text style={styles.infoTag}>{orderDetail?.weightKg ? `${orderDetail.weightKg} kg` : '---'}</Text>
-                        <Text style={styles.infoTag}>
-                            {orderDetail?.lengthCm && orderDetail?.widthCm && orderDetail?.heightCm
-                                ? `${orderDetail.lengthCm} x ${orderDetail.widthCm} x ${orderDetail.heightCm} cm`
-                                : '---'}
-                        </Text>
-                    </View>
-
-                    <Text style={styles.infoValue}>Giá: {orderMain?.price ? `${orderMain.price.toLocaleString()}đ` : '---'}</Text>
+                    <Text style={styles.customerName}>{orderDetail.packageType}</Text>
+                    <Text style={styles.locationAddress}>
+                        Cân nặng: {orderDetail.weightKg}kg{'\n'}
+                        Kích cỡ: {orderDetail.lengthCm}cm x {orderDetail.widthCm}cm x {orderDetail.heightCm}cm
+                    </Text>
+                    <Text style={styles.price}>Phí thu: {orderMain.price.toLocaleString()}đ  <Text style={styles.paymentMethod}>Thẻ/Ví</Text></Text>
                 </View>
 
                 <View style={styles.actionButtons}>
-                    <TouchableOpacity style={styles.actionButton} onPress={() => router.push('/customer/user/chat')}>
+                    <TouchableOpacity style={styles.actionButton}>
                         <Ionicons name="chatbubble-outline" size={24} color="#333" />
                         <Text style={styles.actionButtonText}>Nhắn tin</Text>
                     </TouchableOpacity>
@@ -357,5 +374,4 @@ const styles = StyleSheet.create({
         marginBottom: 2,
     },
 });
-
-export default OnDelivery;
+export default OnDelivery; 

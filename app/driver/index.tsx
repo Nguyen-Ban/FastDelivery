@@ -14,81 +14,66 @@ import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import MapView, { Marker } from "react-native-maps";
 import { useRouter } from "expo-router";
 
-import GLOBAL from "../../constants/GlobalStyles";
 import { useLocation } from "../../contexts/location.context";
 import { useAuth } from "../../contexts/auth.context";
 import socketDriverService from "../../services/socket.driver";
-import { useOrderDriver } from "@/contexts/order.driver.context";
-import { useSocketDriver } from "@/contexts/socker.driver.context";
+import socket from "@/services/socket";
+import { ROLE } from "@/types";
 
 const Driver = () => {
-  const { connect, disconnect, emitEvent } = useSocketDriver();
-  const { hasOrder } = useOrderDriver();
+  const { location, getCurrentLocation } = useLocation();
+  const { user } = useAuth();
   const [online, setOnline] = useState(false);
+  const [hasOrder, setHasOrder] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isOrderVisible, setIsOrderVisible] = useState(false);
-  const [showEarningsModal, setShowEarningsModal] = useState(false);
   const [autoReceive, setAutoReceive] = useState(false);
   const router = useRouter();
   const mapRef = useRef<MapView>(null);
-  const { location, getCurrentLocation } = useLocation();
-  const { user } = useAuth();
+
+
   const locationUpdateInterval = useRef<NodeJS.Timeout>();
 
   // Display Menu Text
   const [isMenuTextVisible, setIsMenuTextVisible] = useState(false);
 
-  useEffect(() => {
-  }, [])
-
-  useEffect(() => {
-    const showEarnings = router.canGoBack();
-    if (showEarnings) {
-      setShowEarningsModal(false);
-    }
-
-    // Cleanup socket listeners and interval when component unmounts
-    return () => {
-      socketDriverService.off('new_order');
-      socketDriverService.off('order_cancelled');
-      socketDriverService.off('order_accepted');
-      if (locationUpdateInterval.current) {
-        clearInterval(locationUpdateInterval.current);
-      }
-    };
-  }, []);
 
   // Effect to handle location updates when online
   useEffect(() => {
     console.log('Location update effect:', online, location);
-    if (online && location) {
-      // Start sending location updates every 5 seconds
-      // locationUpdateInterval.current = setInterval(() => {
-      console.log('Sending location update:')
-      emitEvent('location:update', {
-        lng: location.coord?.lng,
-        lat: location.coord?.lat
-      });
-      // }, 3000);
-
-      // Send initial location update
-      socketDriverService.emit('location:update', {
-        lng: location.coord?.lng,
-        lat: location.coord?.lat
-      });
-    } else {
-      // Clear interval when going offline
-      if (locationUpdateInterval.current) {
-        clearInterval(locationUpdateInterval.current);
-      }
+    if (!online) {
+      console.log('Not online, skipping location updates');
+      return;
     }
 
-    return () => {
-      if (locationUpdateInterval.current) {
-        clearInterval(locationUpdateInterval.current);
-      }
-    };
+    const interval = setInterval(() => {
+      if (!location || !online) return;
+
+      socket.emit("location:update", {
+        lat: location.coord?.lat,
+        lng: location.coord?.lng,
+      });
+      console.log('Sending location update:', {
+        lat: location.coord?.lat,
+        lng: location.coord?.lng
+      });
+
+    }, 3000); // mỗi 5s
+
+    return () => clearInterval(interval);
+
   }, [online, location]);
+
+  useEffect(() => {
+    if (!online) return;
+    socket.on('order:new', (response) => {
+      console.log('New order received:', response);
+      setHasOrder(true);
+    });
+    return () => {
+      socket.off('order:new');
+    }
+  }, [online]);
 
   const handleLocatePress = async () => {
     console.log('handleLocatePress');
@@ -117,14 +102,14 @@ const Driver = () => {
     if (newStatus) {
       try {
         // Go online
-        await connect();
+        await socket.connect(ROLE.DRIVER);
       } catch (error) {
         console.error('Error connecting to socket:', error);
         Alert.alert('Lỗi', 'Không thể kết nối đến máy chủ');
         setOnline(false); // Reset online status if connection fails
       }
     } else {
-      disconnect();
+      socket.disconnect();
     }
   };
 
@@ -172,34 +157,16 @@ const Driver = () => {
       {/* Calendar Button with Notification */}
       <TouchableOpacity
         style={styles.calendarButton}
-        onPress={() => router.push("/driver/order/available-order")}
+        onPress={() => {
+          router.push("/driver/order/available-order")
+          setHasOrder(false); // Reset order Notification}
+        }}
       >
         <View style={styles.calendarIconContainer}>
           <MaterialIcons name="event-note" size={24} color="#333" />
           {hasOrder ? <View style={styles.notificationBadge} /> : null}
         </View>
       </TouchableOpacity>
-
-      {/* Earnings Modal */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={showEarningsModal}
-        onRequestClose={() => setShowEarningsModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.earningsTitle}>Thu nhập ròng</Text>
-            <Text style={styles.earningsAmount}>13.870đ</Text>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => setShowEarningsModal(false)}
-            >
-              <Text style={styles.modalButtonText}>Tuyệt vời</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
       {/* Action buttons on map */}
       <View style={styles.mapButtons}>

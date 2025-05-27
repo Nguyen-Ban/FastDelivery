@@ -10,6 +10,7 @@ import COLOR from "../../../../constants/Colors";
 import GLOBAL from "../../../../constants/GlobalStyles";
 import { useOrder } from "../../../../contexts/order.context";
 import { PhoneNumber } from "libphonenumber-js";
+import { LOCATION_TYPE, ORDER_TYPES } from "@/types";
 
 const LocationPicked = () => {
   const router = useRouter();
@@ -69,7 +70,7 @@ const LocationPicked = () => {
     };
 
     // Update the appropriate context based on location type
-    if (params.type === 'pickup') {
+    if (params.locationType === LOCATION_TYPE.PICKUP) {
       setSender(personInfo);
     } else {
       setReceiver(personInfo);
@@ -77,10 +78,10 @@ const LocationPicked = () => {
 
     // Navigate to next screen
     router.push({
-      pathname: "/order/order-detail",
+      pathname: "/customer/order/order-detail",
       params: {
         address: params.address,
-        type: params.type
+        orderType: params.orderType
       },
     });
   };

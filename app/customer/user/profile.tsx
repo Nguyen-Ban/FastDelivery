@@ -272,7 +272,7 @@ const ProfileScreen = () => {
             />
             <Button
               title="Đổi mật khẩu"
-              onPress={() => router.push("/user/change-password")}
+              onPress={() => router.push("/customer/user/change-password")}
               size="medium"
               type="sub"
               textStyle={{ fontSize: 16 }}

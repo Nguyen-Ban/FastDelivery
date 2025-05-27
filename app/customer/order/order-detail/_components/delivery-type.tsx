@@ -13,8 +13,8 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import COLOR from "../../../../../constants/Colors";
 import { useOrder } from "../../../../../contexts/order.context";
-import { DELIVERY_TYPE } from "@/constants/DeliveryTypes";
 import orderService from "@/services/order.service";
+import { DELIVERY_TYPE } from "@/types";
 
 const { width, height } = Dimensions.get('window');
 
@@ -47,12 +47,17 @@ const DeliveryType = () => {
 
   const fetchPrices = async () => {
     try {
-      const res = await orderService.getPrices(vehicleType, pickupLocation?.position ?? null, dropoffLocation?.position ?? null);
+      if (!vehicleType || !pickupLocation?.coord || !dropoffLocation?.coord) {
+        Alert.alert('Thông báo', 'Vui lòng chọn loại xe và vị trí giao hàng');
+        return;
+      }
+      const res = await orderService.getPrices(vehicleType, pickupLocation?.coord, dropoffLocation?.coord);
       if (!res?.success) {
         Alert.alert('Thông báo', 'Có lỗi xảy ra trong quá trình lấy giá');
       }
       setEconomyPrice(res?.data?.economyPrice);
       setExpressPrice(res?.data?.expressPrice);
+      setDeliveryPrice(res?.data?.expressPrice);
     } catch (error) {
       Alert.alert('Thông báo', 'Có lỗi xảy ra trong quá trình lấy giá');
     }

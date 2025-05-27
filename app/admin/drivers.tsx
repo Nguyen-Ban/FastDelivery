@@ -1,25 +1,18 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, FlatList, Platform, StatusBar } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
+import { DRIVER_STATUS, DriverAdminInfo } from "@/types";
+import driverService from "@/services/driver.service";
 
-interface Driver {
-  id: string;
-  name: string;
-  phone: string;
-  rating: number;
-  totalTrips: number;
-  status: "active" | "inactive";
-}
-
-const DriverCard = ({ driver }: { driver: Driver }) => (
+const DriverCard = ({ driver }: { driver: DriverAdminInfo }) => (
   <View style={styles.driverCard}>
     <View style={styles.driverInfo}>
       <View style={styles.avatarContainer}>
         <FontAwesome5 name="user-circle" size={50} color="#9e9e9e" />
       </View>
       <View style={styles.details}>
-        <Text style={styles.driverName}>{driver.name}</Text>
-        <Text style={styles.driverPhone}>{driver.phone}</Text>
+        <Text style={styles.driverName}>{driver.fullName}</Text>
+        <Text style={styles.driverPhone}>{driver.phoneNumber}</Text>
         <View style={styles.ratingContainer}>
           <FontAwesome5 name="star" size={16} color="#ffc107" solid />
           <Text style={styles.ratingText}>{driver.rating.toFixed(1)}</Text>
@@ -32,12 +25,12 @@ const DriverCard = ({ driver }: { driver: Driver }) => (
             styles.statusBadge,
             {
               backgroundColor:
-                driver.status === "active" ? "#00BFA5" : "#757575",
+                driver.status === DRIVER_STATUS.AVAILABLE ? "#00BFA5" : "#757575",
             },
           ]}
         >
           <Text style={styles.statusText}>
-            {driver.status === "active" ? "Hoạt động" : "Không hoạt động"}
+            {driver.status === DRIVER_STATUS.AVAILABLE ? "Hoạt động" : "Không hoạt động"}
           </Text>
         </View>
       </View>
@@ -45,34 +38,21 @@ const DriverCard = ({ driver }: { driver: Driver }) => (
   </View>
 );
 
+
+
 export default function DriversScreen() {
-  // Dữ liệu mẫu - sẽ được thay thế bằng dữ liệu thực từ API
-  const drivers: Driver[] = [
-    {
-      id: "1",
-      name: "Nguyễn Văn A",
-      phone: "0123456789",
-      rating: 4.8,
-      totalTrips: 156,
-      status: "active",
-    },
-    {
-      id: "2",
-      name: "Trần Văn B",
-      phone: "0987654321",
-      rating: 4.5,
-      totalTrips: 98,
-      status: "active",
-    },
-    {
-      id: "3",
-      name: "Lê Văn C",
-      phone: "0369852147",
-      rating: 4.2,
-      totalTrips: 45,
-      status: "inactive",
-    },
-  ];
+  const [drivers, setDrivers] = useState<DriverAdminInfo[]>([]);
+
+  useEffect(() => {
+    const fetchDrivers = async () => {
+      const res = await driverService.fetchAllDrivers();
+      if (res.success && res.data) {
+        setDrivers(res.data);
+      };
+    }
+    fetchDrivers();
+
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -85,7 +65,7 @@ export default function DriversScreen() {
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>
-              {drivers.filter((d) => d.status === "active").length}
+              {drivers.filter((d) => d.status === DRIVER_STATUS.AVAILABLE).length}
             </Text>
             <Text style={styles.statLabel}>Đang hoạt động</Text>
           </View>

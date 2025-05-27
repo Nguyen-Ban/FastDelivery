@@ -25,10 +25,11 @@ import { useFonts } from "expo-font";
 import { useAuth } from "../../../contexts/auth.context";
 import { useLocation } from "../../../contexts/location.context";
 import driverService from "../../../services/driver.service";
+import { ORDER_TYPES } from "@/types";
 
 const HomeScreen = () => {
   const [Cascadia] = useFonts({
-    "Cascadia-Bold": require("../../assets/font/CascadiaCode-Bold.ttf"),
+    "Cascadia-Bold": require("../../../assets/font/CascadiaCode-Bold.ttf"),
   });
   const { user } = useAuth();
   const {
@@ -97,19 +98,19 @@ const HomeScreen = () => {
     { id: "7", name: "Chế độ tài xế", icon: "car-side" },
   ];
   const ads = [
-    require("../../assets/ad_1.png"),
-    require("../../assets/ad_2.png"),
-    require("../../assets/ad_3.png"),
+    require("../../../assets/ad_1.png"),
+    require("../../../assets/ad_2.png"),
+    require("../../../assets/ad_3.png"),
   ];
 
-  const [selectedDeliveryType, setSelectedDeliveryType] = useState<'MOTORBIKE' | 'CAR' | null>(null);
+  const [selectedDeliveryType, setSelectedDeliveryType] = useState<ORDER_TYPES>();
 
-  const handleDeliverySelection = (type: 'MOTORBIKE' | 'CAR') => {
-    setSelectedDeliveryType(type);
+  const handleDeliverySelection = (orderType: ORDER_TYPES) => {
+    setSelectedDeliveryType(orderType);
 
     router.push({
       pathname: '/customer/order/location',
-      params: { type }
+      params: { orderType }
     });
   };
 
@@ -124,9 +125,9 @@ const HomeScreen = () => {
   const getRouteById = (id: string): ServiceRoute | (() => void) => {
     switch (id) {
       case "1":
-        return () => handleDeliverySelection('MOTORBIKE');
+        return () => handleDeliverySelection(ORDER_TYPES.MOTORBIKE_DELIVERY);
       case "6":
-        return () => handleDeliverySelection('CAR');
+        return () => handleDeliverySelection(ORDER_TYPES.CAR_DELIVERY);
       case "2":
         return "/customer/user/events";
       case "3":
@@ -167,7 +168,7 @@ const HomeScreen = () => {
           style={styles.gradient}
         >
           <Image
-            source={require("../../assets/logo.png")}
+            source={require("../../../assets/logo.png")}
             style={{ width: 120, height: 120 }}
           />
           <Text

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE, Region } from 'react-native-maps';
 import { Ionicons, FontAwesome5, MaterialCommunityIcons } from '@expo/vector-icons';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -9,6 +9,11 @@ import COLOR from '../../../constants/Colors';
 import { decode } from '@here/flexpolyline';
 import { useOrder } from '../../../contexts/order.context';
 import FindingDriverPanel from './_components/finding-driver-panel';
+import { DELIVERY_STATUS, DriverInfo, VEHICLE_TYPES } from '@/types';
+import OnDeliveryPanel from './_components/on-delivery-panel';
+import CompleteDeliveryPanel from './_components/complete-delivery-panel';
+import CancelledPanel from './_components/cancelled-panel';
+import socket from '@/services/socket';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -17,35 +22,30 @@ const PANEL_HEIGHT = SCREEN_HEIGHT * 0.45;
 
 const DeliveryPage = () => {
     const router = useRouter();
-    const { pickupLocation, dropoffLocation, polyline,
-        vehicleType, driverInfo, orderId, driverFound } = useOrder();
+    const params = useLocalSearchParams();
+    // Parse params for complex objects if needed
+    const pickupLocation = JSON.parse(params.pickupLocation as string);
+    const dropoffLocation = JSON.parse(params.dropoffLocation as string);
+    const polyline = params.polyline as string;
+    const vehicleType = params.vehicleType as VEHICLE_TYPES;
+    const [driverInfo, setDriverInfo] = useState<DriverInfo>();
+    const [isDriverFound, setIsDriverFound] = useState(false);
+    const [deliveryPolyline, setDeliveryPolyline] = useState<string>(polyline);
+    const [orderId, setOrderId] = useState('#FD123456'); // Mock order ID, replace with actual data later
+
     const mapRef = useRef<MapView>(null);
 
-    // Mock order data (will be replaced with API data later)
-    const [orderData, setOrderData] = useState({
-        orderId: '#FD123456',
-        status: 'Đang giao hàng',
-        estimatedTime: '45 phút',
-        distance: '12.5 km',
-        driver: {
-            name: 'Nguyễn Văn A',
-            phone: '0123456789',
-        },
-        payment: {
-            status: 'Đã thanh toán',
-            method: 'Tiền mặt (Người gửi)',
-            totalFee: 132000,
-        },
-    });
     const [showFinding, setShowFinding] = useState(true);
 
+    const [deliveryStatus, setDeliveryStatus] = useState<DELIVERY_STATUS>(DELIVERY_STATUS.PENDING);
+
     // Decode polyline string
-    const polylineString = polyline || 'gfo}Eto~u`@_';
+    const polylineString = deliveryPolyline || 'gfo}Eto~u`@_';
     const decodedPolyline = decode(polylineString);
-    const routeCoordinates = pickupLocation?.position ? [
+    const routeCoordinates = pickupLocation?.coord ? [
         {
-            latitude: pickupLocation.position.lat,
-            longitude: pickupLocation.position.lng
+            latitude: pickupLocation.coord.lat,
+            longitude: pickupLocation.coord.lng
         },
         ...decodedPolyline.polyline.map(point => ({
             latitude: point[0],
@@ -58,24 +58,26 @@ const DeliveryPage = () => {
 
 
     // Calculate the center point between pickup and dropoff for initial map region
-    const initialRegion = pickupLocation?.position && dropoffLocation?.position ? {
-        latitude: (pickupLocation.position.lat + dropoffLocation.position.lat) / 2,
-        longitude: (pickupLocation.position.lng + dropoffLocation.position.lng) / 2,
-        latitudeDelta: Math.max(0.01, Math.abs(pickupLocation.position.lat - dropoffLocation.position.lat) / 2),
-        longitudeDelta: Math.max(0.01, Math.abs(pickupLocation.position.lng - dropoffLocation.position.lng) / 2),
+    const initialRegion = pickupLocation?.coord && dropoffLocation?.coord ? {
+        latitude: (pickupLocation.coord.lat + dropoffLocation.coord.lat) / 2,
+        longitude: (pickupLocation.coord.lng + dropoffLocation.coord.lng) / 2,
+        latitudeDelta: Math.max(0.01, Math.abs(pickupLocation.coord.lat - dropoffLocation.coord.lat) / 2),
+        longitudeDelta: Math.max(0.01, Math.abs(pickupLocation.coord.lng - dropoffLocation.coord.lng) / 2),
     } : {
         latitude: 10.762622,
         longitude: 106.660172,
         latitudeDelta: 0.0922,
         longitudeDelta: 0.0421,
     };
+
+
     // Function to fit map to route bounds
     const fitMapToRoute = () => {
-        if (!pickupLocation?.position || !dropoffLocation?.position || !mapRef.current) return;
+        if (!pickupLocation?.coord || !dropoffLocation?.coord || !mapRef.current) return;
 
         const coordinates = [
-            { latitude: pickupLocation.position.lat, longitude: pickupLocation.position.lng },
-            { latitude: dropoffLocation.position.lat, longitude: dropoffLocation.position.lng }
+            { latitude: pickupLocation.coord.lat, longitude: pickupLocation.coord.lng },
+            { latitude: dropoffLocation.coord.lat, longitude: dropoffLocation.coord.lng }
         ];
 
         mapRef.current.fitToCoordinates(coordinates, {
@@ -86,32 +88,76 @@ const DeliveryPage = () => {
 
     // Effect to zoom to route when locations are available
     useEffect(() => {
-        if (pickupLocation?.position && dropoffLocation?.position) {
+        if (pickupLocation?.coord && dropoffLocation?.coord) {
             fitMapToRoute();
         }
     }, [pickupLocation, dropoffLocation]);
 
     // Hiển thị panel tìm tài xế cho đến khi driverFound là true
     useEffect(() => {
-        if (driverFound) {
+        if (isDriverFound) {
             setShowFinding(false);
         } else {
             setShowFinding(true);
         }
-    }, [driverFound]);
+    }, [isDriverFound]);
 
-    const handleCallDriver = () => {
-        const phoneNumber = orderData.driver.phone;
-        if (phoneNumber) {
-            Linking.openURL(`tel:${phoneNumber}`);
-        }
-    };
+
 
     const handleChatDriver = () => {
+        router.push({
+            pathname: '/customer/delivery/chat',
+            params: {
+                orderId: orderId,
+                driverId: driverInfo?.id
+            }
+        });
         // Implement chat functionality here
         console.log('Chat with driver');
     };
 
+
+    useEffect(() => {
+        socket.on('order:driverFound', (response) => {
+            if (response.success) {
+                console.log('Driver found:');
+                setDriverInfo(response.data.driverInfo);
+                setIsDriverFound(true);
+                setDeliveryStatus(DELIVERY_STATUS.IN_PROGRESS);
+            } else {
+                console.error('Error finding driver:', response.message);
+            }
+        })
+
+        socket.on('order:completed', (response) => {
+            if (response.success) {
+                setDeliveryStatus(DELIVERY_STATUS.COMPLETED);
+            } else {
+                console.error('Error completing delivery:', response.message);
+            }
+        });
+
+        socket.on('order:cancelled', (response) => {
+            if (response.success) {
+                setDeliveryStatus(DELIVERY_STATUS.CANCELLED);
+                router.back();
+            } else {
+                console.error('Error cancelling order:', response.message);
+            }
+        });
+
+        socket.on('order:deliveryPolyline', (response) => {
+            if (response.success) setDeliveryPolyline(response.data.polyline);
+            else console.error('Error fetching delivery polyline:', response.message);
+        });
+        // Clean up socket listeners on unmount
+        return () => {
+            socket.off('order:driverFound');
+            socket.off('order:completed');
+            socket.off('order:cancelled');
+            socket.off('order:deliveryPolyline');
+        };
+    }, []);
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
@@ -125,11 +171,11 @@ const DeliveryPage = () => {
                     mapPadding={{ top: 40, right: 40, bottom: PANEL_HEIGHT + 40, left: 40 }}
                 >
                     {/* Pickup Marker */}
-                    {pickupLocation?.position && (
+                    {pickupLocation?.coord && (
                         <Marker
                             coordinate={{
-                                latitude: pickupLocation.position.lat,
-                                longitude: pickupLocation.position.lng
+                                latitude: pickupLocation.coord.lat,
+                                longitude: pickupLocation.coord.lng
                             }}
                             title="Điểm đón"
                             pinColor={COLOR.orange50}
@@ -139,11 +185,11 @@ const DeliveryPage = () => {
                     )}
 
                     {/* Dropoff Marker */}
-                    {dropoffLocation?.position && (
+                    {dropoffLocation?.coord && (
                         <Marker
                             coordinate={{
-                                latitude: dropoffLocation.position.lat,
-                                longitude: dropoffLocation.position.lng
+                                latitude: dropoffLocation.coord.lat,
+                                longitude: dropoffLocation.coord.lng
                             }}
                             title="Điểm trả"
                             pinColor={COLOR.green40}
@@ -168,83 +214,35 @@ const DeliveryPage = () => {
 
                 {/* Bottom Panel */}
                 <View style={styles.infoPanel}>
-                    {showFinding ? (
-                        <FindingDriverPanel onCancel={() => router.back()} />
-                    ) : (
-                        <>
-                            {/* Order Summary - Clickable to go to details */}
-                            <TouchableOpacity
-                                style={styles.orderSummary}
-                                onPress={() => router.push('/customer/order/order-detail/delivery-detail')}
-                            >
-                                <View style={styles.orderHeader}>
-                                    <View style={styles.orderStatus}>
-                                        <View style={styles.statusIndicator}>
-                                            <FontAwesome5 name="truck" size={24} color={COLOR.orange50} />
-                                        </View>
-                                        <View>
-                                            <Text style={styles.statusText}>{orderData.status}</Text>
-                                            <Text style={styles.orderId}>Mã đơn: {orderId}</Text>
-                                        </View>
-                                    </View>
-                                    <Ionicons name="chevron-forward" size={24} color="#666" />
-                                </View>
-                            </TouchableOpacity>
-
-                            {/* Driver Information */}
-                            <View style={styles.driverSection}>
-                                <Text style={styles.sectionTitle}>Thông tin tài xế</Text>
-                                <ScrollView style={{ maxHeight: 120 }}>
-                                    <View style={styles.driverInfo}>
-                                        <View style={styles.infoRow}>
-                                            <View style={styles.infoIcon}>
-                                                <FontAwesome5 name="user" size={20} color="#666" />
-                                            </View>
-                                            <View style={styles.infoContent}>
-                                                <Text style={styles.infoLabel}>Tài xế</Text>
-                                                <Text style={styles.infoValue}>{driverInfo?.fullName}</Text>
-                                            </View>
-                                        </View>
-
-                                        <View style={styles.infoRow}>
-                                            <View style={styles.infoIcon}>
-                                                <Ionicons name="call-outline" size={20} color="#666" />
-                                            </View>
-                                            <View style={styles.infoContent}>
-                                                <Text style={styles.infoLabel}>Liên hệ</Text>
-                                                <Text style={styles.infoValue}>{driverInfo?.phoneNumber}</Text>
-                                            </View>
-                                        </View>
-                                        <View style={styles.infoRow}>
-                                            <View style={styles.infoIcon}>
-                                                <Ionicons name="call-outline" size={20} color="#666" />
-                                            </View>
-                                            <View style={styles.infoContent}>
-                                                <Text style={styles.infoLabel}>Liên hệ</Text>
-                                                <Text style={styles.infoValue}>{driverInfo?.vehiclePlate}</Text>
-                                            </View>
-                                        </View>
-                                    </View>
-                                </ScrollView>
-                            </View>
-
-                            {/* Fixed Footer with Action Buttons */}
-                            <View style={styles.panelFooter}>
-                                <TouchableOpacity style={styles.actionButton} onPress={handleCallDriver}>
-                                    <Ionicons name="call" size={24} color={COLOR.orange50} />
-                                    <Text style={styles.actionText}>Gọi tài xế</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.actionButton} onPress={() => router.push({
-                                    pathname: '/customer/user/chat',
-                                    params: {
-                                        orderId: orderId
-                                    }
-                                })}>
-                                    <Ionicons name="chatbubble-ellipses" size={24} color={COLOR.orange50} />
-                                    <Text style={styles.actionText}>Nhắn tin</Text>
-                                </TouchableOpacity>
-                            </View>
-                        </>
+                    {deliveryStatus === DELIVERY_STATUS.PENDING && (
+                        <FindingDriverPanel onCancel={() => {
+                            router.back();
+                        }} />
+                    )}
+                    {deliveryStatus === DELIVERY_STATUS.IN_PROGRESS && (
+                        <OnDeliveryPanel
+                            orderId={orderId}
+                            driverInfo={driverInfo}
+                            onChat={handleChatDriver}
+                            onDeliveryDetail={() => {
+                                router.push({
+                                    pathname: '/customer/delivery/delivery-detail',
+                                    params: { orderId }
+                                });
+                            }}
+                        />
+                    )}
+                    {deliveryStatus === DELIVERY_STATUS.COMPLETED && (
+                        <CompleteDeliveryPanel
+                            driverName={driverInfo?.fullName || 'Nguyễn Văn A'}
+                            onSubmit={() => {
+                                // Optionally reset or navigate away after rating
+                                router.push('/customer/home');
+                            }}
+                        />
+                    )}
+                    {deliveryStatus === DELIVERY_STATUS.CANCELLED && (
+                        <CancelledPanel onBackHome={() => router.push('/customer/home')} />
                     )}
                 </View>
             </SafeAreaView>

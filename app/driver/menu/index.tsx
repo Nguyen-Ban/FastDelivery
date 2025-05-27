@@ -39,7 +39,7 @@ const DriverMenu = () => {
                             <Text style={styles.rating}>5.0</Text>
                         </View>
                     </View>
-                    <TouchableOpacity onPress={() => router.push("/driver/profile")}>
+                    <TouchableOpacity onPress={() => router.push("/driver/menu/profile")}>
                         <Ionicons name="chevron-forward" size={24} color="#666" />
                     </TouchableOpacity>
                 </View>
@@ -48,7 +48,7 @@ const DriverMenu = () => {
                 <View style={styles.menuItems}>
                     <TouchableOpacity
                         style={styles.menuItem}
-                        onPress={() => router.push("/driver/my-wallet")}
+                        onPress={() => router.push("/driver/menu/my-wallet")}
                     >
                         <View style={styles.menuIconBox}>
                             <Ionicons name="wallet-outline" size={24} color="#333" />
@@ -59,7 +59,7 @@ const DriverMenu = () => {
 
                     <TouchableOpacity
                         style={styles.menuItem}
-                        onPress={() => router.push("/driver/delivery-history")}
+                        onPress={() => router.push("/driver/menu/delivery-history")}
                     >
                         <View style={styles.menuIconBox}>
                             <MaterialIcons name="history" size={24} color="#333" />
@@ -70,7 +70,7 @@ const DriverMenu = () => {
 
                     <TouchableOpacity
                         style={styles.menuItem}
-                        onPress={() => router.push("/driver/income-stats")}
+                        onPress={() => router.push("/driver/menu/income-stats")}
                     >
                         <View style={styles.menuIconBox}>
                             <Ionicons name="stats-chart-outline" size={24} color="#333" />
@@ -81,7 +81,7 @@ const DriverMenu = () => {
 
                     <TouchableOpacity
                         style={styles.menuItem}
-                        onPress={() => router.push("/driver/notifications")}
+                        onPress={() => router.push("/driver/menu/notifications")}
                     >
                         <View style={styles.menuIconBox}>
                             <FontAwesome5 name="bell" size={24} color="#333" />

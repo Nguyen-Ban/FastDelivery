@@ -5,8 +5,7 @@ import authService from '../services/auth.service'; // Dịch vụ xác thực
 import { AuthContextType, AuthState } from '../types/auth';
 
 import { useNotification } from '@/hooks/useNotification';
-import { User } from '@/types/models';
-import { ROLE } from '@/types';
+import { ROLE, User } from '@/types';
 
 
 const initialState = {

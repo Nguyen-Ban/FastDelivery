@@ -1,53 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import COLOR from '../../../constants/Colors';
-import { useOrderDriver } from '@/contexts/order.driver.context';
+import socket from '@/services/socket';
+import { OrderDetail, OrderLocation, OrderMain, OrderSenderReceiver, OrderSpecialDemand } from '@/types';
 
 const OrderDetailPage = () => {
     const router = useRouter();
-    const { orderId, orderMain, orderLocation, orderDetail, orderSenderReceiver, orderSpecialDemand } = useOrderDriver();
-
-    // Mock order data (will be replaced with API data later)
-    const orderDetails = {
-        orderId: '#FD123456',
-        status: 'Đang giao hàng',
-        sender: {
-            name: 'Nguyễn Văn A',
-            phone: '0909123456',
-        },
-        pickupAddress: '123 Nguyễn Văn A, Quận 1, TP.HCM',
-        receiver: {
-            name: 'Trần Thị B',
-            phone: '0909988776',
-        },
-        dropoffAddress: '456 Lê Văn B, Quận 2, TP.HCM',
-        item: {
-            name: 'Tài liệu quan trọng',
-            packageType: 'DOCUMENT',
-            weight: 0.5,
-            size: '50 x 40 x 30 cm',
-            value: 200000,
-        },
-        payment: {
-            method: 'Tiền mặt (Người gửi)',
-            status: 'Đã thanh toán',
-            totalAmount: 132000,
-        },
-        specialRequests: {
-            handDelivery: true,
-            fragileDelivery: true,
-            donateDriver: 10000,
-            homeMoving: false,
-            loading: false,
-            businessValue: 200000,
-            eDocument: false,
-            waiting: true,
-        },
-        notes: 'Xin gọi trước khi giao hàng',
-    };
+    const { orderId } = useLocalSearchParams<{ orderId: string }>();
+    const [orderDetail, setOrderDetail] = useState<OrderDetail>();
+    const [orderLocation, setOrderLocation] = useState<OrderLocation>();
+    const [orderSenderReceiver, setOrderSenderReceiver] = useState<OrderSenderReceiver>();
+    const [orderSpecialDemand, setOrderSpecialDemand] = useState<OrderSpecialDemand>();
+    const [orderMain, setOrderMain] = useState<OrderMain>();
+    useEffect(() => {
+        socket.emit('order:fetchDetails', { orderId }, (response) => {
+            if (response.success) {
+                setOrderDetail(response.data.orderDetail);
+                setOrderLocation(response.data.orderLocation);
+                setOrderSenderReceiver(response.data.orderSenderReceiver);
+                setOrderSpecialDemand(response.data.orderSpecialDemand);
+                setOrderMain(response.data.orderMain);
+            } else {
+                console.error('Failed to fetch order details:', response.error);
+            }
+        });
+        // Fetch order details from API using orderId
+        // This is a placeholder for the actual API call
+        console.log(`Fetching details for order ID: ${orderId}`);
+    }, [orderId]);
 
     // Khai báo type cho icon name
     type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
@@ -89,7 +72,7 @@ const OrderDetailPage = () => {
                     <Text style={styles.sectionTitle}>Trạng thái đơn hàng</Text>
                     <View style={styles.statusContainer}>
                         <View style={styles.statusIndicator} />
-                        <Text style={styles.statusText}>{orderDetails.status}</Text>
+                        <Text style={styles.statusText}>Đang giao hàng</Text>
                     </View>
                 </View>
                 {/* Receiver & Dropoff Address */}
@@ -118,16 +101,16 @@ const OrderDetailPage = () => {
                         <Ionicons name="person-circle-outline" size={28} color={COLOR.orange50} style={{ marginRight: 8 }} />
                         <View>
                             <Text style={styles.personLabel}>Người gửi</Text>
-                            <Text style={styles.personName}>{orderSenderReceiver?.senderName}</Text>
-                            <Text style={styles.personPhone}>{orderSenderReceiver?.senderPhoneNumber}</Text>
+                            <Text style={styles.personName}>{orderSenderReceiver?.sender?.name}</Text>
+                            <Text style={styles.personPhone}>{orderSenderReceiver?.sender?.phoneNumber}</Text>
                         </View>
                     </View>
                     <View style={styles.personBox}>
                         <Ionicons name="person-circle-outline" size={28} color={COLOR.orange50} style={{ marginRight: 8 }} />
                         <View>
                             <Text style={styles.personLabel}>Người nhận</Text>
-                            <Text style={styles.personName}>{orderSenderReceiver?.receiverName}</Text>
-                            <Text style={styles.personPhone}>{orderSenderReceiver?.receiverPhoneNumber}</Text>
+                            <Text style={styles.personName}>{orderSenderReceiver?.receiver?.name}</Text>
+                            <Text style={styles.personPhone}>{orderSenderReceiver?.receiver?.phoneNumber}</Text>
                         </View>
                     </View>
 
@@ -142,7 +125,6 @@ const OrderDetailPage = () => {
                             <MaterialIcons name="category" size={20} color="#666" style={{ marginRight: 6 }} />
                             <Text style={styles.itemType}>{orderDetail?.packageType}</Text>
                         </View>
-                        <Text style={styles.itemName}>{orderDetails.item.name}</Text>
                         <View style={styles.itemRow}>
                             <MaterialIcons name="straighten" size={18} color="#666" style={{ marginRight: 4 }} />
                             <Text style={styles.itemDetails}>Kích thước: {`${orderDetail?.lengthCm} x ${orderDetail?.widthCm} x ${orderDetail?.heightCm} cm`}</Text>
@@ -175,12 +157,12 @@ const OrderDetailPage = () => {
                     <View style={styles.paymentContainer}>
                         <View style={styles.paymentRow}>
                             <Text style={styles.paymentLabel}>Phương thức:</Text>
-                            <Text style={styles.paymentValue}>{orderDetails.payment.method}</Text>
+                            <Text style={styles.paymentValue}>VN Pay</Text>
                         </View>
                         <View style={styles.paymentRow}>
                             <Text style={styles.paymentLabel}>Trạng thái:</Text>
                             <Text style={[styles.paymentValue, styles.paidStatus]}>
-                                {orderDetails.payment.status}
+                                Đã thanh toán
                             </Text>
                         </View>
                         <View style={styles.paymentRow}>
@@ -193,7 +175,7 @@ const OrderDetailPage = () => {
                 </View>
 
                 {/* Notes */}
-                {orderDetails.notes && (
+                {orderMain?.note && (
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Ghi chú</Text>
                         <Text style={styles.notesText}>{orderMain?.note}</Text>

@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, ViewStyle, Platform, StatusBar } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
+import orderService from "@/services/order.service";
 
 interface StatisticCardProps {
   title: string;
@@ -21,7 +22,6 @@ const StatisticCard = ({ title, value, icon, color, style }: StatisticCardProps)
 );
 
 export default function AdminDashboard() {
-  // Dữ liệu mẫu - sẽ được thay thế bằng dữ liệu thực từ API
   const statistics = [
     {
       title: "Doanh thu",
@@ -48,6 +48,24 @@ export default function AdminDashboard() {
       color: "#FF6B6B",
     },
   ];
+
+  useEffect(() => {
+    // Giả lập việc lấy dữ liệu từ API
+    const fetchData = async () => {
+      const res = await orderService.fetchStats();
+      if (res.success && res.data) {
+        const data = res.data;
+        statistics[0].value = `${data.revenue.toLocaleString()} VND`;
+        statistics[1].value = data.ordersPlaced.toString();
+        statistics[2].value = data.ordersDelivered.toString();
+        statistics[3].value = data.ordersCancelled.toString();
+      } else {
+        console.error("Failed to fetch statistics:", res.message);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <ScrollView style={styles.container}>

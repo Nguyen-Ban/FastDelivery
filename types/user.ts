@@ -1,11 +1,9 @@
-interface registerDeviceReqBody {
-    userId: string;
-    token: string;
-    platform: string;
-}
-
-interface unregisterDeviceReqBody {
-    token: string;
+interface User {
+    id: string,
+    fullName: string,
+    phoneNumber: string,
+    email: string,
+    passcode?: string
 }
 
 interface UpdateProfileReqBody {
@@ -21,4 +19,6 @@ interface ChangePasscodeReqBody {
     confirmPasscode: string;
 }
 
-export { registerDeviceReqBody, unregisterDeviceReqBody, UpdateProfileReqBody, ChangePasscodeReqBody }
+export {
+    UpdateProfileReqBody, ChangePasscodeReqBody, User
+}

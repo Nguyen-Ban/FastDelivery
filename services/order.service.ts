@@ -16,6 +16,14 @@ const orderService = {
             throw error;
         }
     },
+    async fetchStats(): Promise<ApiResponse> {
+        try {
+            const res = await RestApiService.getRequest('/order/stats');
+            return res;
+        } catch (error: any) {
+            throw error;
+        }
+    },
 }
 
 export default orderService;

@@ -13,8 +13,8 @@ import {
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from "@expo/vector-icons";
 import COLOR from "../../../../../constants/Colors";
 import { useOrder } from "../../../../../contexts/order.context";
-import { PACKAGE_TYPES } from "@/constants/PackageTypes";
-import { GoodsDetails } from "@/types/OrderDetails";
+import { PACKAGE_TYPES } from "@/types";
+
 
 const { width } = Dimensions.get('window');
 

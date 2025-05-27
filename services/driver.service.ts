@@ -22,7 +22,17 @@ const driverService = {
             }
             throw error;
         }
-    }
+    },
+
+    async fetchAllDrivers(): Promise<ApiResponse> {
+        try {
+            const res = await RestApiService.getRequest('/drivers/list');
+            return res;
+        } catch (error: any) {
+            throw error;
+        }
+    },
+
 
 }
 

@@ -12,13 +12,28 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import socket from "@/services/socket";
 
 const CompletePayment = () => {
   const router = useRouter();
   const [showEarningsModal, setShowEarningsModal] = useState(false);
+  const [deliveryPrice, setDeliveryPrice] = useState(0);
+  const [addonPrice, setAddonPrice] = useState(0);
+  const [earning, setEarning] = useState(0);
 
   const handleComplete = () => {
+    socket.emit("order:complete", {}, (response) => {
+      if (response.success) {
+        setEarning(response.earning);
+        setDeliveryPrice(response.deliveryPrice);
+        setAddonPrice(response.addonPrice);
+      } else {
+        console.error("Error completing order:", response.error);
+      }
+    });
     setShowEarningsModal(true);
+    router.push("../driver");
+
   };
 
   return (
@@ -39,13 +54,10 @@ const CompletePayment = () => {
                             style={styles.earningsIcon}
                         /> */}
             <Text style={styles.earningsTitle}>Thu nhập rồng</Text>
-            <Text style={styles.earningsAmount}>13.870đ</Text>
+            <Text style={styles.earningsAmount}>{earning.toLocaleString()}đ</Text>
             <TouchableOpacity
               style={styles.modalButton}
-              onPress={() => {
-                setShowEarningsModal(false);
-                router.push("../driver");
-              }}
+              onPress={() => handleComplete()}
             >
               <Text style={styles.modalButtonText}>Tuyệt vời</Text>
             </TouchableOpacity>
@@ -67,31 +79,19 @@ const CompletePayment = () => {
         {/* Service Fee */}
         <View style={styles.row}>
           <Text style={styles.label}>Phí dịch vụ</Text>
-          <Text style={styles.value}>19.000đ</Text>
+          <Text style={styles.value}>{deliveryPrice.toLocaleString()}đ</Text>
         </View>
 
         {/* Additional Service */}
         <View style={styles.row}>
           <Text style={styles.label}>Dịch vụ thêm</Text>
-          <Text style={styles.value}>1.000đ</Text>
-        </View>
-
-        {/* OPES Fee */}
-        <View style={styles.row}>
-          <Text style={styles.label}>OPES</Text>
-          <Text style={styles.value}>1.000đ</Text>
-        </View>
-
-        {/* Discount */}
-        <View style={styles.row}>
-          <Text style={styles.label}>Giảm giá</Text>
-          <Text style={[styles.value, styles.discount]}>-4.000đ</Text>
+          <Text style={styles.value}>{addonPrice.toLocaleString()}đ</Text>
         </View>
 
         {/* Total */}
         <View style={[styles.row, styles.totalRow]}>
           <Text style={styles.totalLabel}>Tổng thanh toán</Text>
-          <Text style={styles.totalValue}>16.000đ</Text>
+          <Text style={styles.totalValue}>{(addonPrice + deliveryPrice).toLocaleString()}đ</Text>
         </View>
 
         {/* Payment Method */}

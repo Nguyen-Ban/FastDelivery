@@ -2,21 +2,19 @@ import React, { useState, useMemo, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useOrder } from "../../../../../contexts/order.context";
-import SocketCustomerService from "../../../../../services/socket.customer";
 import COLOR from "../../../../../constants/Colors";
 import Payment from "./payment";
 import mapService from "@/services/map.service";
-import { VEHICLE_TYPES } from "@/constants/VehicleTypes";
-import { LocationPoint } from "@/types/Location";
-import { useSockerCustomer } from "@/contexts/socker.customer.context";
+import { Location, ROLE, VEHICLE_TYPES } from "@/types";
+import socket from "@/services/socket";
 
 const OrderConfirm = () => {
-  const { connect, disconnect, emitEvent } = useSockerCustomer();
   const [selectedMethod, setSelectedMethod] = useState('sendercash');
   const router = useRouter();
   const {
     pickupLocation,
     dropoffLocation,
+    polyline,
 
     sender,
     receiver,
@@ -56,17 +54,17 @@ const OrderConfirm = () => {
     return true;
   };
 
-  const fetchPolyline = async (vehicleType: VEHICLE_TYPES, pickupLocation: LocationPoint, dropoffLocation: LocationPoint) => {
+  const fetchPolyline = async (vehicleType: VEHICLE_TYPES, pickupLocation: Location, dropoffLocation: Location) => {
     try {
       const response = await mapService.getPolyline(
         vehicleType,
         {
-          lng: pickupLocation?.position?.lng ?? 0,
-          lat: pickupLocation?.position?.lat ?? 0
+          lng: pickupLocation?.coord?.lng ?? 0,
+          lat: pickupLocation?.coord?.lat ?? 0
         },
         {
-          lng: dropoffLocation?.position?.lng ?? 0,
-          lat: dropoffLocation?.position?.lat ?? 0
+          lng: dropoffLocation?.coord?.lng ?? 0,
+          lat: dropoffLocation?.coord?.lat ?? 0
         }
       );
       console.log(response)
@@ -80,19 +78,27 @@ const OrderConfirm = () => {
   useEffect(() => {
     if (
       vehicleType &&
-      pickupLocation?.position?.lat !== undefined &&
-      pickupLocation?.position?.lng !== undefined &&
-      dropoffLocation?.position?.lat !== undefined &&
-      dropoffLocation?.position?.lng !== undefined
+      pickupLocation?.coord?.lat !== undefined &&
+      pickupLocation?.coord?.lng !== undefined &&
+      dropoffLocation?.coord?.lat !== undefined &&
+      dropoffLocation?.coord?.lng !== undefined
     ) {
       fetchPolyline(vehicleType, pickupLocation, dropoffLocation);
     }
   }, [vehicleType, pickupLocation, dropoffLocation])
 
+  useEffect(() => {
+    socket.connect(ROLE.CUSTOMER);
+    return () => {
+      socket.disconnect();
+    }
+  }, []);
+
   const handlePlaceOrder = async () => {
     if (!validateOrder()) {
       return;
     }
+
 
     try {
       // Format order data according to the required structure
@@ -113,11 +119,11 @@ const OrderConfirm = () => {
           pickupTitle: pickupLocation?.title,
           dropoffTitle: dropoffLocation?.title,
           pickupAddress: pickupLocation?.address,
-          pickupLat: pickupLocation?.position?.lat,
-          pickupLng: pickupLocation?.position?.lng,
+          pickupLat: pickupLocation?.coord?.lat,
+          pickupLng: pickupLocation?.coord?.lng,
           dropoffAddress: dropoffLocation?.address,
-          dropoffLat: dropoffLocation?.position?.lat,
-          dropoffLng: dropoffLocation?.position?.lng
+          dropoffLat: dropoffLocation?.coord?.lat,
+          dropoffLng: dropoffLocation?.coord?.lng
         },
         orderDetail: {
           packageType: packageType,
@@ -130,13 +136,17 @@ const OrderConfirm = () => {
         orderSpecialDemand: specialDemands
       };
 
-      await connect();
-      // Emit order:create event
-      emitEvent('order:create', orderData);
+      socket.emit('order:create', orderData);
 
       // Navigate to delivery screen
       router.push({
-        pathname: "/order/delivery",
+        pathname: "/customer/delivery/delivery",
+        params: {
+          pickupLocation: JSON.stringify(pickupLocation),
+          dropoffLocation: JSON.stringify(dropoffLocation),
+          vehicleType: vehicleType,
+          polyline: polyline,
+        }
       });
     } catch (error) {
       console.error('Error creating order:', error);

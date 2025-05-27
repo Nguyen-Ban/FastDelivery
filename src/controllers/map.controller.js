@@ -1,10 +1,9 @@
 const { suggestLocation, reverseGeocode, getInfoBasedOnRoadRoute, getPolyline } = require("../services/map.service")
 
 const suggestPlaces = async (req, res) => {
-    const query = req.query.q;
-    const userLocation = req.body.userLocation;
+    const { lat, lng, q } = req.query;
     try {
-        const places = await suggestLocation(userLocation, query);
+        const places = await suggestLocation({ lng, lat }, q);
         if (places) {
             res.status(200).json({
                 success: true,
@@ -14,7 +13,7 @@ const suggestPlaces = async (req, res) => {
                     title: place.title,
                     address: place.address?.label,
                     distance: place.distance,
-                    position: place.position,
+                    coord: place.position,
                 }))
             });
         } else {
@@ -96,11 +95,15 @@ const getDistanceBetweenTwoLocation = async (req, res) => {
 }
 
 const fetchPolyline = async (req, res) => {
-    const { transportType, orgLat, orgLng, desLat, desLng } = req.query;
-    console.log(transportType, orgLat, orgLng, desLat, desLng);
-
+    const { vehicleType, origin, destination } = req.query;
+    const [orgLatStr, orgLngStr] = origin.split(',')
+    const [desLatStr, desLngStr] = destination.split(',')
+    const orgLat = parseFloat(orgLatStr);
+    const orgLng = parseFloat(orgLngStr)
+    const desLat = parseFloat(desLatStr)
+    const desLng = parseFloat(desLngStr)
     try {
-        const polyline = await getPolyline(transportType, { lat: orgLat, lng: orgLng }, { lat: desLat, lng: desLng });
+        const polyline = await getPolyline(vehicleType, { lat: orgLat, lng: orgLng }, { lat: desLat, lng: desLng });
         if (polyline) {
             res.status(200).json({
                 success: true,

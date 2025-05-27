@@ -25,11 +25,6 @@ User.hasMany(Message, {
     as: 'sentMessages'
 });
 
-User.hasMany(Message, {
-    foreignKey: 'receiverId',
-    as: 'receivedMessages'
-});
-
 User.hasOne(DeviceToken, {
     foreignKey: 'userId',
     as: 'deviceToken'
@@ -130,11 +125,6 @@ Order.hasOne(OrderSenderReceiver, {
 Message.belongsTo(User, {
     foreignKey: 'senderId',
     as: 'sender'
-});
-
-Message.belongsTo(User, {
-    foreignKey: 'receiverId',
-    as: 'receiver'
 });
 
 Message.belongsTo(Order, {

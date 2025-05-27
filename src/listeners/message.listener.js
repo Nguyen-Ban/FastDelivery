@@ -1,25 +1,48 @@
+const logger = require('../config/logger');
 const redisClient = require('../config/redis');
+const { Message } = require('../models/index');
 const { getSocket } = require('../services/websocket/driver');
 
 module.exports = (io, socket) => {
-    socket.on('chat:message', async (data) => {
-        try {
-            const { receiverId, content } = data;
-            const receiverSocket = getSocket(receiverId);
-            const payload = {
-                success: true,
-                message: "Message sent successfully",
-                data: {
-                    content
-                }
-            }
-            receiverSocket.emit('chat:message', payload)
-        } catch (error) {
-            socket.emit('chat:message', {
-                success: false,
-                message: 'Message sent failed ',
-                error: error.message
-            })
-        }
+    socket.on('chat:join', (data) => {
+        const { orderId } = data;
+        const chatRoom = `chat:${orderId}`;
+        socket.join(chatRoom);
+        logger.info(`[Message Listener] User joined chat room: ${chatRoom}`);
+    });
+
+    socket.on('chat:sendMessage', async (data) => {
+        const { senderId, content, orderId } = data;
+        await Message.create({
+            senderId,
+            content,
+            orderId
+        });
+        const rooms = Array.from(io.of('/').adapter.rooms.keys());
+        console.log('Số lượng room hiện tại:', rooms.length);
+        io.of('/').adapter.rooms.forEach((value, key) => {
+            console.log('Room:', key);
+        });
+        const chatRoom = `chat:${orderId}`;
+        socket.to(chatRoom).emit('chat:newMessage', {
+            senderId,
+            content,
+            orderId
+        });
+        logger.info('[[Message Listener] A message sent')
+    });
+
+    socket.on('chat:getMessageHistory', async (data, callback) => {
+        const { orderId } = data;
+        const messages = await Message.findAll({
+            where: { orderId },
+            order: [['created_at', 'ASC']],
+            attributes: ['id', 'content', 'senderId', 'orderId'],
+        });
+        console.log(1);
+        callback({
+            success: true,
+            messageHistory: messages,
+        });
     })
 }

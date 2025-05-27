@@ -5,6 +5,8 @@ const { driverDirectionSupport } = require('../services/driver.service');
 module.exports = (io, socket) => {
     socket.on('location:update', async (data) => {
         try {
+            if (socket.activeRole !== 'DRIVER') return socket.emit('error', 'Not authorized');
+
             await redisClient.geoadd(
                 'drivers:locations',
                 data.lng,
@@ -12,11 +14,12 @@ module.exports = (io, socket) => {
                 socket.userId
             );
 
-            io.driverNamespace.to(socket.id).emit('location:update', {
+            io.to(socket.id).emit('location:update', {
                 success: true,
                 message: 'Location updated successfully',
                 data: data
             });
+            console.log(`Driver ${socket.userId} location updated: ${data.lng}, ${data.lat}`);
         } catch (error) {
             io.driverNamespace.to(socket.id).emit('location:update', {
                 success: false,
@@ -27,6 +30,8 @@ module.exports = (io, socket) => {
     });
 
     socket.on('order:route', async (data) => {
+        if (socket.activeRole !== 'DRIVER') return socket.emit('error', 'Not authorized');
+
         const routeData = await driverDirectionSupport(data.transportType, data.currentLocation, data.dropOffLocation);
         if (routeData) {
             socket.emit('order:route', {
@@ -47,6 +52,8 @@ module.exports = (io, socket) => {
     });
 
     socket.on('disconnect', async () => {
+        if (socket.activeRole !== 'DRIVER') return socket.emit('error', 'Not authorized');
+
         const driverId = socket.driverId;
         if (!driverId) return;
 

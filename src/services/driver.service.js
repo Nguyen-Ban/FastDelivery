@@ -2,14 +2,27 @@ const { default: axios } = require("axios");
 const redisClient = require("../config/redis");
 const { getSocket } = require("./websocket/driver");
 const { Driver } = require("../models/index");
-const { getInfoBasedOnRoadRoute } = require("./map.service");
+const { getInfoBasedOnRoadRoute, getPolyline } = require("./map.service");
 
 const HERE_API_KEY = process.env.HERE_API_KEY;
 
 const getAvailableNearestDrivers = async (transportType, orderPickUpLocation) => {
     const { pickupLat: lat, pickupLng: lng } = orderPickUpLocation;
 
-    const driverKeys = await redisClient.zrange('drivers:locations', 0, -1); // lấy tất cả driver IDs
+    // const driverKeys = await redisClient.zrange('drivers:locations', 0, -1); // lấy tất cả driver IDs
+    const driverKeys = await redisClient.call(
+        'GEOSEARCH',
+        'drivers:locations',
+        'FROMLONLAT',
+        lng,
+        lat,
+        'BYRADIUS',
+        10,
+        'km'
+    );
+
+    console.log('driverKeys', driverKeys)
+
 
     const driverLocations = await Promise.all(
         driverKeys.map(id => redisClient.geopos('drivers:locations', id))
@@ -30,33 +43,40 @@ const getAvailableNearestDrivers = async (transportType, orderPickUpLocation) =>
 }
 
 const getOrderDetail = async (orderData, driverPos) => {
-    const { orderMain, orderLocation, orderDetail } = orderData;
-    const { price } = orderMain;
+    const { orderMain,
+        orderSenderReceiver,
+        orderLocation, orderDetail,
+        orderSpecialDemand } = orderData;
+
     const pickupDropoffSummary = await getInfoBasedOnRoadRoute(orderMain.vehicleType,
         { lat: orderLocation.pickupLat, lng: orderLocation.pickupLng },
         { lat: orderLocation.dropoffLat, lng: orderLocation.dropoffLng });
     const pickupDropoffDistance = pickupDropoffSummary.length;
 
     const driverPickupSummary = await getInfoBasedOnRoadRoute(orderMain.vehicleType,
-        { lat: orderLocation.pickupLat, lng: orderLocation.pickupLng }, { lat: driverPos.lat, lng: driverPos.lng });
+        { lat: driverPos.lat, lng: driverPos.lng },
+        { lat: orderLocation.pickupLat, lng: orderLocation.pickupLng });
     const driverPickupDistance = driverPickupSummary.length;
 
-    const pickupLocation = { title: orderLocation.pickupTitle, address: orderLocation.pickupAddress }
-    const dropoffLocation = { title: orderLocation.dropoffTitle, address: orderLocation.dropoffAddress }
-    const packageDetails = {
-        packageType: orderDetail.packageType,
-        weightKg: orderDetail.weightKg,
-        size: `${orderDetail.lengthCm} x ${orderDetail.widthCm} x ${orderDetail.heightCm} cm`
-    }
+    console.log('driverPos', driverPos)
+    const driverPickupPolyline = await getPolyline(orderMain.vehicleType,
+        { lat: driverPos.lat, lng: driverPos.lng },
+        { lat: orderLocation.pickupLat, lng: orderLocation.pickupLng });
 
+    const pickupDropoffPolyline = await getPolyline(orderMain.vehicleType,
+        { lat: orderLocation.pickupLat, lng: orderLocation.pickupLng },
+        { lat: orderLocation.dropoffLat, lng: orderLocation.dropoffLng });
 
     return {
-        price,
+        orderMain,
+        orderLocation,
+        orderDetail,
+        orderSenderReceiver,
+        orderSpecialDemand,
         pickupDropoffDistance,
         driverPickupDistance,
-        pickupLocation,
-        dropoffLocation,
-        packageDetails,
+        driverPickupPolyline,
+        pickupDropoffPolyline
     }
 }
 
@@ -67,13 +87,16 @@ const matchDriver = async (transportType, orderPickUpLocation, orderData) => {
     for (const driver of drivers) {
         const socket = getSocket(driver.id);
         const orderDetail = await getOrderDetail(orderData, driver);
-        socket.emit('order:request', {
+        console.log(orderDetail)
+
+        await redisClient.set(`driver:${driver.id}:available`, JSON.stringify(orderDetail), 'EX', 30);
+        socket.emit('order:new', {
             success: true,
             message: 'Order request',
             data: orderDetail
         });
         const response = await waitForDriverResponse(socket);
-        if (response?.success) {
+        if (response?.accepted) {
             resDriver = driver;
             setImmediate(async () => {
                 const driverInstance = await Driver.findByPk(driver.id);
@@ -101,11 +124,11 @@ const waitForDriverResponse = async (socket) => {
         };
 
         const timeout = setTimeout(() => {
-            socket.off('order:request', onResponse);
+            socket.off('order:reply', onResponse);
             resolve(null);
-        }, 10000);
+        }, 30000);
 
-        socket.once('order:request', onResponse);
+        socket.once('order:reply', onResponse);
     });
 }
 

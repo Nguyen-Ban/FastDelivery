@@ -4,7 +4,7 @@ const validate = require('../validations/validate');
 const router = express.Router();
 const { suggestPlaces, getPlacesFromLocation, getDistanceBetweenTwoLocation, fetchPolyline } = require('../controllers/map.controller');
 
-router.post('/suggest', suggestPlaces);
+router.get('/suggest', suggestPlaces);
 
 router.get('/revgeocode', getPlacesFromLocation);
 

@@ -4,11 +4,16 @@ const { logger } = require("../config/logger");
 const { calPrice } = require("../services/price.service");
 
 const getPrices = async (req, res) => {
-    const { transportType, orgLat, orgLng, desLat, desLng } = req.query;
-    console.log("transportType", transportType, "orgLat", orgLat, "orgLng", orgLng, "desLat", desLat, "desLng", desLng);
+    const { vehicleType, origin, destination } = req.query;
+    const [orgLatStr, orgLngStr] = origin.split(',')
+    const [desLatStr, desLngStr] = destination.split(',')
+    const orgLat = parseFloat(orgLatStr);
+    const orgLng = parseFloat(orgLngStr)
+    const desLat = parseFloat(desLatStr)
+    const desLng = parseFloat(desLngStr)
 
     try {
-        const { economyPrice, expressPrice } = await calPrice(transportType, { lat: orgLat, lng: orgLng }, { lat: desLat, lng: desLng });
+        const { economyPrice, expressPrice } = await calPrice(vehicleType, { lat: orgLat, lng: orgLng }, { lat: desLat, lng: desLng });
         return res.status(200).json({
             success: true,
             message: "Price calculated successfully",

@@ -30,8 +30,10 @@ const reverseGeocode = async (lat, lng) => {
 
 const getInfoBasedOnRoadRoute = async (transportType, origin, destination) => {
     try {
+        console.log('Getting route info for:', transportType, origin, destination);
         const transportMode = transportType === 'MOTORBIKE' ? 'scooter' : 'car';
         const res = await axios.get(`https://router.hereapi.com/v8/routes?transportMode=${transportMode}&origin=${origin.lat},${origin.lng}&destination=${destination.lat},${destination.lng}&return=summary&routingMode=fast&departureTime=${new Date().toISOString()}&apikey=${HERE_API_KEY}`);
+        console.log('Route info response:', res.data);
         return res.data.routes[0].sections[0].summary;
     } catch (error) {
         console.error('Error getting driver to order duration:', error);

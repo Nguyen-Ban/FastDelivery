@@ -83,7 +83,7 @@ const authenticateSocket = async (socket, next) => {
   }
 }
 
-const checkSocketRole = (allowedRoles) => {
+const checkSocketRole = () => {
   return async (socket, next) => {
     try {
 
@@ -92,21 +92,17 @@ const checkSocketRole = (allowedRoles) => {
       if (!activeRole) {
         return next(new Error('Missing role in socket headers (role)'));
       }
-      console.log('activeRole', allowedRoles, activeRole);
-
-      if (!allowedRoles.includes(activeRole)) {
-        return next(new Error('Permission denied for this role'));
-      }
-
       const userId = socket.userId; // đã được gán từ middleware authenticate
+
       const user = await User.findOne({ where: { id: userId } });
       if (!user) {
         return next(new Error('User not found'));
       }
 
       if (!user.roles.includes(activeRole)) {
-        return next(new Error('Role not assigned to user'));
+        return next(new Error('User not have the required role'));
       }
+
 
       registerSocket(userId, socket);
 

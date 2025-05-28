@@ -36,7 +36,7 @@ const Message = () => {
             title={item.title}
             subtitle={item.subtitle}
             onPress={() => {
-              router.push("/customer/user/chat");
+              router.push("/customer/delivery/chat");
             }}
             icon={<FontAwesome6 name="user" size={24} color={COLOR.black} />}
             iconContainerStyle={{

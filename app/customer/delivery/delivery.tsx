@@ -109,9 +109,11 @@ const DeliveryPage = () => {
             pathname: '/customer/delivery/chat',
             params: {
                 orderId: orderId,
-                driverId: driverInfo?.id
+                driverName: driverInfo?.fullName
             }
         });
+        socket.emit('chat:join', { orderId })
+
         // Implement chat functionality here
         console.log('Chat with driver');
     };
@@ -124,6 +126,7 @@ const DeliveryPage = () => {
                 setDriverInfo(response.data.driverInfo);
                 setIsDriverFound(true);
                 setDeliveryStatus(DELIVERY_STATUS.IN_PROGRESS);
+                setOrderId(response.data.orderId)
             } else {
                 console.error('Error finding driver:', response.message);
             }

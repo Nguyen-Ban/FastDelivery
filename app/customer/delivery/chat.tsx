@@ -18,14 +18,15 @@ import { LinearGradient } from "expo-linear-gradient";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useState } from "react";
 import { useAuth } from "@/contexts";
-import { useLocalSearchParams } from "expo-router/build/hooks";
+import { useLocalSearchParams, useRouter } from "expo-router/build/hooks";
 import { Message } from "@/types";
 import socket from "@/services/socket";
 
 const ChatScreen = () => {
+  const router = useRouter();
+
   const { user } = useAuth();
-  const { orderId } = useLocalSearchParams<{ orderId: string }>();
-  const [driverName, setDriverName] = useState();
+  const { orderId, driverName } = useLocalSearchParams<{ orderId: string, driverName: string }>();
   const [messages, setMessages] = useState<Message[]>([]);
 
   const messagesRef = useRef<Message[]>([]);
@@ -33,17 +34,19 @@ const ChatScreen = () => {
   const [input, setInput] = useState("");
 
   useEffect(() => {
-    socket.emit('chat:getDriverName', { orderId }, (response) => {
-      if (response.success) setDriverName(response.data.driverName)
-    })
 
     socket.emit('chat:getMessageHistory', { orderId }, (response) => {
-      if (response.success) setMessages(response.data.message)
+      console.log(response.data)
+      if (response.success) setMessages(response.data)
+      console.log(messages)
     })
 
     socket.on('chat:newMessage', (response) => {
-      if (response.success) setMessages([...messages, response.data.message])
+      if (response.success) setMessages(prev => [...prev, response.data.message]);
+
+
     })
+
 
 
     return () => {
@@ -66,7 +69,7 @@ const ChatScreen = () => {
           >
             <FontAwesome6 name="arrow-left" size={30} color="black" />
           </TouchableOpacity>
-          <Text style={styles.title}>{driverName}</Text>
+          <Text style={styles.title}>Tài xế: {driverName}</Text>
         </LinearGradient>
       </View>
       {/* ScrollView to display messages */}
@@ -85,7 +88,6 @@ const ChatScreen = () => {
           </View>
         )}
         keyExtractor={(item) => item.id}
-        inverted={true} // 👈 Tin nhắn mới ở dưới cùng
       />
 
       <View style={styles.message_input_view}>
@@ -104,8 +106,13 @@ const ChatScreen = () => {
                 senderId: user?.id,
                 orderId: orderId
               }
-              messagesRef.current.unshift(message)
-              setMessages([...messagesRef.current]);
+              socket.emit("chat:sendMessage", message, (response) => {
+                if (response.success) {
+                  message.id = response.data.messageId
+                }
+              }); // 👈 Gửi lên server
+
+              setMessages(prev => [...prev, message]);
               setInput("");
             }
           }}
@@ -147,6 +154,7 @@ const styles = StyleSheet.create({
   },
   text_input: { width: "100%", paddingLeft: 24, fontSize: 16 },
   messages_container: {
+    flex: 1,
     padding: 10,
     flexGrow: 1,
     justifyContent: "flex-start",

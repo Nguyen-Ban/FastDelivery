@@ -16,8 +16,9 @@ const OrderDetailPage = () => {
     const [orderSpecialDemand, setOrderSpecialDemand] = useState<OrderSpecialDemand>();
     const [orderMain, setOrderMain] = useState<OrderMain>();
     useEffect(() => {
-        socket.emit('order:fetchDetails', { orderId }, (response) => {
+        socket.emit('order:detail', { orderId }, (response) => {
             if (response.success) {
+                console.log(response.data)
                 setOrderDetail(response.data.orderDetail);
                 setOrderLocation(response.data.orderLocation);
                 setOrderSenderReceiver(response.data.orderSenderReceiver);
@@ -30,7 +31,7 @@ const OrderDetailPage = () => {
         // Fetch order details from API using orderId
         // This is a placeholder for the actual API call
         console.log(`Fetching details for order ID: ${orderId}`);
-    }, [orderId]);
+    }, []);
 
     // Khai báo type cho icon name
     type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];

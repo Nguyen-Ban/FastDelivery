@@ -7,6 +7,7 @@ import {
     SafeAreaView,
     StatusBar,
     Platform,
+    Linking,
 } from 'react-native';
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -27,6 +28,8 @@ const DELIVERY_STATES = {
 const OnDelivery = () => {
     const router = useRouter();
     const params = useLocalSearchParams();
+    const orderSenderReceiver = JSON.parse(params.orderSenderReceiver as string);
+    const orderId = params.orderId as string;
     const orderMain = JSON.parse(params.orderMain as string);
     const orderDetail = JSON.parse(params.orderDetail as string) || {};
     const orderLocation = JSON.parse(params.orderLocation as string) || {};
@@ -113,7 +116,27 @@ const OnDelivery = () => {
         }
     }, [pickupLat, pickupLng, dropoffLat, dropoffLng]);
 
+    const handleChatCustomer = () => {
+        console.log(1)
+        router.push({
+            pathname: '/driver/delivery/chat',
+            params: {
+                orderId: orderId,
+                customerName: orderSenderReceiver.sender.name
+            }
+        });
+        socket.emit('chat:join', { orderId })
 
+        // Implement chat functionality here
+        console.log('Chat with customer');
+    };
+
+    const handleCallCustomer = () => {
+        const phoneNumber = orderSenderReceiver.sender.phoneNumber;
+        if (phoneNumber) {
+            Linking.openURL(`tel:${phoneNumber}`);
+        }
+    };
 
 
     return (
@@ -174,7 +197,11 @@ const OnDelivery = () => {
                     <View style={styles.headerButtons}>
                         <TouchableOpacity
                             style={styles.detailButton}
-                            onPress={() => router.push("/driver/delivery/order-detail")}
+                            onPress={() => router.push({
+                                pathname: "/driver/delivery/order-detail",
+                                params: { orderId }
+                            }
+                            )}
                         >
                             <Ionicons name="document-text-outline" size={20} color="#007AFF" />
                             <Text style={styles.detailText}>Chi tiết đơn hàng</Text>
@@ -199,11 +226,11 @@ const OnDelivery = () => {
                 </View>
 
                 <View style={styles.actionButtons}>
-                    <TouchableOpacity style={styles.actionButton}>
+                    <TouchableOpacity style={styles.actionButton} onPress={handleChatCustomer}>
                         <Ionicons name="chatbubble-outline" size={24} color="#333" />
                         <Text style={styles.actionButtonText}>Nhắn tin</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton}>
+                    <TouchableOpacity style={styles.actionButton} onPress={handleCallCustomer}>
                         <Ionicons name="call-outline" size={24} color="#333" />
                         <Text style={styles.actionButtonText}>Gọi điện</Text>
                     </TouchableOpacity>

@@ -14,11 +14,12 @@ import {
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import socket from '@/services/socket';
-import { OrderDetail, OrderLocation, OrderMain } from '@/types';
+import { OrderDetail, OrderLocation, OrderMain, OrderSenderReceiver } from '@/types';
 
 const OrderDetails = () => {
     const router = useRouter();
 
+    const [orderId, setOrderId] = useState()
     const [showPackageInfo, setShowPackageInfo] = useState(false);
     const [orderMain, setOrderMain] = useState<OrderMain>();
     const [orderDetail, setOrderDetail] = useState<OrderDetail>();
@@ -27,6 +28,7 @@ const OrderDetails = () => {
     const [orderLocation, setOrderLocation] = useState<OrderLocation>();
     const [pickupDropoffPolyline, setPickupDropoffPolyline] = useState<string>();
     const [driverPickupPolyline, setDriverPickupPolyline] = useState<string>();
+    const [orderSenderReceiver, setOrderSenderReceiver] = useState<OrderSenderReceiver>();
     const [ttl, setTtl] = useState<number | undefined>();
 
     useEffect(() => {
@@ -34,6 +36,7 @@ const OrderDetails = () => {
         socket.emit('order:available', {}, (response) => {
             if (response.success) {
                 console.log(response);
+                setOrderId(response.data.orderId)
                 setOrderMain(response.data.orderMain);
                 setOrderDetail(response.data.orderDetail);
                 setPickupDropoffDistance(response.data.pickupDropoffDistance);
@@ -42,6 +45,7 @@ const OrderDetails = () => {
                 setTtl(response.data.ttl);
                 setPickupDropoffPolyline(response.data.pickupDropoffPolyline);
                 setDriverPickupPolyline(response.data.driverPickupPolyline);
+                setOrderSenderReceiver(response.data.orderSenderReceiver)
             } else {
                 console.error('Error fetching order details:', response.error);
             }
@@ -80,6 +84,8 @@ const OrderDetails = () => {
             pathname: '/driver/delivery/on-delivery',
 
             params: {
+                orderId: orderId,
+                orderSenderReceiver: JSON.stringify(orderSenderReceiver),
                 orderMain: JSON.stringify(orderMain),
                 driverPickupPolyline: driverPickupPolyline,
                 pickupDropoffPolyline: pickupDropoffPolyline,

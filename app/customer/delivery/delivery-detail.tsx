@@ -1,19 +1,36 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import COLOR from '../../../constants/Colors';
 import { useOrder } from '@/contexts/order.context';
+import socket from '@/services/socket';
+import { OrderDetail, OrderLocation, OrderMain, OrderSenderReceiver, OrderSpecialDemand } from '@/types';
 
 const DeliveryDetailPage = () => {
     const router = useRouter();
     const { orderId } = useLocalSearchParams<{ orderId: string }>();
-    const { specialDemands, packageType,
-        sender, receiver,
-        pickupLocation, dropoffLocation,
-        weightKg, lengthCm, widthCm, heightCm, sizeName, note, addonPrice, deliveryPrice } = useOrder();
+    const [orderMain, setOrderMain] = useState<OrderMain>()
+    const [orderDetail, setOrderDetail] = useState<OrderDetail>()
+    const [orderLocation, setOrderLocation] = useState<OrderLocation>()
+    const [orderSenderReceiver, setOrderSenderReceiver] = useState<OrderSenderReceiver>()
+    const [orderSpecialDemand, setOrderSpecialDemand] = useState<OrderSpecialDemand>()
+    useEffect(() => {
+        socket.emit('order:detail', { orderId }, (response) => {
+            if (response.success) {
+                setOrderMain(response.data.orderMain)
+                setOrderDetail(response.data.orderDetail)
+                setOrderLocation(response.data.orderLocation);
+                setOrderSenderReceiver(response.data.orderSenderReceiver);
+                setOrderSpecialDemand(response.data.orderSpecialDemand)
+            }
+        })
 
+        return () => {
+            socket.off('order:detail')
+        }
+    }, [])
     // Mock order data (có thể thay đổi khi tích hợp API)
     const orderDetails = {
         orderId: '#FD123456',
@@ -57,14 +74,14 @@ const DeliveryDetailPage = () => {
     type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
     type SpecialTag = { label: string; icon: MaterialIconName };
     const specialTags: SpecialTag[] = [];
-    if (specialDemands?.handDelivery) specialTags.push({ label: 'Giao tận tay', icon: 'hand' as MaterialIconName });
-    if (specialDemands?.fragileDelivery) specialTags.push({ label: 'Hàng dễ vỡ', icon: 'broken-image' as MaterialIconName });
-    if (specialDemands?.waiting) specialTags.push({ label: 'Tài xế chờ', icon: 'timer' as MaterialIconName });
-    if (specialDemands?.donateDriver && specialDemands?.donateDriver > 0) specialTags.push({ label: `Tip tài xế: ${specialDemands?.donateDriver.toLocaleString()}đ`, icon: 'volunteer-activism' as MaterialIconName });
-    if (specialDemands?.businessValue && specialDemands?.businessValue > 0) specialTags.push({ label: `Giá trị khai báo: ${specialDemands?.businessValue.toLocaleString()}đ`, icon: 'attach-money' as MaterialIconName });
-    if (specialDemands?.eDocument) specialTags.push({ label: 'Chứng từ điện tử', icon: 'description' as MaterialIconName });
-    if (specialDemands?.homeMoving) specialTags.push({ label: 'Chuyển nhà', icon: 'home' as MaterialIconName });
-    if (specialDemands?.loading) specialTags.push({ label: 'Cần bốc xếp', icon: 'local-shipping' as MaterialIconName });
+    if (orderSpecialDemand?.handDelivery) specialTags.push({ label: 'Giao tận tay', icon: 'hand' as MaterialIconName });
+    if (orderSpecialDemand?.fragileDelivery) specialTags.push({ label: 'Hàng dễ vỡ', icon: 'broken-image' as MaterialIconName });
+    if (orderSpecialDemand?.waiting) specialTags.push({ label: 'Tài xế chờ', icon: 'timer' as MaterialIconName });
+    if (orderSpecialDemand?.donateDriver && orderSpecialDemand?.donateDriver > 0) specialTags.push({ label: `Tip tài xế: ${orderSpecialDemand?.donateDriver.toLocaleString()}đ`, icon: 'volunteer-activism' as MaterialIconName });
+    if (orderSpecialDemand?.businessValue && orderSpecialDemand?.businessValue > 0) specialTags.push({ label: `Giá trị khai báo: ${orderSpecialDemand?.businessValue.toLocaleString()}đ`, icon: 'attach-money' as MaterialIconName });
+    if (orderSpecialDemand?.eDocument) specialTags.push({ label: 'Chứng từ điện tử', icon: 'description' as MaterialIconName });
+    if (orderSpecialDemand?.homeMoving) specialTags.push({ label: 'Chuyển nhà', icon: 'home' as MaterialIconName });
+    if (orderSpecialDemand?.loading) specialTags.push({ label: 'Cần bốc xếp', icon: 'local-shipping' as MaterialIconName });
 
     const packageTypeLabel: Record<string, string> = {
         FOOD: 'Đồ ăn',
@@ -103,14 +120,14 @@ const DeliveryDetailPage = () => {
                         <MaterialIcons name="place" size={22} color={COLOR.orange50} style={{ marginRight: 8 }} />
                         <View>
                             <Text style={styles.addressLabel}>Điểm lấy hàng</Text>
-                            <Text style={styles.addressText}>{pickupLocation?.address}</Text>
+                            <Text style={styles.addressText}>{orderLocation?.pickupAddress}</Text>
                         </View>
                     </View>
                     <View style={styles.addressBox}>
                         <MaterialIcons name="place" size={22} color={COLOR.orange50} style={{ marginRight: 8 }} />
                         <View>
                             <Text style={styles.addressLabel}>Điểm trả hàng</Text>
-                            <Text style={styles.addressText}>{dropoffLocation?.address}</Text>
+                            <Text style={styles.addressText}>{orderLocation?.dropoffAddress}</Text>
                         </View>
                     </View>
                 </View>
@@ -121,16 +138,16 @@ const DeliveryDetailPage = () => {
                         <Ionicons name="person-circle-outline" size={28} color={COLOR.orange50} style={{ marginRight: 8 }} />
                         <View>
                             <Text style={styles.personLabel}>Người gửi</Text>
-                            <Text style={styles.personName}>{sender?.name}</Text>
-                            <Text style={styles.personPhone}>{sender?.phoneNumber}</Text>
+                            <Text style={styles.personName}>{orderSenderReceiver?.sender?.name}</Text>
+                            <Text style={styles.personPhone}>{orderSenderReceiver?.sender?.phoneNumber}</Text>
                         </View>
                     </View>
                     <View style={styles.personBox}>
                         <Ionicons name="person-circle-outline" size={28} color={COLOR.orange50} style={{ marginRight: 8 }} />
                         <View>
                             <Text style={styles.personLabel}>Người nhận</Text>
-                            <Text style={styles.personName}>{receiver?.name}</Text>
-                            <Text style={styles.personPhone}>{receiver?.phoneNumber}</Text>
+                            <Text style={styles.personName}>{orderSenderReceiver?.receiver?.name}</Text>
+                            <Text style={styles.personPhone}>{orderSenderReceiver?.receiver?.phoneNumber}</Text>
                         </View>
                     </View>
 
@@ -143,15 +160,15 @@ const DeliveryDetailPage = () => {
                     <View style={styles.itemCard}>
                         <View style={styles.itemRow}>
                             <MaterialIcons name="category" size={20} color="#666" style={{ marginRight: 6 }} />
-                            <Text style={styles.itemType}>{packageType}</Text>
+                            <Text style={styles.itemType}>{orderDetail?.packageType}</Text>
                         </View>
                         <View style={styles.itemRow}>
                             <MaterialIcons name="straighten" size={18} color="#666" style={{ marginRight: 4 }} />
-                            <Text style={styles.itemDetails}>Kích thước: {`${lengthCm} x ${widthCm} x ${heightCm} cm`}</Text>
+                            <Text style={styles.itemDetails}>Kích thước: {`${orderDetail?.lengthCm} x ${orderDetail?.widthCm} x ${orderDetail?.heightCm} cm`}</Text>
                         </View>
                         <View style={styles.itemRow}>
                             <MaterialIcons name="line-weight" size={18} color="#666" style={{ marginRight: 4 }} />
-                            <Text style={styles.itemDetails}>Cân nặng: {weightKg} kg</Text>
+                            <Text style={styles.itemDetails}>Cân nặng: {orderDetail?.weightKg} kg</Text>
                         </View>
                     </View>
                 </View>
@@ -188,7 +205,7 @@ const DeliveryDetailPage = () => {
                         <View style={styles.paymentRow}>
                             <Text style={styles.paymentLabel}>Tổng cộng:</Text>
                             <Text style={[styles.paymentValue, styles.totalAmount]}>
-                                {(addonPrice + deliveryPrice).toLocaleString()}đ
+                                {orderMain?.price && (orderMain?.price).toLocaleString()}đ
                             </Text>
                         </View>
                     </View>
@@ -198,7 +215,7 @@ const DeliveryDetailPage = () => {
                 {orderDetails.notes && (
                     <View style={styles.section}>
                         <Text style={styles.sectionTitle}>Ghi chú</Text>
-                        <Text style={styles.notesText}>{note}</Text>
+                        <Text style={styles.notesText}>{orderMain?.note}</Text>
                     </View>
                 )}
             </ScrollView>

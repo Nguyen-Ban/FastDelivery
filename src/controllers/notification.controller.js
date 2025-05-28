@@ -6,7 +6,7 @@ const registerDevice = async (req, res) => {
     const { userId, token, platform } = req.body;
 
     try {
-        const existingToken = await DeviceToken.findOne({ where: { token } });
+        const existingToken = await DeviceToken.findOne({ where: { token, userId } });
         if (existingToken) {
             return res.status(400).json({
                 success: false,
@@ -24,6 +24,7 @@ const registerDevice = async (req, res) => {
             }
         });
     } catch (error) {
+        console.log(error.message)
         res.status(500).json({
             success: false,
             message: 'Error registering device token',

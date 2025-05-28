@@ -8,6 +8,8 @@ const { checkRole } = require('../middleware/auth.middleware');
 
 router.get('/prices', getPrices);
 
+
+
 // router.post('/:id/review', authenticateToken, checkRole(['CUSTOMER']), validate(reviewOrderValidation), reviewOrder);
 router.get('/customer/:id/list', authenticateToken, checkRole(['CUSTOMER']), getOrderList);
 // router.get('/customer/stats', authenticateToken, checkRole(['CUSTOMER']), getCustomerOrderStats);

@@ -16,7 +16,6 @@ const DeviceToken = sequelize.define('DeviceToken', {
     token: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
         field: 'token'
     },
     platform: {

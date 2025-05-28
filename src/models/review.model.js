@@ -9,7 +9,7 @@ const Review = sequelize.define('Review', {
         field: 'id'
     },
     orderId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING(6),
         allowNull: false,
         field: 'order_id'
     },

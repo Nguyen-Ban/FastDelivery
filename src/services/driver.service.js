@@ -3,6 +3,7 @@ const redisClient = require("../config/redis");
 const { getSocket } = require("./websocket/driver");
 const { Driver } = require("../models/index");
 const { getInfoBasedOnRoadRoute, getPolyline } = require("./map.service");
+const { sendNotification } = require("./notification.service");
 
 const HERE_API_KEY = process.env.HERE_API_KEY;
 
@@ -71,7 +72,16 @@ const getOrderDetail = async (orderData, driverPos) => {
         orderMain,
         orderLocation,
         orderDetail,
-        orderSenderReceiver,
+        orderSenderReceiver: {
+            sender: {
+                name: orderSenderReceiver.senderName,
+                phoneNumber: orderSenderReceiver.senderPhoneNumber,
+            },
+            receiver: {
+                name: orderSenderReceiver.receiverName,
+                phoneNumber: orderSenderReceiver.receiverPhoneNumber
+            }
+        },
         orderSpecialDemand,
         pickupDropoffDistance,
         driverPickupDistance,
@@ -81,7 +91,7 @@ const getOrderDetail = async (orderData, driverPos) => {
 }
 
 
-const matchDriver = async (transportType, orderPickUpLocation, orderData) => {
+const matchDriver = async (transportType, orderPickUpLocation, orderData, orderId) => {
     let resDriver = null;
     const drivers = await getAvailableNearestDrivers(transportType, orderPickUpLocation)
     for (const driver of drivers) {
@@ -89,12 +99,15 @@ const matchDriver = async (transportType, orderPickUpLocation, orderData) => {
         const orderDetail = await getOrderDetail(orderData, driver);
         console.log(orderDetail)
 
-        await redisClient.set(`driver:${driver.id}:available`, JSON.stringify(orderDetail), 'EX', 30);
+        await redisClient.set(`driver:${driver.id}:available`, JSON.stringify({ orderId, ...orderDetail }), 'EX', 30);
+        sendNotification(driver.id, 'New Order', `New delivery request: ${orderDetail.orderDetail.packageType}`);
+
         socket.emit('order:new', {
             success: true,
             message: 'Order request',
             data: orderDetail
         });
+
         const response = await waitForDriverResponse(socket);
         if (response?.accepted) {
             resDriver = driver;

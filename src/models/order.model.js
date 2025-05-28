@@ -3,9 +3,8 @@ const { sequelize } = require('../config/database');
 
 const Order = sequelize.define('Order', {
     id: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING(6),
         primaryKey: true,
-        autoIncrement: true,
         field: 'id'
     },
     customerId: {
@@ -38,8 +37,8 @@ const Order = sequelize.define('Order', {
         field: 'note'
     },
     status: {
-        type: DataTypes.ENUM('ASSIGNED', 'PICKED_UP', 'DELIVERED', 'CANCELLED'),
-        defaultValue: 'ASSIGNED',
+        type: DataTypes.ENUM('PENDING', 'IN_DELIVERY', 'DELIVERED', 'CANCELLED'),
+        defaultValue: 'PENDING',
         field: 'status'
     },
     cancelledBy: {

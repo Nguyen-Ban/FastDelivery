@@ -3,7 +3,7 @@ const { sequelize } = require('../config/database');
 
 const OrderSenderReceiver = sequelize.define('OrderSenderReceiver', {
     orderId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING(6),
         primaryKey: true,
         unique: true,
         allowNull: false,

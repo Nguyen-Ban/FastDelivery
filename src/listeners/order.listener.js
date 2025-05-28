@@ -2,7 +2,7 @@ const redisClient = require('../config/redis');
 const { sequelize } = require("../config/database");
 
 const { matchDriver } = require('../services/driver.service');
-const { Order, OrderLocation, OrderDetail, OrderSenderReceiver, OrderSpecialDemand, Driver, User } = require('../models/index');
+const { Order, OrderLocation, OrderDetail, OrderSenderReceiver, Driver, User, OrderSpecialDemand } = require('../models/index');
 const { where } = require('sequelize');
 const { getSocket } = require('../services/websocket/driver');
 const logger = require('../config/logger');
@@ -21,9 +21,17 @@ module.exports = (io, socket) => {
             console.log('order', orderMain, orderSenderReceiver, orderLocation, orderDetail, orderSpecialDemand);
             const { pickupLat, pickupLng, dropoffLat, dropoffLng } = orderLocation;
             const { vehicleType } = orderMain;
-            const { id: driverId } = await matchDriver(vehicleType, { pickupLat, pickupLng }, data);
+            let orderId
+            while (true) {
+                orderId = generateOrderId()
+                const order = await Order.findByPk(orderId)
+                if (!order) break
+            }
 
-            const { id: orderId } = await Order.create({ customerId, driverId, ...orderMain }, { transaction: t });
+
+            const { id: driverId } = await matchDriver(vehicleType, { pickupLat, pickupLng }, data, orderId);
+
+            await Order.create({ id: orderId, customerId, driverId, ...orderMain }, { transaction: t });
 
             await OrderSenderReceiver.create({ orderId, ...orderSenderReceiver }, { transaction: t });
             await OrderLocation.create({ orderId, ...orderLocation }, { transaction: t });
@@ -129,6 +137,57 @@ module.exports = (io, socket) => {
             }
         });
 
+
+    socket.on('order:detail', async (data, callback) => {
+        const { orderId } = data;
+        const orderMain = await Order.findByPk(orderId);
+        const orderSenderReceiver = await OrderSenderReceiver.findByPk(orderId)
+        const orderDetail = await OrderDetail.findByPk(orderId)
+        const orderLocation = await OrderLocation.findByPk(orderId)
+        const orderSpecialDemand = await OrderSpecialDemand.findByPk(orderId)
+
+        callback({
+            success: true,
+            data: {
+                orderMain,
+                orderDetail,
+                orderLocation,
+                orderSenderReceiver: {
+                    sender: {
+                        name: orderSenderReceiver.senderName,
+                        phoneNumber: orderSenderReceiver.senderPhoneNumber,
+                    },
+                    receiver: {
+                        name: orderSenderReceiver.receiverName,
+                        phoneNumber: orderSenderReceiver.receiverPhoneNumber
+                    }
+                },
+                orderSpecialDemand
+            }
+        })
+    });
+
+    socket.on('chat:getDriverName', async (data, callback) => {
+        const { orderId } = data;
+        const { driverId } = await Order.findByPk(orderId);
+        const { fullName } = await User.findByPk(driverId);
+        callback({
+            success: true,
+            data: {
+                driverName: fullName
+            }
+        })
+    })
+
+}
+
+function generateOrderId(length = 6) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < length; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
 }
 
 

@@ -7,7 +7,12 @@ const checkDriver = async (req, res) => {
     const userId = req.userId;
     logger.info(`[DriverController] Check driver status for user: ${userId}`);
     try {
-        const driver = await Driver.findOne({ where: { userId } });
+        const driver = await Driver.findOne({
+            where: {
+                userId,
+                approvalStatus: 'APPROVED',
+            },
+        });
         if (!driver) {
             return res.status(404).json({
                 success: false,

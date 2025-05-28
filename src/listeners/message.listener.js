@@ -11,13 +11,20 @@ module.exports = (io, socket) => {
         logger.info(`[Message Listener] User joined chat room: ${chatRoom}`);
     });
 
-    socket.on('chat:sendMessage', async (data) => {
+    socket.on('chat:sendMessage', async (data, callback) => {
         const { senderId, content, orderId } = data;
-        await Message.create({
+        const { messageId } = await Message.create({
             senderId,
             content,
             orderId
         });
+
+        callback({
+            success: true,
+            data: {
+                messageId
+            }
+        })
         const rooms = Array.from(io.of('/').adapter.rooms.keys());
         console.log('Số lượng room hiện tại:', rooms.length);
         io.of('/').adapter.rooms.forEach((value, key) => {
@@ -25,9 +32,15 @@ module.exports = (io, socket) => {
         });
         const chatRoom = `chat:${orderId}`;
         socket.to(chatRoom).emit('chat:newMessage', {
-            senderId,
-            content,
-            orderId
+            success: true,
+            data: {
+                message: {
+                    id: messageId,
+                    senderId,
+                    content,
+                    orderId
+                }
+            }
         });
         logger.info('[[Message Listener] A message sent')
     });
@@ -42,7 +55,7 @@ module.exports = (io, socket) => {
         console.log(1);
         callback({
             success: true,
-            messageHistory: messages,
+            data: messages,
         });
     })
 }

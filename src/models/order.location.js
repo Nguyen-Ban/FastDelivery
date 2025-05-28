@@ -3,7 +3,7 @@ const { sequelize } = require('../config/database');
 
 const OrderLocation = sequelize.define('OrderLocation', {
     orderId: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.STRING(6),
         primaryKey: true,
         unique: true,
         allowNull: false,

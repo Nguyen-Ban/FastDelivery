@@ -97,12 +97,21 @@ const matchDriver = async (transportType, orderPickUpLocation, orderData, orderI
     let resDriver = null;
     const drivers = await getAvailableNearestDrivers(transportType, orderPickUpLocation)
     for (const driver of drivers) {
+        const { autoAccept, status } = await Driver.findByPk(driver.id);
+        if (status !== 'AVAILABLE') continue
         const socket = getSocket(driver.id);
         if (!socket) continue;
+
         const orderDetail = await getOrderDetail(orderData, driver);
 
         await redisClient.set(`driver:${driver.id}:available`, JSON.stringify({ orderId, ...orderDetail }), 'EX', 30);
-        sendNotification(driver.id, 'New Order', `New delivery request: ${orderDetail.orderDetail.packageType}`);
+        sendNotification(driver.id, 'Có đơn hàng mới', `Đơn vận chuyển mới: ${orderDetail.orderDetail.packageType}`);
+        if (autoAccept) {
+            socket.emit('order:available', {
+                success: true,
+                data: { orderId, ...orderDetail }
+            });
+        }
         socket.emit('order:new', {
             success: true,
             message: 'Order request',

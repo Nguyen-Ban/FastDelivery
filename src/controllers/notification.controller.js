@@ -1,5 +1,5 @@
 const admin = require('firebase-admin');
-const { DeviceToken } = require('../models/index');
+const { DeviceToken, Notification } = require('../models/index');
 
 
 const registerDevice = async (req, res) => {
@@ -49,7 +49,6 @@ const unregisterDevice = async (req, res) => {
         });
     }
 };
-
 
 
 module.exports = {

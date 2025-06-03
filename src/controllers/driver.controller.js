@@ -10,24 +10,52 @@ const checkDriver = async (req, res) => {
         const driver = await Driver.findOne({
             where: {
                 userId,
-                approvalStatus: 'APPROVED',
             },
         });
+        if (driver.approvalStatus !== 'APPROVED') {
+            return res.status(200).json({
+                success: true,
+                message: 'Driver has not been approved',
+                data: {
+                    approvalStatus: driver.approvalStatus
+                }
+            })
+        }
         if (!driver) {
-            return res.status(404).json({
+            return res.status(200).json({
                 success: false,
                 message: 'Driver not found',
             });
         }
+        let driverRating = 0;
+        const orders = await Order.findAll({ where: { driverId: driver.userId, status: 'DELIVERED' } });
+        reviewLength = 0;
+        for (let order of orders) {
+            const review = await Review.findOne({ where: { orderId: order.id } });
+            if (review && review.rating !== 0) {
+                reviewLength += 1;
+                driverRating += review.rating;
+            }
+        }
+        const { fullName, phoneNumber } = await User.findByPk(driver.userId)
+        console.log(driverRating, reviewLength)
+
+        driverRating = reviewLength > 0 ? driverRating / reviewLength : 0;
         return res.status(200).json({
             success: true,
             message: 'Driver status fetched successfully',
             data: {
-                driverId: driver.id,
-                licenseNumber: driver.licenseNumber,
-                vehicleType: driver.vehicleType,
-                vehiclePlate: driver.vehiclePlate,
-                approvalStatus: driver.approvalStatus
+                approvalStatus: driver.approvalStatus,
+                driverInfo: {
+                    id: driver.id,
+                    fullName: fullName,
+                    phoneNumber: phoneNumber,
+                    licenseNumber: driver.licenseNumber,
+                    vehicleType: driver.vehicleType,
+                    vehiclePlate: driver.vehiclePlate,
+                    approvalStatus: driver.approvalStatus,
+                    rating: driverRating
+                }
             }
         });
     } catch (error) {
@@ -41,6 +69,15 @@ const checkDriver = async (req, res) => {
 
 }
 
+const autoAccept = async (req, res) => {
+    const { autoAccept } = req.body
+    const driverId = req.userId
+    const driver = await Driver.findByPk(driverId);
+    await driver.update({ autoAccept: autoAccept });
+    res.status(200).json({
+        success: true,
+    })
+}
 
 const reviewDriver = async (req, res) => {
     const { orderId, rating, comment } = req.body;
@@ -84,20 +121,26 @@ const registerDriver = async (req, res) => {
 
     try {
         // Check if user is already registered as driver
-        const existingDriver = await Driver.findOne({ where: { user_id: userId }, transaction: t });
+        const existingLicenseNumber = await Driver.findOne({ where: { licenseNumber } });
 
-        if (existingDriver) {
+        if (existingLicenseNumber) {
             return res.status(200).json({
-                success: true,
-                message: 'Driver already registered',
+                success: false,
+                message: 'License number already registered',
                 data: {
-                    driver: {
-                        licenseNumber: existingDriver.licenseNumber,
-                        vehicleType: existingDriver.vehicleType,
-                        vehiclePlate: existingDriver.vehiclePlate,
-                        status: existingDriver.status,
-                        approvalStatus: existingDriver.approvalStatus
-                    }
+                    registered: 'licenseNumber'
+                }
+            });
+        }
+
+        const existingVehiclePlate = await Driver.findOne({ where: { vehiclePlate } });
+
+        if (existingVehiclePlate) {
+            return res.status(200).json({
+                success: false,
+                message: 'Vehicle plate already registered',
+                data: {
+                    registered: 'vehiclePlate'
                 }
             });
         }
@@ -121,12 +164,15 @@ const registerDriver = async (req, res) => {
             success: true,
             message: 'Driver registration successful',
             data: {
-                driver: {
+                driverInfo: {
+                    id: user.id,
+                    fullName: user.fullName,
+                    phoneNumber: user.phoneNumber,
                     licenseNumber: driver.licenseNumber,
                     vehicleType: driver.vehicleType,
                     vehiclePlate: driver.vehiclePlate,
-                    status: driver.status,
-                    approvalStatus: driver.approvalStatus
+                    approvalStatus: driver.approvalStatus,
+                    rating: 0,
                 }
             }
         });
@@ -207,6 +253,7 @@ const assessDriverAuth = async (req, res) => {
 };
 
 module.exports = {
+    autoAccept,
     reviewDriver,
     registerDriver,
     getDriverList,

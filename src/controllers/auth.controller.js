@@ -45,13 +45,19 @@ const login = async (req, res) => {
         if (!user) {
             return res.status(404).json({ success: false, message: 'User not found' });
         }
-
+        console.log(1)
         const isPasscodeValid = await user.comparePasscode(passcode);
+        console.log(2)
+
         if (!isPasscodeValid) {
+            console.log(3)
+
             return res.status(401).json({ success: false, message: 'Invalid passcode' });
         }
+        console.log(4)
 
         const accessToken = await generateAccessToken(user.id);
+
         const refreshToken = await generateRefreshToken(user.id);
 
         return res.status(200).json({
@@ -184,6 +190,7 @@ const resendOtp = async (req, res) => {
         });
     }
 };
+
 
 const logout = async (req, res) => {
     const userId = req.userId;

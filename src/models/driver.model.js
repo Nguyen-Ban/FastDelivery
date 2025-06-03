@@ -38,6 +38,11 @@ const Driver = sequelize.define('Driver', {
         allowNull: false,
         field: 'approval_status'
     },
+    autoAccept: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+        field: 'auto_accept'
+    },
     earning: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,

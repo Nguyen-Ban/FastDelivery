@@ -42,7 +42,7 @@ module.exports = (io, socket) => {
             const driver = await Driver.findByPk(driverId);
             const user = await User.findByPk(driverId);
 
-            sendNotification(customerId, 'Order Created', `Order initialized, delivered by driver ${driverId}`);
+            sendNotification(customerId, 'Tìm thấy tài xế', `Đơn hàng sẽ được vận chuyển bởi tài xế ${user.fullName}`);
 
             const locationRoom = `location:${driverId}`;
             socket.join(locationRoom)
@@ -193,6 +193,8 @@ module.exports = (io, socket) => {
         const customerSocket = await getSocket(customerId);
         console.log(customerSocket)
         customerSocket.emit('order:picking', { success: true })
+        if (distance <= 10000) sendNotification(customerId, 'Tài xế đã đến điểm nhận hàng', `Tài xế đã đến điểm nhận hàng. Sẵn sàng gửi hàng cho tài xế`);
+
         callback({
             success: distance <= 10000
         })
@@ -229,6 +231,7 @@ module.exports = (io, socket) => {
         const { customerId } = await Order.findByPk(orderId);
         const customerSocket = await getSocket(customerId);
         customerSocket.emit('order:delivered', { success: true })
+        if (distance <= 10000) sendNotification(customerId, 'Tài xế đã đến điểm trả hàng', `Tài xế đã đến điểm trả hàng. Sẵn sàng nhận hàng và thanh toán cho tài xế`);
 
         callback({
             success: distance <= 10000
@@ -243,6 +246,7 @@ module.exports = (io, socket) => {
         const newEarning = driver.earning + earning
         await order.update({ status: 'DELIVERED' });
         await driver.update({ earning: newEarning });
+        sendNotification(customerId, 'Đơn vận chuyển hoàn tất', `Cảm ơn bạn đã tin tưởng Fast Delivery`);
         callback({
             success: true,
             data: {

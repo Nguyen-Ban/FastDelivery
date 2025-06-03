@@ -1,4 +1,4 @@
-import { ApiResponse, RegisterDriverReqBody, ROLE } from '@/types';
+import { ApiResponse, RegisterDriverReqBody, ReviewDriverReqBody, ROLE } from '@/types';
 import RestApiService from './rest.api';
 
 const driverService = {
@@ -27,6 +27,15 @@ const driverService = {
     async fetchAllDrivers(): Promise<ApiResponse> {
         try {
             const res = await RestApiService.getRequest('/drivers/list');
+            return res;
+        } catch (error: any) {
+            throw error;
+        }
+    },
+
+    async reviewDriver(reqBody: ReviewDriverReqBody): Promise<ApiResponse> {
+        try {
+            const res = await RestApiService.postRequest('/driver/review', reqBody, ROLE.CUSTOMER)
             return res;
         } catch (error: any) {
             throw error;

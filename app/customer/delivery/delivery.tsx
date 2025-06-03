@@ -9,7 +9,7 @@ import COLOR from '../../../constants/Colors';
 import { decode } from '@here/flexpolyline';
 import { useOrder } from '../../../contexts/order.context';
 import FindingDriverPanel from './_components/finding-driver-panel';
-import { DELIVERY_STATUS, DriverInfo, VEHICLE_TYPES } from '@/types';
+import { DELIVERY_STATUS, DriverInfo, VEHICLE_TYPES, Coordinate, DELIVERY_STATES } from '@/types';
 import OnDeliveryPanel from './_components/on-delivery-panel';
 import CompleteDeliveryPanel from './_components/complete-delivery-panel';
 import CancelledPanel from './_components/cancelled-panel';
@@ -29,8 +29,10 @@ const DeliveryPage = () => {
     const polyline = params.polyline as string;
     const vehicleType = params.vehicleType as VEHICLE_TYPES;
     const [driverInfo, setDriverInfo] = useState<DriverInfo>();
+    const [driverCoord, setDriverCoord] = useState<Coordinate>();
     const [isDriverFound, setIsDriverFound] = useState(false);
-    const [deliveryPolyline, setDeliveryPolyline] = useState<string>(polyline);
+    const [pickupDropoffPolyline, setPickupDropoffPolyline] = useState<string>(polyline);
+    const [driverPickupPolyline, setDriverPickupPolyline] = useState<string>();
     const [orderId, setOrderId] = useState('#FD123456'); // Mock order ID, replace with actual data later
 
     const mapRef = useRef<MapView>(null);
@@ -38,24 +40,21 @@ const DeliveryPage = () => {
     const [showFinding, setShowFinding] = useState(true);
 
     const [deliveryStatus, setDeliveryStatus] = useState<DELIVERY_STATUS>(DELIVERY_STATUS.PENDING);
+    const [onDeliveryState, setOnDeliveryState] = useState<DELIVERY_STATES>(DELIVERY_STATES.MOVING_TO_PICKUP)
 
-    // Decode polyline string
-    const polylineString = deliveryPolyline || 'gfo}Eto~u`@_';
-    const decodedPolyline = decode(polylineString);
-    const routeCoordinates = pickupLocation?.coord ? [
-        {
-            latitude: pickupLocation.coord.lat,
-            longitude: pickupLocation.coord.lng
-        },
-        ...decodedPolyline.polyline.map(point => ({
-            latitude: point[0],
-            longitude: point[1]
-        }))
-    ] : decodedPolyline.polyline.map(point => ({
-        latitude: point[0],
-        longitude: point[1]
-    }));
+    // Decode polyline strings
+    const pickupDropoffDecoded = pickupDropoffPolyline ? decode(pickupDropoffPolyline).polyline : [];
+    const driverPickupDecoded = driverPickupPolyline ? decode(driverPickupPolyline).polyline : [];
 
+    // Calculate route coordinates including driver's location and route
+    const routeCoordinates = [
+        ...pickupDropoffDecoded.map(point => ({ latitude: point[0], longitude: point[1] })),
+        ...(driverCoord ? [{
+            latitude: driverCoord.lat,
+            longitude: driverCoord.lng
+        }] : []),
+        ...driverPickupDecoded.map(point => ({ latitude: point[0], longitude: point[1] }))
+    ];
 
     // Calculate the center point between pickup and dropoff for initial map region
     const initialRegion = pickupLocation?.coord && dropoffLocation?.coord ? {
@@ -70,14 +69,17 @@ const DeliveryPage = () => {
         longitudeDelta: 0.0421,
     };
 
-
     // Function to fit map to route bounds
     const fitMapToRoute = () => {
         if (!pickupLocation?.coord || !dropoffLocation?.coord || !mapRef.current) return;
 
         const coordinates = [
             { latitude: pickupLocation.coord.lat, longitude: pickupLocation.coord.lng },
-            { latitude: dropoffLocation.coord.lat, longitude: dropoffLocation.coord.lng }
+            { latitude: dropoffLocation.coord.lat, longitude: dropoffLocation.coord.lng },
+            ...(driverCoord ? [{
+                latitude: driverCoord.lat,
+                longitude: driverCoord.lng
+            }] : [])
         ];
 
         mapRef.current.fitToCoordinates(coordinates, {
@@ -91,7 +93,14 @@ const DeliveryPage = () => {
         if (pickupLocation?.coord && dropoffLocation?.coord) {
             fitMapToRoute();
         }
-    }, [pickupLocation, dropoffLocation]);
+    }, [pickupLocation, dropoffLocation, driverCoord]);
+
+    // Effect to update map when driver location changes
+    useEffect(() => {
+        if (driverCoord) {
+            fitMapToRoute();
+        }
+    }, [driverCoord]);
 
     // Hiển thị panel tìm tài xế cho đến khi driverFound là true
     useEffect(() => {
@@ -101,8 +110,6 @@ const DeliveryPage = () => {
             setShowFinding(true);
         }
     }, [isDriverFound]);
-
-
 
     const handleChatDriver = () => {
         router.push({
@@ -118,19 +125,26 @@ const DeliveryPage = () => {
         console.log('Chat with driver');
     };
 
-
     useEffect(() => {
         socket.on('order:driverFound', (response) => {
             if (response.success) {
                 console.log('Driver found:');
                 setDriverInfo(response.data.driverInfo);
+                setDriverCoord(response.data.driverCoord);
                 setIsDriverFound(true);
                 setDeliveryStatus(DELIVERY_STATUS.IN_PROGRESS);
-                setOrderId(response.data.orderId)
+                setOrderId(response.data.orderId);
+                setDriverPickupPolyline(response.data.driverPickupPolyline);
             } else {
                 console.error('Error finding driver:', response.message);
             }
-        })
+        });
+
+        socket.on('location:update', (response) => {
+            if (response.success) {
+                setDriverCoord({ lat: response.data.lat, lng: response.data.lng });
+            }
+        });
 
         socket.on('order:completed', (response) => {
             if (response.success) {
@@ -139,6 +153,32 @@ const DeliveryPage = () => {
                 console.error('Error completing delivery:', response.message);
             }
         });
+
+        socket.on('order:picking', (response) => {
+            console.log('picking')
+            if (response.success) {
+                setOnDeliveryState(DELIVERY_STATES.GOING_TO_PICKUP)
+            }
+        })
+
+        socket.on('order:picked', (response) => {
+            console.log('picked')
+            if (response.success) {
+                setOnDeliveryState(DELIVERY_STATES.PICKING_UP)
+            }
+        })
+
+        socket.on('order:delivering', (response) => {
+            if (response.success) {
+                setOnDeliveryState(DELIVERY_STATES.GOING_TO_DROPOFF)
+            }
+        })
+
+        socket.on('order:delivered', (response) => {
+            if (response.success) {
+                setOnDeliveryState(DELIVERY_STATES.DELIVERING)
+            }
+        })
 
         socket.on('order:cancelled', (response) => {
             if (response.success) {
@@ -149,16 +189,21 @@ const DeliveryPage = () => {
             }
         });
 
-        socket.on('order:deliveryPolyline', (response) => {
-            if (response.success) setDeliveryPolyline(response.data.polyline);
-            else console.error('Error fetching delivery polyline:', response.message);
-        });
+        socket.on('driver:coord', (response) => {
+            if (response.success) {
+                setDriverCoord(response.data.driverCoord)
+            }
+        })
+
         // Clean up socket listeners on unmount
         return () => {
+            socket.off('order:picked');
+            socket.off('order:picking');
+            socket.off('order:delivered');
             socket.off('order:driverFound');
+            socket.off('driver:location');
             socket.off('order:completed');
             socket.off('order:cancelled');
-            socket.off('order:deliveryPolyline');
         };
     }, []);
 
@@ -182,9 +227,7 @@ const DeliveryPage = () => {
                             }}
                             title="Điểm đón"
                             pinColor={COLOR.orange50}
-                        >
-
-                        </Marker>
+                        />
                     )}
 
                     {/* Dropoff Marker */}
@@ -199,12 +242,40 @@ const DeliveryPage = () => {
                         />
                     )}
 
-                    {/* Route Line */}
+                    {/* Driver Marker */}
+                    {driverCoord && (
+                        <Marker
+                            coordinate={{
+                                latitude: driverCoord.lat,
+                                longitude: driverCoord.lng
+                            }}
+                            title="Tài xế"
+                        >
+                            <View style={styles.motorcycleMarker}>
+                                <FontAwesome5 name="motorcycle" size={20} color={COLOR.orange50} />
+                            </View>
+                        </Marker>
+                    )}
+
+                    {/* Route Lines */}
                     <Polyline
-                        coordinates={routeCoordinates}
+                        coordinates={pickupDropoffDecoded.map(point => ({
+                            latitude: point[0],
+                            longitude: point[1]
+                        }))}
                         strokeColor={COLOR.orange50}
                         strokeWidth={4}
                     />
+                    {driverPickupDecoded.length > 0 && (
+                        <Polyline
+                            coordinates={driverPickupDecoded.map(point => ({
+                                latitude: point[0],
+                                longitude: point[1]
+                            }))}
+                            strokeColor={COLOR.blue70}
+                            strokeWidth={4}
+                        />
+                    )}
                 </MapView>
 
                 {/* Back Button */}
@@ -216,7 +287,7 @@ const DeliveryPage = () => {
                 </TouchableOpacity>
 
                 {/* Bottom Panel */}
-                <View style={styles.infoPanel}>
+                <View style={[styles.infoPanel, { height: deliveryStatus === DELIVERY_STATUS.COMPLETED ? SCREEN_HEIGHT * 0.7 : PANEL_HEIGHT }]}>
                     {deliveryStatus === DELIVERY_STATUS.PENDING && (
                         <FindingDriverPanel onCancel={() => {
                             router.back();
@@ -224,6 +295,7 @@ const DeliveryPage = () => {
                     )}
                     {deliveryStatus === DELIVERY_STATUS.IN_PROGRESS && (
                         <OnDeliveryPanel
+                            ON_DELIVERY_STATE={onDeliveryState}
                             orderId={orderId}
                             driverInfo={driverInfo}
                             onChat={handleChatDriver}
@@ -237,6 +309,7 @@ const DeliveryPage = () => {
                     )}
                     {deliveryStatus === DELIVERY_STATUS.COMPLETED && (
                         <CompleteDeliveryPanel
+                            orderId={orderId}
                             driverName={driverInfo?.fullName || 'Nguyễn Văn A'}
                             onSubmit={() => {
                                 // Optionally reset or navigate away after rating
@@ -282,7 +355,6 @@ const styles = StyleSheet.create({
         bottom: 0,
         left: 0,
         right: 0,
-        height: PANEL_HEIGHT,
         backgroundColor: '#fff',
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,

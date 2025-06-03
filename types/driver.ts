@@ -6,6 +6,12 @@ interface RegisterDriverReqBody {
     licenseNumber: string,
 }
 
+interface ReviewDriverReqBody {
+    orderId: string,
+    rating: number,
+    comment: string,
+}
+
 interface DriverInfo {
     id: string;
     fullName: string;
@@ -19,4 +25,4 @@ interface DriverAdminInfo extends DriverInfo {
     status: DRIVER_STATUS;
 }
 
-export { RegisterDriverReqBody, DriverInfo, DriverAdminInfo };
+export { RegisterDriverReqBody, DriverInfo, DriverAdminInfo, ReviewDriverReqBody };

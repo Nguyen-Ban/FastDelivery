@@ -50,8 +50,8 @@ export const LocationProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
         await ExpoLocation.watchPositionAsync(
             {
-                accuracy: ExpoLocation.Accuracy.Balanced,
-                timeInterval: 3000,
+                accuracy: ExpoLocation.Accuracy.BestForNavigation,
+                timeInterval: 1000,
                 distanceInterval: 3,
             },
             async (loc) => {

@@ -45,16 +45,6 @@ const HomeLayout = () => {
           },
         }}
       />
-      <Tabs.Screen
-        name="message"
-        options={{
-          title: "Tin nhắn",
-          tabBarIcon: ({ focused }) => {
-            const iconColor = focused ? COLOR.blue40 : COLOR.black;
-            return <FontAwesome6 name="envelope" size={24} color={iconColor} />;
-          },
-        }}
-      />
     </Tabs>
   );
 };

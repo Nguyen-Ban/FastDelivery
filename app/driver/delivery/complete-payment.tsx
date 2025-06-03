@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -7,63 +7,37 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
-  Modal,
-  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import socket from "@/services/socket";
 
 const CompletePayment = () => {
   const router = useRouter();
-  const [showEarningsModal, setShowEarningsModal] = useState(false);
-  const [deliveryPrice, setDeliveryPrice] = useState(0);
-  const [addonPrice, setAddonPrice] = useState(0);
-  const [earning, setEarning] = useState(0);
+  const params = useLocalSearchParams();
+  const carPrice = parseFloat(params.carPrice as string)
 
-  const handleComplete = () => {
-    socket.emit("order:complete", {}, (response) => {
-      if (response.success) {
-        setEarning(response.earning);
-        setDeliveryPrice(response.deliveryPrice);
-        setAddonPrice(response.addonPrice);
-      } else {
-        console.error("Error completing order:", response.error);
-      }
+  const deliveryPrice = parseFloat(params.deliveryPrice as string)
+  const addonPrice = parseFloat(params.addonPrice as string)
+  const orderId = params.orderId as string
+
+  const handleComplete = async () => {
+    const response: any = await new Promise((resolve) => {
+      socket.emit("order:complete", { orderId }, (res) => {
+        resolve(res);
+      });
     });
-    setShowEarningsModal(true);
-    router.push("../driver");
 
+    if (response.success) {
+      router.push("/driver");
+    } else {
+      console.error("Error completing order:", response.error);
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="white" />
-
-      {/* Earnings Modal */}
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={showEarningsModal}
-        onRequestClose={() => setShowEarningsModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            {/* <Image
-                            source={require('../../assets/bike-icon.png')}
-                            style={styles.earningsIcon}
-                        /> */}
-            <Text style={styles.earningsTitle}>Thu nhập rồng</Text>
-            <Text style={styles.earningsAmount}>{earning.toLocaleString()}đ</Text>
-            <TouchableOpacity
-              style={styles.modalButton}
-              onPress={() => handleComplete()}
-            >
-              <Text style={styles.modalButtonText}>Tuyệt vời</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
 
       {/* Header */}
       <View style={styles.header}>
@@ -79,7 +53,7 @@ const CompletePayment = () => {
         {/* Service Fee */}
         <View style={styles.row}>
           <Text style={styles.label}>Phí dịch vụ</Text>
-          <Text style={styles.value}>{deliveryPrice.toLocaleString()}đ</Text>
+          <Text style={styles.value}>{(deliveryPrice + carPrice).toLocaleString()}đ</Text>
         </View>
 
         {/* Additional Service */}
@@ -91,7 +65,7 @@ const CompletePayment = () => {
         {/* Total */}
         <View style={[styles.row, styles.totalRow]}>
           <Text style={styles.totalLabel}>Tổng thanh toán</Text>
-          <Text style={styles.totalValue}>{(addonPrice + deliveryPrice).toLocaleString()}đ</Text>
+          <Text style={styles.totalValue}>{(addonPrice + deliveryPrice + carPrice).toLocaleString()}đ</Text>
         </View>
 
         {/* Payment Method */}
@@ -110,7 +84,7 @@ const CompletePayment = () => {
       {/* Complete Button */}
       <TouchableOpacity
         style={styles.completeButton}
-        onPress={() => router.push("../driver")}
+        onPress={handleComplete}
       >
         <Text style={styles.completeButtonText}>Hoàn thành</Text>
       </TouchableOpacity>
@@ -193,48 +167,6 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     fontWeight: "bold",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 24,
-    alignItems: "center",
-    width: "80%",
-    maxWidth: 320,
-  },
-  earningsIcon: {
-    width: 80,
-    height: 80,
-    marginBottom: 16,
-  },
-  earningsTitle: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 8,
-  },
-  earningsAmount: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 24,
-  },
-  modalButton: {
-    backgroundColor: "#00BFA5",
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 25,
-    width: "100%",
-  },
-  modalButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold",
-    textAlign: "center",
   },
 });
 

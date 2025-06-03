@@ -2,10 +2,14 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Alert, Dimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import COLOR from '@/constants/Colors';
+import orderService from '@/services/order.service';
+import driverService from '@/services/driver.service';
+import { useRouter } from 'expo-router';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 interface CompleteDeliveryPanelProps {
+    orderId: string;
     driverName?: string;
     onBack?: () => void;
     onSubmit?: () => void;
@@ -15,20 +19,31 @@ const tagsList = ['Thân thiện', 'Cẩn thận', 'Đúng giờ', 'Thái độ 
 const tipsList = [5000, 10000, 15000];
 const ratingComments = ['Tệ', 'Không hài lòng', 'Bình thường', 'Hài lòng', 'Tuyệt vời'];
 
-const CompleteDeliveryPanel: React.FC<CompleteDeliveryPanelProps> = ({ driverName = 'Nguyễn Văn A', onBack, onSubmit }) => {
+const CompleteDeliveryPanel: React.FC<CompleteDeliveryPanelProps> = ({ orderId, driverName = 'Nguyễn Văn A', onBack, onSubmit }) => {
     const [rating, setRating] = useState<number>(0);
     const [tip, setTip] = useState<number | null>(null);
     const [selectedTags, setSelectedTags] = useState<string[]>([]);
+    const [comment, setComment] = useState<string>('');
+    const router = useRouter();
 
     const toggleTag = (tag: string) => {
         if (selectedTags.includes(tag)) {
-            setSelectedTags(selectedTags.filter((t) => t !== tag));
+            setSelectedTags(prevTags => {
+                const newTags = prevTags.filter((t) => t !== tag);
+                setComment(newTags.join(', ')); // Update comment when removing tag
+                return newTags;
+            });
         } else {
-            setSelectedTags([...selectedTags, tag]);
+            setSelectedTags(prevTags => {
+                const newTags = [...prevTags, tag];
+                setComment(newTags.join(', ')); // Update comment when adding tag
+                return newTags;
+            });
         }
     };
-
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
+        const res = await driverService.reviewDriver({ orderId, rating, comment });
+        if (!res.success) return
         Alert.alert('Đánh giá thành công', `Cảm ơn bạn đã đánh giá tài xế!`);
         if (onSubmit) onSubmit();
     };
@@ -56,23 +71,6 @@ const CompleteDeliveryPanel: React.FC<CompleteDeliveryPanelProps> = ({ driverNam
                 <Text style={styles.commentLabel}>
                     {rating === 0 ? 'Đánh giá' : ratingComments[rating - 1]}
                 </Text>
-                <Text style={styles.sectionTitle}>Tài xế quá nhiệt tình? Thưởng thêm cho Tài xế</Text>
-                <View style={styles.tipRow}>
-                    {tipsList.map((value) => (
-                        <TouchableOpacity
-                            key={value}
-                            style={[styles.tipButton, tip === value && styles.tipButtonActive]}
-                            onPress={() => setTip(value)}
-                        >
-                            <Text style={tip === value ? styles.tipTextActive : styles.tipText}>
-                                {value / 1000}K
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                    <TouchableOpacity style={styles.tipButton}>
-                        <Text style={styles.tipText}>Khác</Text>
-                    </TouchableOpacity>
-                </View>
                 <Text style={styles.sectionTitle}>Gửi lời khen của bạn</Text>
                 <View style={styles.tagWrap}>
                     {tagsList.map(tag => (
@@ -85,9 +83,14 @@ const CompleteDeliveryPanel: React.FC<CompleteDeliveryPanelProps> = ({ driverNam
                         </TouchableOpacity>
                     ))}
                 </View>
-                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-                    <Text style={styles.submitText}>Gửi đánh giá</Text>
-                </TouchableOpacity>
+                <View style={styles.buttonContainer}>
+                    <TouchableOpacity style={[styles.submitButton, styles.homeButton]} onPress={() => router.push('/customer/home')}>
+                        <Text style={styles.submitText}>Về trang chủ</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={[styles.submitButton, styles.reviewButton]} onPress={handleSubmit}>
+                        <Text style={styles.submitText}>Gửi đánh giá</Text>
+                    </TouchableOpacity>
+                </View>
                 <Text style={styles.note}>
                     Bạn có điều gì muốn sẻ chia cùng chúng tôi? Hãy để lại đánh giá ngay nhé! Đánh giá và bình luận của bạn sẽ được hiển thị ở chế độ ẩn danh.
                 </Text>
@@ -96,7 +99,7 @@ const CompleteDeliveryPanel: React.FC<CompleteDeliveryPanelProps> = ({ driverNam
     );
 };
 
-const PANEL_HEIGHT = SCREEN_HEIGHT * 0.45;
+const PANEL_HEIGHT = SCREEN_HEIGHT * 0.7;
 
 const styles = StyleSheet.create({
     panelContainer: {
@@ -155,12 +158,23 @@ const styles = StyleSheet.create({
     },
     tagText: { color: '#333' },
     tagTextSelected: { color: '#fff' },
+    buttonContainer: {
+        flexDirection: 'row',
+        gap: 10,
+        marginTop: 30,
+    },
     submitButton: {
         backgroundColor: COLOR.orange50,
         paddingVertical: 14,
         borderRadius: 10,
-        marginTop: 30,
         alignItems: 'center',
+        flex: 1,
+    },
+    homeButton: {
+        backgroundColor: COLOR.blue70,
+    },
+    reviewButton: {
+        backgroundColor: COLOR.orange50,
     },
     submitText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
     note: {

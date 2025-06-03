@@ -24,21 +24,20 @@ const AccountScreen = () => {
   const [user, setUser] = useState<User | null>(null)
 
   useEffect(() => {
-  const loadUserInfo = async () => {
-    try {
-      const userInfoString = await AsyncStorage.getItem("user");
-      console.log("Dữ liệu userInfo:", userInfoString); // 👈 in ra kiểm tra
-      if (userInfoString) {
-        const userData = JSON.parse(userInfoString);
-        setUser(userData);
+    const loadUserInfo = async () => {
+      try {
+        const userInfoString = await AsyncStorage.getItem("user");
+        if (userInfoString) {
+          const userData = JSON.parse(userInfoString);
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error("Lỗi khi lấy userInfo:", error);
       }
-    } catch (error) {
-      console.error("Lỗi khi lấy userInfo:", error);
-    }
-  };
+    };
 
-  loadUserInfo();
-}, []);
+    loadUserInfo();
+  }, []);
 
   const handleLogout = async () => {
     try {

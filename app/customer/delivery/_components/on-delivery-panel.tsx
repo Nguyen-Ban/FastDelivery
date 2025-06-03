@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Linking } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
-import { DriverInfo } from '@/types';
+import { DELIVERY_STATES, DriverInfo } from '@/types';
 import COLOR from '@/constants/Colors';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -9,13 +9,14 @@ const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const PANEL_HEIGHT = SCREEN_HEIGHT * 0.45;
 
 interface OnDeliveryProps {
+    ON_DELIVERY_STATE: string;
     orderId?: string;
     driverInfo?: DriverInfo;
     onDeliveryDetail?: () => void;
     onChat?: () => void;
 }
 
-const OnDeliveryPanel: React.FC<OnDeliveryProps> = ({ onDeliveryDetail, orderId, driverInfo, onChat }) => {
+const OnDeliveryPanel: React.FC<OnDeliveryProps> = ({ ON_DELIVERY_STATE, onDeliveryDetail, orderId, driverInfo, onChat }) => {
 
     const handleCallDriver = () => {
         const phoneNumber = driverInfo?.phoneNumber;
@@ -24,8 +25,25 @@ const OnDeliveryPanel: React.FC<OnDeliveryProps> = ({ onDeliveryDetail, orderId,
         }
     };
 
+    const getText = () => {
+        switch (ON_DELIVERY_STATE) {
+            case DELIVERY_STATES.MOVING_TO_PICKUP:
+                return 'Đang đến điểm lấy hàng';
+            case DELIVERY_STATES.GOING_TO_PICKUP:
+                return 'Đã đến điểm lấy hàng';
+            case DELIVERY_STATES.PICKING_UP:
+                return 'Đã lấy hàng';
+            case DELIVERY_STATES.GOING_TO_DROPOFF:
+                return 'Đang đến điểm trả hàng';
+            case DELIVERY_STATES.DELIVERING:
+                return 'Đã trả hàng';
+            default:
+                return '';
+        }
+    };
+
     return (
-        <>
+        <View>
             {/* Order Summary - Clickable to go to details */}
             <TouchableOpacity
                 style={styles.orderSummary}
@@ -37,7 +55,7 @@ const OnDeliveryPanel: React.FC<OnDeliveryProps> = ({ onDeliveryDetail, orderId,
                             <FontAwesome5 name="truck" size={24} color={COLOR.orange50} />
                         </View>
                         <View>
-                            <Text style={styles.statusText}>Đang giao hàng</Text>
+                            <Text style={styles.statusText}>{getText()}</Text>
                             <Text style={styles.orderId}>Mã đơn: {orderId}</Text>
                         </View>
                     </View>
@@ -93,7 +111,7 @@ const OnDeliveryPanel: React.FC<OnDeliveryProps> = ({ onDeliveryDetail, orderId,
                     <Text style={styles.actionText}>Nhắn tin</Text>
                 </TouchableOpacity>
             </View>
-        </>
+        </View>
     );
 }
 

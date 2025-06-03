@@ -80,7 +80,13 @@ const HomeScreen = () => {
     try {
       const response = await driverService.checkRegistered();
       if (response.success) {
-        router.push('/driver');
+        console.log(response)
+        router.push({
+          pathname: '/driver',
+          params: {
+            vehicleType: response.data.vehicleType
+          }
+        });
       } else {
         router.push('/driver/register');
       }
@@ -119,7 +125,7 @@ const HomeScreen = () => {
     | "/customer/home"
     | "/driver"
     | "/customer/user/spending"
-    | "/customer/user/events"
+    | "/customer/home/activity"
     | "/driver/register";
 
   const getRouteById = (id: string): ServiceRoute | (() => void) => {
@@ -129,7 +135,7 @@ const HomeScreen = () => {
       case "6":
         return () => handleDeliverySelection(ORDER_TYPES.CAR_DELIVERY);
       case "2":
-        return "/customer/user/events";
+        return "/customer/home/activity";
       case "3":
         return "/customer/user/spending";
       case "7":

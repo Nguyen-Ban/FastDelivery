@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -15,129 +15,131 @@ import InfoCard from "../../../components/InfoCard";
 import EventCard from "../../../components/EventCard";
 import COLOR from "../../../constants/Colors";
 import GLOBAL from "../../../constants/GlobalStyles";
+import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
+import { Order } from "@/types";
+import orderService from "@/services/order.service";
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'IN_DELIVERY':
+      return COLOR.orange50;
+    case 'DELIVERED':
+      return COLOR.green40;
+    case 'CANCELLED':
+      return COLOR.red55;
+    default:
+      return COLOR.blue70;
+  }
+};
+
+interface Activity {
+  id: string;
+  time: Date;
+  status: string;
+  vehicleType: string;
+  deliveryType: string;
+  pickupAddress: string;
+  dropoffAddress: string;
+  price: number;
+
+}
 
 const Activity = () => {
-  //hard code
-  const deliveries = [
-    {
-      date: "03/04/2024",
-      items: [
-        {
-          amount: "56.000đ",
-          time: "15:13",
-          vehicleType: "MOTORCYCLE",
-          packageType: "Bưu kiện nhỏ",
-          pickup: "300/23/21 Nguyễn Văn Linh P.Bình Thuận",
-          dropoff: "Morin Milk Tea - Coffee 64/20 Võ Oanh",
-          status: "Hoàn thành",
-        },
-        {
-          amount: "20.000đ",
-          time: "14:38",
-          vehicleType: "MOTORCYCLE",
-          packageType: "Bưu kiện nhỏ",
-          pickup: "Eddie's New York Deli & Diner",
-          dropoff: "Chung Cư Khánh Hội 3",
-          status: "Hoàn thành",
-        },
-        {
-          amount: "48.000đ",
-          time: "14:02",
-          vehicleType: "CAR",
-          packageType: "Bưu kiện vừa",
-          pickup: "6 Tân Trào 6 Tan Trao St.",
-          dropoff: "140 Nguyễn Văn Thủ P.Da Kao",
-          status: "Hoàn thành",
-        },
-        {
-          amount: "20.000đ",
-          time: "13:44",
-          vehicleType: "MOTORCYCLE",
-          packageType: "Bưu kiện nhỏ",
-          pickup: "Q7 Saigon Riverside Complex - Cổng Chính D...",
-          dropoff: "GO! Nguyễn Thị Thập - Cổng Phụ 99 Nguyen...",
-          status: "Hoàn thành",
-        },
-        {
-          amount: "35.000đ",
-          time: "15:30",
-          vehicleType: "MOTORCYCLE",
-          packageType: "Bưu kiện nhỏ",
-          pickup: "Sample Address",
-          dropoff: "Sample Destination",
-          status: "Bị hủy",
-        },
-      ],
-    },
-    {
-      date: "04/04/2024",
-      items: [
-        {
-          amount: "35.000đ",
-          time: "15:30",
-          vehicleType: "MOTORCYCLE",
-          packageType: "Bưu kiện nhỏ",
-          pickup: "Sample Address",
-          dropoff: "Sample Destination",
-          status: "Hoàn thành",
-        },
-      ],
-    },
-    {
-      date: "04/05/2025",
-      items: [
-        {
-          amount: "35.000đ",
-          time: "15:30",
-          vehicleType: "MOTORCYCLE",
-          packageType: "Bưu kiện nhỏ",
-          pickup: "Sample Address",
-          dropoff: "Sample Destination",
-          status: "Đang giao hàng",
-        },
-      ],
-    },
-  ];
+  const [deliveries, setDeliveries] = useState<Activity[]>([])
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchDeliveries = async () => {
+        const res = await orderService.getCustomerOrderList();
+        if (res.success) {
+          setDeliveries(res.data);
+        }
+      };
+      fetchDeliveries();
+    }, [])
+  );
+
 
   return (
-    <View style={GLOBAL.container}>
-      <Text style={GLOBAL.home_title}>Hoạt động</Text>
-      <FlatList
-        data={deliveries}
-        keyExtractor={(item) => item.date}
-        renderItem={({ item }) => (
-          <FlatList
-            data={item.items}
-            keyExtractor={(item) => item.time}
-            renderItem={({ item: details }) => (
-              <EventCard
-                amount={details.amount}
-                date={item.date}
-                time={details.time}
-                vehicleType={details.vehicleType}
-                pickup={details.pickup}
-                dropoff={details.dropoff}
-                status={details.status}
-                onPress={() => {
-                  router.push("/customer/user/event-detail");
-                }}
-                container_style={{ paddingBottom: 10 }}
-              ></EventCard>
-            )}
-          ></FlatList>
-        )}
-        style={{
-          marginVertical: 5,
-          borderTopColor: COLOR.grey70,
-          borderTopWidth: 1,
-        }}
-      ></FlatList>
+    <View style={GLOBAL.home_container}>
+      <View style={styles.header}>
+        <LinearGradient
+          colors={[COLOR.blue70, COLOR.orange70]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.gradient}
+        >
+          <Text style={styles.title}>Hoạt động</Text>
+        </LinearGradient>
+      </View>
+      {deliveries.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyText}>Bạn chưa có hoạt động nào</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={deliveries}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <EventCard
+              amount={item.price.toLocaleString() + "đ"}
+              date={new Date(item.time).toLocaleDateString('vi-VN')}
+              time={new Date(item.time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+              vehicleType={item.vehicleType || "MOTORCYCLE"}
+              pickup={item.pickupAddress || ""}
+              dropoff={item.dropoffAddress || ""}
+              status={item.status || "PENDING"}
+              statusColor={getStatusColor(item.status)}
+              onPress={() => {
+                router.push({
+                  pathname: "/customer/user/event-detail",
+                  params: {
+                    id: item.id,
+                  }
+                });
+              }}
+              container_style={{ paddingBottom: 10 }}
+            />
+          )}
+          style={{
+            marginVertical: 5,
+            paddingHorizontal: 15,
+          }}
+        />
+      )}
     </View>
   );
 };
 
 export default Activity;
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "flex-start",
+  },
+  title: {
+    paddingLeft: 16,
+    fontSize: 24,
+    fontWeight: "bold",
+  },
+  gradient: {
+    flex: 1,
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+  },
+});

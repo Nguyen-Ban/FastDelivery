@@ -106,7 +106,10 @@ const DriverMenu = () => {
                         <Ionicons name="chevron-forward" size={24} color="#666" />
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={[styles.menuItem, styles.customerModeItem]}>
+                    <TouchableOpacity
+                        style={[styles.menuItem, styles.customerModeItem]}
+                        onPress={() => router.push("/customer/home")}
+                    >
                         <View style={styles.menuIconBox}>
                             <MaterialIcons name="switch-account" size={24} color="#e74c3c" />
                         </View>

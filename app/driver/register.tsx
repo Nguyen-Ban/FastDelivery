@@ -18,6 +18,7 @@ import Button from '../../components/Button/ButtonComponent';
 import driverService from '../../services/driver.service';
 import { Picker } from '@react-native-picker/picker';
 import Checkbox from 'expo-checkbox';
+import { VEHICLE_TYPES } from '@/types';
 
 const DriverRegistration = () => {
     const [showForm, setShowForm] = useState(false);
@@ -66,7 +67,16 @@ const DriverRegistration = () => {
 
             if (response.success) {
                 Alert.alert('Thành công', 'Đăng ký tài xế thành công', [
-                    { text: 'OK', onPress: () => router.push('/driver') }
+                    {
+                        text: 'OK', onPress: () => {
+                            router.push({
+                                pathname: '/driver',
+                                params: {
+                                    vehicleType: response.data.driver.vehicleType
+                                }
+                            });
+                        }
+                    }
                 ]);
             }
         } catch (error) {
@@ -139,8 +149,11 @@ const DriverRegistration = () => {
                                     onValueChange={(value) => setFormData({ ...formData, vehicleType: value })}
                                     style={styles.picker}
                                 >
-                                    <Picker.Item label="Xe máy" value="MOTORBIKE" />
-                                    <Picker.Item label="Ô tô" value="CAR" />
+                                    <Picker.Item label="Xe máy" value={VEHICLE_TYPES.MOTORBIKE} />
+                                    <Picker.Item label="Xe Van" value={VEHICLE_TYPES.VAN} />
+                                    <Picker.Item label="Xe bán tải" value={VEHICLE_TYPES.PICKUP_TRUCK} />
+                                    <Picker.Item label="Xe tải" value={VEHICLE_TYPES.TRUCK} />
+
                                 </Picker>
                             </View>
                         </View>

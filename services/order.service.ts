@@ -1,4 +1,4 @@
-import { ApiResponse, Coordinate, VEHICLE_TYPES } from '@/types';
+import { ApiResponse, Coordinate, ROLE, VEHICLE_TYPES } from '@/types';
 import RestApiService from './rest.api';
 
 
@@ -16,14 +16,48 @@ const orderService = {
             throw error;
         }
     },
-    async fetchStats(): Promise<ApiResponse> {
+    async fetchAdminStats(): Promise<ApiResponse> {
         try {
-            const res = await RestApiService.getRequest('/order/stats');
+            const res = await RestApiService.getRequest('/order/admin/stats');
             return res;
         } catch (error: any) {
             throw error;
         }
     },
+    async getCustomerOrderList(): Promise<ApiResponse> {
+        try {
+            const res = await RestApiService.getRequest('/order/customer/list', {}, ROLE.CUSTOMER);
+            return res;
+        } catch (error: any) {
+            throw error;
+        }
+    },
+    async getDriverOrderList(): Promise<ApiResponse> {
+        try {
+            const res = await RestApiService.getRequest('/order/driver/list', {}, ROLE.DRIVER);
+            return res;
+        } catch (error: any) {
+            throw error;
+        }
+    },
+
+    async fetchEventDetail(id: string): Promise<ApiResponse> {
+        try {
+            const res = await RestApiService.getRequest(`/order/event/${id}`);
+            return res;
+        } catch (error: any) {
+            throw error;
+        }
+    },
+    async fetchCustomerStats(): Promise<ApiResponse> {
+        try {
+            const res = await RestApiService.getRequest(`/order/customer/stats`);
+            return res;
+        } catch (error: any) {
+            throw error;
+        }
+    },
+
 }
 
 export default orderService;

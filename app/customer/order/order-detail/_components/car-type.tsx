@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,46 +11,27 @@ import {
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import COLOR from "../../../../../constants/Colors";
 import { useOrder } from "@/contexts/order.context";
-import { VEHICLE_TYPES } from "@/types";
+import { VEHICLE_TYPES, vehicleOptions } from "@/types";
 
 const { width } = Dimensions.get("window");
 
-const vehicleOptions = [
-  {
-    id: VEHICLE_TYPES.VAN,
-    name: "Xe VAN",
-    dimensions: "Hàng hoá 145 x 145 x 95 cm. Tối đa 500kg",
-    price: "132.000đ",
-    sizeLabel: "500",
-  },
-  {
-    id: VEHICLE_TYPES.PICKUP_TRUCK,
-    name: "Xe Bán Tải",
-    dimensions: "Hàng hoá 180 x 160 x 110 cm. Tối đa 700kg",
-    price: "159.000đ",
-    sizeLabel: "700",
-  },
-  {
-    id: VEHICLE_TYPES.TRUCK,
-    name: "Xe tải",
-    dimensions: "Hàng hoá 290 x 160 x 160 cm. Tối đa 1000kg",
-    price: "195.000đ",
-    sizeLabel: "1000",
-  },
-];
+
 
 const CarType = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(vehicleOptions[0]);
-  const { setVehicleType } = useOrder();
+  const { setVehicleType, setCarPrice } = useOrder();
 
   const handleSelectVehicle = (vehicleId: string) => {
     const vehicle = vehicleOptions.find((v) => v.id === vehicleId);
     if (vehicle) {
       setSelectedVehicle(vehicle);
       setVehicleType(vehicleId as VEHICLE_TYPES);
+      setCarPrice(vehicle.price);
     }
   };
+
+
 
   return (
     <>
@@ -106,7 +87,7 @@ const CarType = () => {
                           <Text style={styles.vehicleTitle}>{vehicle.name}</Text>
                           <Ionicons name="information-circle-outline" size={18} color="#ccc" />
                         </View>
-                        <Text style={styles.vehiclePrice}>{vehicle.price}</Text>
+                        <Text style={styles.vehiclePrice}>{vehicle.price.toLocaleString()}đ</Text>
                       </View>
                     </View>
                     <Text style={styles.vehicleDimensions}>{vehicle.dimensions}</Text>

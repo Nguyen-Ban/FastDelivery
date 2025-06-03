@@ -13,6 +13,7 @@ interface EventCardProps {
   pickup: string;
   dropoff: string;
   status: string;
+  statusColor?: string;
   onPress: () => void;
   icon_size?: number;
   icon_color?: string;
@@ -34,6 +35,7 @@ const EventCard: React.FC<EventCardProps> = ({
   pickup,
   dropoff,
   status,
+  statusColor,
   onPress,
   icon_size,
   icon_color,
@@ -49,18 +51,8 @@ const EventCard: React.FC<EventCardProps> = ({
   const name = vehicleType === "MOTORCYCLE" ? "motorcycle" : "truck";
   const size = icon_size ?? 18;
   const color = icon_color ?? COLOR.black;
-  const status_color =
-    status === "Hoàn thành"
-      ? COLOR.blue70
-      : status === "Đang giao hàng"
-      ? COLOR.orange70
-      : COLOR.grey90;
-  const status_border_color =
-    status === "Hoàn thành"
-      ? COLOR.blue40
-      : status === "Đang giao hàng"
-      ? COLOR.orange50
-      : COLOR.grey50;
+  const status_color = statusColor ?? COLOR.blue70;
+  const status_border_color = statusColor ?? COLOR.blue40;
   const amountTextStyle = [styles.amount_default, amount_text_style];
   const imgContainerStyle = [
     styles.image_container_default,

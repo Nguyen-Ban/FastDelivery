@@ -36,9 +36,7 @@ const ChatScreen = () => {
   useEffect(() => {
 
     socket.emit('chat:getMessageHistory', { orderId }, (response) => {
-      console.log(response.data)
       if (response.success) setMessages(response.data)
-      console.log(messages)
     })
 
     socket.on('chat:newMessage', (response) => {
@@ -87,7 +85,7 @@ const ChatScreen = () => {
             <Text style={styles.message_text}>{item.content}</Text>
           </View>
         )}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => (item.id ? item.id.toString() : `temp-${index}`)}
       />
 
       <View style={styles.message_input_view}>

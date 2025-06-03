@@ -10,10 +10,15 @@ interface Order {
 }
 
 interface OrderMain {
-    price?: number;
+    carPrice?: number;
+    id: string;
+    addonPrice?: number;
+    deliveryPrice?: number;
     vehicleType?: VEHICLE_TYPES;
     deliveryType?: DELIVERY_TYPE;
     note?: string;
+    createdAt: Date;
+    status: string
 }
 
 interface OrderPerson {

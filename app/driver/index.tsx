@@ -12,31 +12,34 @@ import {
 } from "react-native";
 import { Ionicons, MaterialIcons, FontAwesome5 } from "@expo/vector-icons";
 import MapView, { Marker } from "react-native-maps";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { useLocation } from "../../contexts/location.context";
 import { useAuth } from "../../contexts/auth.context";
 import socketDriverService from "../../services/socket.driver";
 import socket from "@/services/socket";
-import { ROLE } from "@/types";
+import { ROLE, VEHICLE_TYPES } from "@/types";
+import { useDriver } from "@/contexts";
 
 const Driver = () => {
   const { location, getCurrentLocation } = useLocation();
+  const vehicleTypeParam: VEHICLE_TYPES = useLocalSearchParams().vehicleType as VEHICLE_TYPES;
+  const { vehicleType, updateVehicleType } = useDriver();
   const { user } = useAuth();
-  const [online, setOnline] = useState(false);
+  const { online, setOnline } = useDriver();
   const [hasOrder, setHasOrder] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isOrderVisible, setIsOrderVisible] = useState(false);
   const [autoReceive, setAutoReceive] = useState(false);
+  const [showEarningsModal, setShowEarningsModal] = useState(false);
+  const [earning, setEarning] = useState(0);
   const router = useRouter();
   const mapRef = useRef<MapView>(null);
-
 
   const locationUpdateInterval = useRef<NodeJS.Timeout>();
 
   // Display Menu Text
   const [isMenuTextVisible, setIsMenuTextVisible] = useState(false);
-
 
   // Effect to handle location updates when online
   useEffect(() => {
@@ -66,12 +69,23 @@ const Driver = () => {
 
   useEffect(() => {
     if (!online) return;
+
     socket.on('order:new', (response) => {
       console.log('New order received:', response);
       setHasOrder(true);
     });
+
+    socket.on('order:completed', (response) => {
+      console.log('Order completed:', response);
+      if (response.success) {
+        setEarning(response.data.earning);
+        setShowEarningsModal(true);
+      }
+    });
+
     return () => {
       socket.off('order:new');
+      socket.off('order:completed');
     }
   }, [online]);
 
@@ -113,9 +127,40 @@ const Driver = () => {
     }
   };
 
+  const handleModalClose = () => {
+    setShowEarningsModal(false);
+  };
+
+  useEffect(() => {
+    if (vehicleTypeParam) {
+      updateVehicleType(vehicleTypeParam);
+    }
+  }, [vehicleTypeParam]);
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+
+      {/* Earnings Modal */}
+      <Modal
+        animationType="none"
+        transparent={true}
+        visible={showEarningsModal}
+        onRequestClose={() => handleModalClose}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.earningsTitle}>Thu nhập ròng</Text>
+            <Text style={styles.earningsAmount}>{earning.toLocaleString()}đ</Text>
+            <TouchableOpacity
+              style={styles.modalButton}
+              onPress={handleModalClose}
+            >
+              <Text style={styles.modalButtonText}>Tuyệt vời</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* Map View */}
       <MapView
@@ -127,7 +172,6 @@ const Driver = () => {
           latitudeDelta: 0.001,
           longitudeDelta: 0.001,
         }}
-
       >
         {location && (
           <Marker
@@ -203,13 +247,8 @@ const Driver = () => {
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem}>
-          <FontAwesome5 name="motorcycle" size={22} color="#00a651" />
+          <FontAwesome5 name={vehicleType === 'MOTORBIKE' ? "motorcycle" : 'truck'} size={22} color="#00a651" />
           <Text style={styles.navText}>Dịch vụ</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.navItem}>
-          <FontAwesome5 name="map-marker-alt" size={20} color="#00a651" />
-          <Text style={styles.navText}>Chọn điểm đến</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -367,17 +406,25 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
     backgroundColor: 'white',
-    borderRadius: 15,
+    borderRadius: 20,
     padding: 24,
     alignItems: 'center',
     width: '80%',
     maxWidth: 320,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   earningsTitle: {
     fontSize: 16,
@@ -393,7 +440,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#00BFA5',
     paddingVertical: 12,
     paddingHorizontal: 32,
-    borderRadius: 10,
+    borderRadius: 25,
     width: '100%',
   },
   modalButtonText: {

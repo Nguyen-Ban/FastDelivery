@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 
 import GLOBAL from "../../../constants/GlobalStyles";
@@ -6,59 +6,39 @@ import COLOR from "@/constants/Colors";
 
 import InfoCard from "@/components/InfoCard";
 import Button from "@/components/Button/ButtonComponent";
-import { router } from "expo-router";
+import { router, useLocalSearchParams, useRouter } from "expo-router";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
+import orderService from "@/services/order.service";
+
+interface EventDetail {
+  id: string;
+  time: string;
+  vehicleType: string;
+  deliveryType: string;
+  driverName: string;
+  driverPhoneNumber: string;
+  pickupAddress: string;
+  dropoffAddress: string;
+  price: string;
+  status: string;
+}
 
 const EventDetailScreen = () => {
-  //hard code for UI
-  const event = {
-    date: "04/05/2025",
-    items: [
-      {
-        amount: "35.000đ",
-        time: "15:30",
-        vehicleType: "MOTORCYCLE",
-        packageType: "Bưu kiện nhỏ",
-        pickup: "Sample Address",
-        dropoff: "Sample Destination",
-        status: "Hoàn thành",
-      },
-    ],
-  };
+  const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
 
-  const driver = {
-    name: "Nguyễn Văn A",
-    phone: "0123456789",
-    vehicleType: "MOTORCYCLE",
-    vehiclePlate: "59A1-23456",
-  };
+  const [event, setEvent] = useState<EventDetail>();
 
-  const status =
-    event.items[0].status === "Đang giao hàng"
-      ? "Hủy đơn hàng"
-      : event.items[0].status;
+  useEffect(() => {
+    const fetchEvent = async () => {
+      const response = await orderService.fetchEventDetail(id);
+      if (response.success) {
+        setEvent(response.data);
+      }
+    };
+    fetchEvent();
+  }, [id]);
 
-  const color =
-    event.items[0].status === "Đang giao hàng"
-      ? COLOR.grey90
-      : event.items[0].status === "Hoàn thành"
-        ? COLOR.blue70
-        : COLOR.grey50;
-
-  const handleButtonPress = () => {
-    if (event.items[0].status === "Hoàn thành") {
-      router.push({
-        pathname: "/order/order-detail/rate-driver",
-        params: {
-          driverName: driver.name,
-          orderId: "123", // Có thể là real ID
-        },
-      });
-    } else {
-      // Logic xử lý hủy đơn nếu cần
-      console.log("Hủy đơn hàng");
-    }
-  };
 
   return (
     <View style={GLOBAL.container}>
@@ -66,9 +46,9 @@ const EventDetailScreen = () => {
         <FontAwesome6 name="arrow-left" size={30} color="black" />
       </TouchableOpacity>
       <InfoCard
-        title={driver.name}
+        title={event?.driverName || ""}
         icon={<FontAwesome6 name="user" size={25} color="black" />}
-        subtitle={driver.phone}
+        subtitle={event?.driverPhoneNumber || ""}
         iconContainerStyle={{ marginRight: 15 }}
         style={styles.driver_card}
         titleStyle={{ fontSize: 18 }}
@@ -83,7 +63,7 @@ const EventDetailScreen = () => {
             color={COLOR.red55}
             paddingRight={15}
           />
-          <Text style={{ fontSize: 18 }}>{event.items[0].pickup}</Text>
+          <Text style={{ fontSize: 18 }}>{event?.pickupAddress || ""}</Text>
         </View>
         <View
           style={{ flexDirection: "row", paddingTop: 40, alignItems: "center" }}
@@ -94,32 +74,30 @@ const EventDetailScreen = () => {
             color={COLOR.blue_theme}
             paddingRight={15}
           />
-          <Text style={{ fontSize: 18 }}>{event.items[0].dropoff}</Text>
+          <Text style={{ fontSize: 18 }}>{event?.dropoffAddress || ""}</Text>
         </View>
       </View>
       <View style={styles.date_time}>
         <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-          {event.date} {"\t:\t"} {event.items[0].time}
+          {new Date(event?.time || "").toLocaleString('vi-VN')}
         </Text>
       </View>
       <View style={styles.payment_card}>
-        <Text style={{ fontSize: 18 }}>Payment Method</Text>
+        <Text style={{ fontSize: 18 }}>Chi phí</Text>
         <Text style={{ fontSize: 18, fontWeight: "bold" }}>
-          {event.items[0].amount}
+          {event?.price.toLocaleString() || ""}đ
         </Text>
+
       </View>
-      <View style={{ flex: 1, justifyContent: "flex-end" }}>
-        <Button
-          title={status}
-          onPress={() => { handleButtonPress() }}
-          size="large"
-          type="primary"
-          textStyle={{ color: COLOR.black, fontSize: 16 }}
-          style={{
-            backgroundColor: color,
-          }}
-        />
+      <View style={styles.payment_card}>
+        <Text style={{ fontSize: 18 }}>Trạng thái</Text>
+        <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+          {event?.status || ""}
+        </Text>
+
       </View>
+
+
     </View>
   );
 };

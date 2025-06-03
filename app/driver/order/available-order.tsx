@@ -107,14 +107,14 @@ const OrderDetails = () => {
                             source={require('../../assets/images/bike-icon.png')}
                             style={styles.bikeIcon}
                         /> */}
-                        <Text style={styles.serviceName}>Fast Delivery Bike</Text>
+                        <Text style={styles.serviceName}>Đơn hàng mới</Text>
                     </View>
                 </View>
 
                 {/* Price Section */}
                 <View style={styles.priceSection}>
                     <Text style={styles.priceLabel}>Cước phí</Text>
-                    <Text style={styles.price}>{`${orderMain?.price?.toLocaleString()}`}đ</Text>
+                    <Text style={styles.price}>{orderMain?.addonPrice !== undefined && orderMain?.deliveryPrice && orderMain?.carPrice !== undefined && (orderMain?.addonPrice + orderMain.deliveryPrice + orderMain.carPrice).toLocaleString()}đ</Text>
                     <View style={styles.paymentMethods}>
                         <View style={styles.paymentMethod}>
                             <Text style={styles.paymentMethodText}>Thẻ/Ví</Text>

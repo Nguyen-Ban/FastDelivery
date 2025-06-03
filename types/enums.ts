@@ -10,6 +10,30 @@ enum VEHICLE_TYPES {
     TRUCK = 'TRUCK',
 }
 
+const vehicleOptions = [
+    {
+        id: VEHICLE_TYPES.VAN,
+        name: "Xe VAN",
+        dimensions: "Hàng hoá 145 x 145 x 95 cm. Tối đa 500kg",
+        price: 132000,
+        sizeLabel: "500",
+    },
+    {
+        id: VEHICLE_TYPES.PICKUP_TRUCK,
+        name: "Xe Bán Tải",
+        dimensions: "Hàng hoá 180 x 160 x 110 cm. Tối đa 700kg",
+        price: 159000,
+        sizeLabel: "700",
+    },
+    {
+        id: VEHICLE_TYPES.TRUCK,
+        name: "Xe tải",
+        dimensions: "Hàng hoá 290 x 160 x 160 cm. Tối đa 1000kg",
+        price: 195000,
+        sizeLabel: "1000",
+    },
+];
+
 enum PACKAGE_TYPES {
     DOCUMENT = 'DOCUMENT',
     ELECTRONICS = 'ELECTRONICS',
@@ -49,6 +73,14 @@ enum DELIVERY_STATUS {
     CANCELLED = 'CANCELLED',
 }
 
+enum DELIVERY_STATES {
+    MOVING_TO_PICKUP = 'MOVING_TO_PICKUP',
+    GOING_TO_PICKUP = 'GOING_TO_PICKUP',
+    PICKING_UP = 'PICKING_UP',
+    GOING_TO_DROPOFF = 'GOING_TO_DROPOFF',
+    DELIVERING = 'DELIVERING',
+}
+
 enum DRIVER_STATUS {
     AVAILABLE = 'AVAILABLE',
     BUSY = 'BUSY',
@@ -58,5 +90,6 @@ enum DRIVER_STATUS {
 export {
     DELIVERY_TYPE, VEHICLE_TYPES,
     PACKAGE_TYPES, ORDER_TYPES, DRIVER_STATUS,
-    GENDER, ROLE, LOCATION_TYPE, DELIVERY_STATUS
+    GENDER, ROLE, LOCATION_TYPE, DELIVERY_STATUS,
+    DELIVERY_STATES, vehicleOptions
 }

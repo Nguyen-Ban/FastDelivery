@@ -24,6 +24,7 @@ const OrderDetailPage = () => {
                 setOrderSenderReceiver(response.data.orderSenderReceiver);
                 setOrderSpecialDemand(response.data.orderSpecialDemand);
                 setOrderMain(response.data.orderMain);
+                console.log(orderMain)
             } else {
                 console.error('Failed to fetch order details:', response.error);
             }
@@ -158,7 +159,7 @@ const OrderDetailPage = () => {
                     <View style={styles.paymentContainer}>
                         <View style={styles.paymentRow}>
                             <Text style={styles.paymentLabel}>Phương thức:</Text>
-                            <Text style={styles.paymentValue}>VN Pay</Text>
+                            <Text style={styles.paymentValue}>Tiền mặt (Người gửi)</Text>
                         </View>
                         <View style={styles.paymentRow}>
                             <Text style={styles.paymentLabel}>Trạng thái:</Text>
@@ -169,7 +170,7 @@ const OrderDetailPage = () => {
                         <View style={styles.paymentRow}>
                             <Text style={styles.paymentLabel}>Tổng cộng:</Text>
                             <Text style={[styles.paymentValue, styles.totalAmount]}>
-                                đ{orderMain?.price?.toLocaleString()}
+                                {orderMain?.addonPrice !== undefined && orderMain.deliveryPrice !== undefined && orderMain?.carPrice !== undefined && (orderMain.deliveryPrice + orderMain.addonPrice + orderMain.carPrice).toLocaleString()}đ
                             </Text>
                         </View>
                     </View>

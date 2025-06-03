@@ -24,6 +24,7 @@ const DeliveryDetailPage = () => {
                 setOrderLocation(response.data.orderLocation);
                 setOrderSenderReceiver(response.data.orderSenderReceiver);
                 setOrderSpecialDemand(response.data.orderSpecialDemand)
+                console.log(orderMain)
             }
         })
 
@@ -205,7 +206,7 @@ const DeliveryDetailPage = () => {
                         <View style={styles.paymentRow}>
                             <Text style={styles.paymentLabel}>Tổng cộng:</Text>
                             <Text style={[styles.paymentValue, styles.totalAmount]}>
-                                {orderMain?.price && (orderMain?.price).toLocaleString()}đ
+                                {orderMain?.addonPrice !== undefined && orderMain?.deliveryPrice !== undefined && orderMain?.carPrice !== undefined && (orderMain?.addonPrice + orderMain?.deliveryPrice + orderMain.carPrice).toLocaleString()}đ
                             </Text>
                         </View>
                     </View>

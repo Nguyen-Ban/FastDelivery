@@ -10,19 +10,20 @@ import GLOBAL from "../../../../constants/GlobalStyles";
 import { useLocation } from "../../../../contexts/location.context";
 import { useOrder } from "../../../../contexts/order.context";
 import { useAuth } from "../../../../contexts/auth.context";
-import { LOCATION_TYPE, ORDER_TYPES, VEHICLE_TYPES } from "@/types";
+import { LOCATION_TYPE, ORDER_TYPES, VEHICLE_TYPES, vehicleOptions } from "@/types";
 
 const Order = () => {
     const router = useRouter();
     const { orderType } = useLocalSearchParams();
     const { location } = useLocation();
     const { user } = useAuth();
-    const { pickupLocation, dropoffLocation, setPickupLocation, setSender, setVehicleType } = useOrder();
+    const { pickupLocation, dropoffLocation, setPickupLocation, setSender, setVehicleType, setCarPrice } = useOrder();
 
     useEffect(() => {
         // Set vehicle type based on the type parameter
         if (orderType === ORDER_TYPES.CAR_DELIVERY) {
             setVehicleType(VEHICLE_TYPES.VAN);
+            setCarPrice(vehicleOptions[0].price)
         } else if (orderType === ORDER_TYPES.MOTORBIKE_DELIVERY) {
             setVehicleType(VEHICLE_TYPES.MOTORBIKE);
         }

@@ -15,7 +15,7 @@ const OrderConfirm = () => {
     pickupLocation,
     dropoffLocation,
     polyline,
-
+    carPrice,
     sender,
     receiver,
     deliveryType,
@@ -35,8 +35,8 @@ const OrderConfirm = () => {
 
   // Calculate total price based on delivery details
   const totalPrice = useMemo(() => {
-    return addonPrice + deliveryPrice;
-  }, [addonPrice, deliveryPrice]);
+    return addonPrice + deliveryPrice + carPrice;
+  }, [addonPrice, deliveryPrice, carPrice]);
 
   const validateOrder = () => {
     if (!pickupLocation || !dropoffLocation) {
@@ -104,7 +104,9 @@ const OrderConfirm = () => {
       // Format order data according to the required structure
       const orderData = {
         orderMain: {
-          price: totalPrice,
+          addonPrice: addonPrice,
+          deliveryPrice: deliveryPrice,
+          carPrice: carPrice,
           vehicleType: vehicleType,
           deliveryType: deliveryType,
           note: note,

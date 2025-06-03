@@ -86,7 +86,7 @@ const ChatScreen = () => {
             <Text style={styles.message_text}>{item.content}</Text>
           </View>
         )}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => (item.id ? item.id.toString() : `temp-${index}`)}
       />
 
       <View style={styles.message_input_view}>

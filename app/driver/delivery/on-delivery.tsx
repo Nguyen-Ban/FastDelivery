@@ -8,6 +8,8 @@ import {
     StatusBar,
     Platform,
     Linking,
+    Animated,
+    Alert,
 } from 'react-native';
 import { FontAwesome5, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
@@ -15,22 +17,18 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useLocation } from '@/contexts';
 import { decode } from '@here/flexpolyline';
 import COLOR from '@/constants/Colors';
-import { VEHICLE_TYPES } from '@/types';
+import { DELIVERY_STATES, OrderMain, VEHICLE_TYPES } from '@/types';
 import socket from '@/services/socket';
 
 
-const DELIVERY_STATES = {
-    GOING_TO_PICKUP: 'GOING_TO_PICKUP',
-    PICKING_UP: 'PICKING_UP',
-    DELIVERING: 'DELIVERING',
-};
+
 
 const OnDelivery = () => {
     const router = useRouter();
     const params = useLocalSearchParams();
     const orderSenderReceiver = JSON.parse(params.orderSenderReceiver as string);
     const orderId = params.orderId as string;
-    const orderMain = JSON.parse(params.orderMain as string);
+    const orderMain = JSON.parse(params.orderMain as string) as OrderMain;
     const orderDetail = JSON.parse(params.orderDetail as string) || {};
     const orderLocation = JSON.parse(params.orderLocation as string) || {};
     const pickupDropoffDistance = parseFloat(params.pickupDropoffDistance as string) || 0;
@@ -45,18 +43,71 @@ const OnDelivery = () => {
     const dropoffLng = orderLocation.dropoffLng;
     const mapRef = useRef<MapView>(null);
     const { location } = useLocation();
+    const markerAnimation = useRef(new Animated.Value(0)).current;
+    const [markerPosition, setMarkerPosition] = useState({
+        latitude: location?.coord?.lat || 10.762622,
+        longitude: location?.coord?.lng || 106.660172,
+    });
 
 
     const handleActionButton = () => {
         switch (deliveryState) {
             case DELIVERY_STATES.GOING_TO_PICKUP:
-                setDeliveryState(DELIVERY_STATES.PICKING_UP);
+                socket.emit('order:picking', {
+                    orderId,
+                    vehicleType,
+                    pickupCoord: {
+                        lat: orderLocation.pickupLat,
+                        lng: orderLocation.pickupLng
+                    },
+                    driverCoord:
+                    {
+                        lat: location?.coord?.lat,
+                        lng: location?.coord.lng
+                    }
+                }, (response) => {
+                    if (response.success) setDeliveryState(DELIVERY_STATES.PICKING_UP);
+                    else Alert.alert('Bạn phải cách điểm lấy hàng ít nhất 10m')
+                })
                 break;
             case DELIVERY_STATES.PICKING_UP:
-                setDeliveryState(DELIVERY_STATES.DELIVERING);
+                socket.emit('order:picked', { orderId }, (response) => {
+                    if (response.success) setDeliveryState(DELIVERY_STATES.GOING_TO_DROPOFF);
+                })
+                break;
+            case DELIVERY_STATES.GOING_TO_DROPOFF:
+                socket.emit('order:delivering', { orderId }, (response) => {
+                    if (response.success) setDeliveryState(DELIVERY_STATES.DELIVERING)
+                })
                 break;
             case DELIVERY_STATES.DELIVERING:
-                router.push("../driver/complete-payment");
+                socket.emit('order:delivered', {
+                    orderId,
+                    vehicleType,
+                    dropoffCoord: {
+                        lat: orderLocation.dropoffLat,
+                        lng: orderLocation.dropoffLng
+                    },
+                    driverCoord:
+                    {
+                        lat: location?.coord?.lat,
+                        lng: location?.coord.lng
+                    }
+                }, (response) => {
+                    if (response.success) {
+                        router.push({
+                            pathname: "/driver/delivery/complete-payment",
+                            params: {
+                                carPrice: orderMain.carPrice,
+                                addonPrice: orderMain.addonPrice,
+                                deliveryPrice: orderMain.deliveryPrice,
+                                orderId: orderId
+                            }
+                        }
+                        );
+                    }
+                    else Alert.alert('Bạn phải cách điểm trả hàng ít nhất 10m')
+                })
                 break;
         }
     };
@@ -67,6 +118,8 @@ const OnDelivery = () => {
                 return 'Đã đến điểm lấy hàng';
             case DELIVERY_STATES.PICKING_UP:
                 return 'Đã lấy hàng';
+            case DELIVERY_STATES.GOING_TO_DROPOFF:
+                return 'Đang đến điểm trả hàng';
             case DELIVERY_STATES.DELIVERING:
                 return 'Hoàn tất vận chuyển';
             default:
@@ -116,6 +169,16 @@ const OnDelivery = () => {
         }
     }, [pickupLat, pickupLng, dropoffLat, dropoffLng]);
 
+    // Update marker position when location changes
+    useEffect(() => {
+        if (location?.coord?.lat && location.coord.lng) {
+            setMarkerPosition({
+                latitude: location.coord.lat,
+                longitude: location.coord.lng,
+            });
+        }
+    }, [location?.coord]);
+
     const handleChatCustomer = () => {
         console.log(1)
         router.push({
@@ -148,22 +211,22 @@ const OnDelivery = () => {
                 ref={mapRef}
                 provider={PROVIDER_GOOGLE}
                 style={styles.map}
-                initialRegion={initialRegion}
-                mapPadding={{ top: 40, right: 40, bottom: 200, left: 40 }}
+                initialRegion={{
+                    latitude: markerPosition.latitude,
+                    longitude: markerPosition.longitude,
+                    latitudeDelta: 0.0922,
+                    longitudeDelta: 0.0421,
+                }}
             >
-                {/* Pickup Marker */}
+                {/* Animated Pickup Marker */}
                 {location?.coord?.lat && location.coord.lng && (
                     <Marker
-                        coordinate={{ latitude: location?.coord?.lat, longitude: location?.coord?.lng }}
+                        coordinate={markerPosition}
                         title="Vị trí của bạn"
-                        anchor={{ x: 0.5, y: 0.5 }} // Chính giữa icon
+                        anchor={{ x: 0.5, y: 0.5 }}
                     >
                         <View style={styles.motorcycleMarker}>
-                            {vehicleType === 'MOTORBIKE' ? (
-                                <FontAwesome5 name="motorcycle" size={24} color={COLOR.orange50} />
-                            ) : (
-                                <MaterialCommunityIcons name="car" size={24} color={COLOR.orange50} />
-                            )}
+                            <FontAwesome5 name="motorcycle" size={24} color={COLOR.orange50} />
                         </View>
                     </Marker>
                 )}
@@ -206,13 +269,13 @@ const OnDelivery = () => {
                             <Ionicons name="document-text-outline" size={20} color="#007AFF" />
                             <Text style={styles.detailText}>Chi tiết đơn hàng</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity
+                        {/* <TouchableOpacity
                             style={styles.directionButton}
                             onPress={() => router.push("/driver/delivery/direct-route")}
                         >
                             <Ionicons name="navigate" size={20} color="#007AFF" />
                             <Text style={styles.directionText}>Điều hướng</Text>
-                        </TouchableOpacity>
+                        </TouchableOpacity> */}
                     </View>
                 </View>
 
@@ -222,7 +285,7 @@ const OnDelivery = () => {
                         Cân nặng: {orderDetail.weightKg}kg{'\n'}
                         Kích cỡ: {orderDetail.lengthCm}cm x {orderDetail.widthCm}cm x {orderDetail.heightCm}cm
                     </Text>
-                    <Text style={styles.price}>Phí thu: {orderMain.price.toLocaleString()}đ  <Text style={styles.paymentMethod}>Thẻ/Ví</Text></Text>
+                    <Text style={styles.price}>Phí thu:  {orderMain?.addonPrice !== undefined && orderMain.deliveryPrice !== undefined && orderMain?.carPrice !== undefined && (orderMain.deliveryPrice + orderMain.addonPrice + orderMain.carPrice).toLocaleString()}đ  <Text style={styles.paymentMethod}>Thẻ/Ví</Text></Text>
                 </View>
 
                 <View style={styles.actionButtons}>
@@ -383,6 +446,13 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 6,
         elevation: 2,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
     },
     infoTag: {
         fontSize: 15,

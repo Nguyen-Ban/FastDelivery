@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   View,
   TouchableOpacity,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Dimensions,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import GLOBAL from "../../../constants/GlobalStyles";
@@ -13,34 +14,55 @@ import COLOR from "../../../constants/Colors";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
 import { BarChart } from "react-native-chart-kit";
+import orderService from "@/services/order.service";
+
+interface SpendingData {
+  labels: {
+    month: string;
+    year: string;
+  }[];
+  monthlySpending: number[];
+}
 
 const SpendingScreen = () => {
   const router = useRouter();
   const screenWidth = Dimensions.get("window").width;
-  const screenHeight = Dimensions.get("window").height;
-  const [chartData, setChartData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [spendingData, setSpendingData] = useState<SpendingData>({
+    labels: [],
+    monthlySpending: [],
+  });
 
-  const spendingData = {
-    labels: [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ],
-    datasets: [
-      {
-        data: [450, 320, 510, 720, 610, 300, 400, 580, 670, 420, 390, 800],
-      },
-    ], //hardcoded data for testing
-  };
+  useEffect(() => {
+    const fetchSpendingData = async () => {
+      try {
+        setLoading(true);
+        const response = await orderService.fetchCustomerStats();
+        console.log('API Response:', response);
+        if (response.success) {
+          setSpendingData({
+            labels: response.data.labels,
+            monthlySpending: response.data.monthlySpending,
+          });
+        }
+        console.log(spendingData.labels)
+      } catch (error) {
+        console.error('Error fetching spending data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSpendingData();
+  }, []);
+
+  // Tính toán các chỉ số
+  const currentMonth = spendingData.monthlySpending[spendingData.monthlySpending.length - 1] || 0;
+  const previousMonth = spendingData.monthlySpending[spendingData.monthlySpending.length - 2] || 0;
+  const averageSpending = Math.round(
+    spendingData.monthlySpending.reduce((a: number, b: number) => a + b, 0) / spendingData.monthlySpending.length
+  );
+  const percentChange = previousMonth === 0 ? 0 : Math.round(((currentMonth - previousMonth) / previousMonth) * 100);
 
   const chartConfig = {
     backgroundGradientFrom: "#ffffff",
@@ -50,19 +72,47 @@ const SpendingScreen = () => {
     decimalPlaces: 0,
     color: (opacity = 1) => `rgba(0, 123, 255, ${opacity})`,
     labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-    barPercentage: 1,
+    barPercentage: 0.6,
+    barSpacing: 20,
     style: {
       borderRadius: 16,
     },
     propsForLabels: {
-      fontSize: 14,
-      fontWeight: "bold",
-      dy: -5,
+      fontSize: 12,
+      fontWeight: "500",
     },
     propsForBackgroundLines: {
       stroke: COLOR.blue70,
       strokeWidth: 1,
     },
+    propsForVerticalLabels: {
+      fontSize: 11
+    },
+    propsForHorizontalLabels: {
+      fontSize: 0,
+    },
+    formatYLabel: (value: string) => {
+      return Number(value).toLocaleString('vi-VN') + 'đ';
+    },
+    formatTopBarValue: (value: number) => {
+      return value.toLocaleString('vi-VN') + 'đ';
+    },
+  };
+
+  if (loading) {
+    return (
+      <View style={[GLOBAL.home_container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color={COLOR.blue_theme} />
+      </View>
+    );
+  }
+
+  // Chuyển đổi dữ liệu để hiển thị label trên hai dòng
+  const chartData = {
+    labels: spendingData.labels.map(label => `${label.month}${label.year}`),
+    datasets: [{
+      data: spendingData.monthlySpending
+    }]
   };
 
   return (
@@ -91,23 +141,49 @@ const SpendingScreen = () => {
           paddingHorizontal: 16,
         }}
       >
-        Thống kê chi tiêu hàng tháng
+        Thống kê chi tiêu 6 tháng gần nhất
       </Text>
-      <ScrollView horizontal>
+
+      <View style={styles.statsContainer}>
+        <View style={styles.statCard}>
+          <Text style={styles.statLabel}>So với tháng trước</Text>
+          <View style={styles.statValueContainer}>
+            <FontAwesome6
+              name={percentChange >= 0 ? "arrow-up" : "arrow-down"}
+              size={16}
+              color={percentChange >= 0 ? COLOR.red55 : COLOR.green40}
+            />
+            <Text style={[
+              styles.statValue,
+              { color: percentChange >= 0 ? COLOR.red55 : COLOR.green40 }
+            ]}>
+              {Math.abs(percentChange)}%
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.statCard}>
+          <Text style={styles.statLabel}>Chi tiêu trung bình</Text>
+          <Text style={styles.statValue}>{averageSpending.toLocaleString('vi-VN')}đ</Text>
+        </View>
+      </View>
+
+      <View style={styles.chartContainer}>
         <BarChart
-          data={spendingData}
-          width={screenWidth * 2}
-          height={screenHeight / 2}
+          data={chartData}
+          width={screenWidth - 32}
+          height={Dimensions.get("window").height / 2}
           fromZero={true}
           showValuesOnTopOfBars={true}
           chartConfig={chartConfig}
           yAxisLabel=""
-          yAxisSuffix="K"
+          yAxisSuffix=""
           style={{
-            marginRight: 25,
+            borderRadius: 16,
+            paddingRight: 16,
           }}
         />
-      </ScrollView>
+      </View>
     </View>
   );
 };
@@ -130,5 +206,47 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-start",
     alignItems: "center",
+  },
+  chartContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginBottom: 20,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: COLOR.white,
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 8,
+    elevation: 2,
+    shadowColor: COLOR.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  statLabel: {
+    fontSize: 14,
+    color: COLOR.grey70,
+    marginBottom: 8,
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: COLOR.black,
+  },
+  statValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

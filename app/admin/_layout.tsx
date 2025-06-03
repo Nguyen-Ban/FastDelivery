@@ -31,19 +31,11 @@ export default function AdminLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="drivers"
-        options={{
-          title: "Tài xế",
-          tabBarIcon: ({ color }) => (
-            <FontAwesome5 name="users" size={24} color={color} />
-          ),
-        }}
-      />
+
       <Tabs.Screen
         name="driver-registers"
         options={{
-          title: "Đăng ký",
+          title: "Tài xế",
           tabBarIcon: ({ color }) => (
             <FontAwesome5 name="user-plus" size={24} color={color} />
           ),

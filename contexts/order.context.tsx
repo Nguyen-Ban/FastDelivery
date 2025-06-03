@@ -21,6 +21,8 @@ interface OrderContextType {
     vehicleType?: VEHICLE_TYPES;
     deliveryType?: DELIVERY_TYPE;
     deliveryPrice: number;
+    carPrice: number;
+
     note?: string;
 
     polyline?: string;
@@ -47,6 +49,8 @@ interface OrderContextType {
     setVehicleType: (type: VEHICLE_TYPES) => void;
     setDeliveryType: (type: DELIVERY_TYPE) => void;
     setDeliveryPrice: (price: number) => void;
+    setCarPrice: (price: number) => void;
+
     setNote: (note: string) => void;
     setSender: (sender: OrderPerson) => void;
     setReceiver: (receiver: OrderPerson) => void;
@@ -68,6 +72,8 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [vehicleType, setVehicleType] = useState<VEHICLE_TYPES>();
     const [deliveryType, setDeliveryType] = useState<DELIVERY_TYPE>(DELIVERY_TYPE.ECONOMY);
     const [deliveryPrice, setDeliveryPrice] = useState<number>(0);
+    const [carPrice, setCarPrice] = useState<number>(0);
+
     const [packageType, setPackageType] = useState<PACKAGE_TYPES>();
     const [weightKg, setWeightKg] = useState<number>();
     const [lengthCm, setLengthCm] = useState<number>();
@@ -85,6 +91,8 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return (
         <OrderContext.Provider
             value={{
+                carPrice,
+                setCarPrice,
                 polyline,
                 vehicleType,
                 deliveryType,

@@ -1,3 +1,4 @@
+<<<<<<< HEAD:fe/README.md
 # Project Structure:
 
 - app: root component, entry point, pages
@@ -10,13 +11,28 @@
 - services: api call
 
 # Welcome to your Expo app 👋
+=======
+# FastDelivery API
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-## Get started
+## Installation and Running
 
-1. Install dependencies
+### Using Docker
+>>>>>>> origin/be-order-feature:README.md
 
+1. Create .env file from template:
+```bash
+cp .env.example .env
+```
+
+3. Run application with Docker Compose:
+```bash
+docker-compose up --build
+```
+
+The application will run on http://localhost:3000
+
+<<<<<<< HEAD:fe/README.md
    ```bash
    npm install
    ```
@@ -26,9 +42,16 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    ```bash
    npm install -g eas-cli
    ```
+=======
+### Running locally (FOR DEV)
+>>>>>>> origin/be-order-feature:README.md
 
-2. Start the app
+1. Install dependencies:
+```bash
+npm install
+```
 
+<<<<<<< HEAD:fe/README.md
    ```bash
     npx expo start
    ```
@@ -90,3 +113,18 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+=======
+2. Create .env file from template and update environment variables:
+```bash
+cp .env.dev.example .env
+```
+2.1. Add local db password to .env
+
+3. Run application:
+```bash
+npm start
+```
+
+## API Endpoints
+Import `fastdelivery.postman_collection.json` into Postman for detail setup
+>>>>>>> origin/be-order-feature:README.md

@@ -12,9 +12,9 @@ const driverSchema = {
         }),
 
     vehicleType: Joi.string()
-        .valid('MOTORBIKE', 'VAN')
+        .valid('MOTORBIKE', 'VAN', 'PICKUP_TRUCK', 'TRUCK')
         .messages({
-            'any.only': 'Vehicle type must be one of MOTORBIKE or VAN'
+            'any.only': 'Vehicle type must be one of MOTORBIKE or VAN or PICKUP_TRUCK or TRUCK'
         }),
     vehiclePlate: Joi.string()
         .pattern(/^[0-9]{2}[A-Z0-9]{1,2}-[0-9]{3}\.[0-9]{2}$/i)
@@ -39,9 +39,7 @@ const updateDriverSchema = Joi.object({
 });
 
 const reviewDriverSchema = Joi.object({
-    orderId: Joi.number()
-        .integer()
-        .required(),
+    orderId: Joi.string().required(),
 
     rating: Joi.number()
         .integer()

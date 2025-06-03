@@ -86,6 +86,22 @@ const registerDriver = async (req, res) => {
         // Check if user is already registered as driver
         const existingDriver = await Driver.findOne({ where: { user_id: userId }, transaction: t });
 
+        if (existingDriver) {
+            return res.status(200).json({
+                success: true,
+                message: 'Driver already registered',
+                data: {
+                    driver: {
+                        licenseNumber: existingDriver.licenseNumber,
+                        vehicleType: existingDriver.vehicleType,
+                        vehiclePlate: existingDriver.vehiclePlate,
+                        status: existingDriver.status,
+                        approvalStatus: existingDriver.approvalStatus
+                    }
+                }
+            });
+        }
+
         // Create Driver record
         const driver = await Driver.create({
             userId,

@@ -1,3 +1,4 @@
+const logger = require('../config/logger');
 const redisClient = require('../config/redis');
 const { Driver } = require('../models/index');
 const { driverDirectionSupport } = require('../services/driver.service');
@@ -13,8 +14,16 @@ module.exports = (io, socket) => {
                 data.lat,
                 socket.userId
             );
+            const driverId = socket.userId
 
-            io.to(socket.id).emit('location:update', {
+            const locationRoom = `location:${driverId}`;
+            if (!socket.rooms.has(locationRoom)) {
+                socket.join(locationRoom);
+                logger.info(`[Location Listener] Driver joined location room: ${locationRoom}`);
+            }
+
+
+            socket.to(locationRoom).emit('location:update', {
                 success: true,
                 message: 'Location updated successfully',
                 data: data

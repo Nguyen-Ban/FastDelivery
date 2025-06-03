@@ -1,6 +1,7 @@
 const DeviceToken = require("../models/deviceToken.model");
 const expo = require("../config/notification");
 const { default: Expo } = require("expo-server-sdk");
+const { Notification } = require("../models/index");
 
 
 const sendNotification = async (userId, title, body) => {
@@ -26,6 +27,7 @@ const sendNotification = async (userId, title, body) => {
         const [ticket] = await expo.sendPushNotificationsAsync([message]);
 
         console.log('Notification sent successfully: ', ticket);
+        await Notification.create({ userId, title, body })
     } catch (error) {
         throw error;
     }

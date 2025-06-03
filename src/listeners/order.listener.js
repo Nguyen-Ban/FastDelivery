@@ -29,8 +29,8 @@ module.exports = (io, socket) => {
             }
 
 
-            const { id: driverId } = await matchDriver(vehicleType, { pickupLat, pickupLng }, data, orderId);
-
+            const { resDriver, pickupDropoffPolyline, driverPickupPolyline } = await matchDriver(vehicleType, { pickupLat, pickupLng }, data, orderId);
+            const driverId = resDriver.id;
             await Order.create({ id: orderId, customerId, driverId, ...orderMain }, { transaction: t });
 
             await OrderSenderReceiver.create({ orderId, ...orderSenderReceiver }, { transaction: t });
@@ -43,6 +43,10 @@ module.exports = (io, socket) => {
             const user = await User.findByPk(driverId);
 
             sendNotification(customerId, 'Order Created', `Order initialized, delivered by driver ${driverId}`);
+
+            const locationRoom = `location:${driverId}`;
+            socket.join(locationRoom)
+            logger.info(`[Order Listener] Customer joined location room: ${locationRoom}`);
             const payloadCus = {
                 success: true,
                 message: 'Order created successfully',
@@ -53,7 +57,9 @@ module.exports = (io, socket) => {
                         fullName: user.fullName,
                         phoneNumber: user.phoneNumber,
                         vehiclePlate: driver.vehiclePlate,
-                    }
+                    },
+                    pickupDropoffPolyline,
+                    driverPickupPolyline,
                 }
             }
 
@@ -145,7 +151,6 @@ module.exports = (io, socket) => {
         const orderDetail = await OrderDetail.findByPk(orderId)
         const orderLocation = await OrderLocation.findByPk(orderId)
         const orderSpecialDemand = await OrderSpecialDemand.findByPk(orderId)
-
         callback({
             success: true,
             data: {
@@ -177,7 +182,86 @@ module.exports = (io, socket) => {
                 driverName: fullName
             }
         })
-    })
+    });
+
+    socket.on('order:picking', async (data, callback) => {
+        const { vehicleType, driverCoord, pickupCoord, orderId } = data;
+        const info = await getInfoBasedOnRoadRoute(vehicleType, driverCoord, pickupCoord);
+        const distance = info.length;
+
+        const { customerId } = await Order.findByPk(orderId);
+        const customerSocket = await getSocket(customerId);
+        console.log(customerSocket)
+        customerSocket.emit('order:picking', { success: true })
+        callback({
+            success: distance <= 10000
+        })
+    });
+
+    socket.on('order:picked', async (data, callback) => {
+        const { orderId } = data;
+
+        const { customerId } = await Order.findByPk(orderId);
+        const customerSocket = await getSocket(customerId);
+        customerSocket.emit('order:picked', { success: true })
+        callback({
+            success: true
+        })
+    });
+
+    socket.on('order:delivering', async (data, callback) => {
+        const { orderId } = data;
+
+        const { customerId } = await Order.findByPk(orderId);
+        const customerSocket = await getSocket(customerId);
+        customerSocket.emit('order:delivering', { success: true })
+        callback({
+            success: true
+        })
+    });
+
+
+    socket.on('order:delivered', async (data, callback) => {
+        const { vehicleType, driverCoord, dropoffCoord, orderId } = data;
+        const info = await getInfoBasedOnRoadRoute(vehicleType, driverCoord, dropoffCoord);
+        const distance = info.length;
+
+        const { customerId } = await Order.findByPk(orderId);
+        const customerSocket = await getSocket(customerId);
+        customerSocket.emit('order:delivered', { success: true })
+
+        callback({
+            success: distance <= 10000
+        })
+    });
+
+    socket.on('order:complete', async (data, callback) => {
+        const { orderId } = data;
+        const order = await Order.findByPk(orderId);
+        const driver = await Driver.findByPk(order.driverId)
+        const earning = (order.deliveryPrice + order.addonPrice + order.carPrice) * 0.5;
+        const newEarning = driver.earning + earning
+        await order.update({ status: 'DELIVERED' });
+        await driver.update({ earning: newEarning });
+        callback({
+            success: true,
+            data: {
+                earning: earning
+            }
+        })
+
+        const { customerId } = await Order.findByPk(orderId);
+        const customerSocket = await getSocket(customerId);
+        customerSocket.emit('order:completed', { success: true })
+        socket.emit('order:completed', {
+            success: true,
+            data: {
+                earning: earning
+            }
+        })
+    });
+
+
 
 }
 

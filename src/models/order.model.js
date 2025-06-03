@@ -27,18 +27,40 @@ const Order = sequelize.define('Order', {
         allowNull: false,
         field: 'delivery_type'
     },
-    price: {
+    deliveryPrice: {
         type: DataTypes.DECIMAL(10, 2),
         allowNull: false,
-        field: 'price'
+        field: 'delivery_price',
+        get() {
+            const rawValue = this.getDataValue('deliveryPrice');
+            return parseFloat(rawValue);
+        }
+    },
+    carPrice: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        field: 'car_price',
+        get() {
+            const rawValue = this.getDataValue('carPrice');
+            return parseFloat(rawValue);
+        }
+    },
+    addonPrice: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        field: 'addon_price',
+        get() {
+            const rawValue = this.getDataValue('addonPrice');
+            return parseFloat(rawValue);
+        }
     },
     note: {
         type: DataTypes.STRING,
         field: 'note'
     },
     status: {
-        type: DataTypes.ENUM('PENDING', 'IN_DELIVERY', 'DELIVERED', 'CANCELLED'),
-        defaultValue: 'PENDING',
+        type: DataTypes.ENUM('IN_DELIVERY', 'DELIVERED', 'CANCELLED'),
+        defaultValue: 'IN_DELIVERY',
         field: 'status'
     },
     cancelledBy: {

@@ -92,16 +92,17 @@ const getOrderDetail = async (orderData, driverPos) => {
 
 
 const matchDriver = async (transportType, orderPickUpLocation, orderData, orderId) => {
+    let driverPickupPolyline = null
+    let pickupDropoffPolyline = null
     let resDriver = null;
     const drivers = await getAvailableNearestDrivers(transportType, orderPickUpLocation)
     for (const driver of drivers) {
         const socket = getSocket(driver.id);
+        if (!socket) continue;
         const orderDetail = await getOrderDetail(orderData, driver);
-        console.log(orderDetail)
 
         await redisClient.set(`driver:${driver.id}:available`, JSON.stringify({ orderId, ...orderDetail }), 'EX', 30);
         sendNotification(driver.id, 'New Order', `New delivery request: ${orderDetail.orderDetail.packageType}`);
-
         socket.emit('order:new', {
             success: true,
             message: 'Order request',
@@ -111,6 +112,8 @@ const matchDriver = async (transportType, orderPickUpLocation, orderData, orderI
         const response = await waitForDriverResponse(socket);
         if (response?.accepted) {
             resDriver = driver;
+            pickupDropoffPolyline = orderDetail.pickupDropoffPolyline;
+            driverPickupPolyline = orderDetail.driverPickupPolyline;
             setImmediate(async () => {
                 const driverInstance = await Driver.findByPk(driver.id);
                 if (driverInstance) {
@@ -118,15 +121,13 @@ const matchDriver = async (transportType, orderPickUpLocation, orderData, orderI
                     console.log(`Driver ${driver.id} went busy.`);
                 }
             });
-            console.log('1', resDriver)
 
             break;
         }
-        console.log('2', resDriver)
 
     }
     console.log('3', resDriver)
-    return resDriver;
+    return { resDriver, pickupDropoffPolyline, driverPickupPolyline };
 }
 
 const waitForDriverResponse = async (socket) => {

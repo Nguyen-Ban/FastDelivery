@@ -37,6 +37,16 @@ const Driver = sequelize.define('Driver', {
         defaultValue: 'PENDING',
         allowNull: false,
         field: 'approval_status'
+    },
+    earning: {
+        type: DataTypes.DECIMAL(10, 2),
+        allowNull: false,
+        field: 'earning',
+        defaultValue: 0,
+        get() {
+            const rawValue = this.getDataValue('earning');
+            return parseFloat(rawValue);
+        }
     }
 }, {
     tableName: 'driver',

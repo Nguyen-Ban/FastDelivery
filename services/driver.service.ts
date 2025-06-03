@@ -1,4 +1,4 @@
-import { ApiResponse, RegisterDriverReqBody, ReviewDriverReqBody, ROLE } from '@/types';
+import { ApiResponse, AutoAcceptReqBody, RegisterDriverReqBody, ReviewDriverReqBody, ROLE } from '@/types';
 import RestApiService from './rest.api';
 
 const driverService = {
@@ -20,6 +20,15 @@ const driverService = {
             if (error.response?.status === 404) {
                 return { success: false };
             }
+            throw error;
+        }
+    },
+
+    async autoAccept(req: AutoAcceptReqBody): Promise<ApiResponse> {
+        try {
+            const res = await RestApiService.postRequest('/driver/auto-accept', req)
+            return res;
+        } catch (error: any) {
             throw error;
         }
     },

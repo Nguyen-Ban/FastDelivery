@@ -6,6 +6,7 @@ import { AuthContextType, AuthState } from '../types/auth';
 
 import { useNotification } from '@/hooks/useNotification';
 import { ROLE, User } from '@/types';
+import { Alert } from 'react-native';
 
 
 const initialState = {
@@ -55,6 +56,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (response.data.user.roles.includes(ROLE.ADMIN) || response.data.user.roles.includes(ROLE.SYSADMIN)) router.push('/admin')
                 else router.push("/customer/home");
                 await registerForPushNotificationsAsync(response.data.user.id);
+            } else {
+                Alert.alert("Mã bảo mật không chính xác");
             }
         } catch (error) {
             console.error('Login error:', error);

@@ -4,7 +4,7 @@ import * as Keychain from "react-native-keychain";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ApiResponse } from "@/types";
 
-const BASE_URL = "http://192.168.42.110:3000";
+const BASE_URL = "http://34.143.186.249:3000";
 
 const axiosInstance = axios.create({
     baseURL: `${BASE_URL}/api`,
@@ -52,7 +52,7 @@ axiosInstance.interceptors.response.use(
         // Nếu là lỗi 401 và request không phải là refresh token
         if (
             error.response?.status === 401 &&
-            !originalRequest.url?.includes("/auth/refresh-token")
+            !originalRequest.url?.includes("/auth/refresh-access-token") && !originalRequest.url?.includes("/auth/login")
         ) {
             if (isRefreshing) {
                 return new Promise((resolve, reject) => {
@@ -92,13 +92,13 @@ axiosInstance.interceptors.response.use(
 const refreshToken = async () => {
     const refreshToken = await AsyncStorage.getItem("refreshToken");
     if (!refreshToken) {
-        authService.logout();
+
         return { success: false, message: "No refresh token available" };
     }
 
     try {
         const response = await axiosInstance.post<ApiResponse>(
-            "/auth/refresh-token",
+            "/auth/refresh-access-token",
             {
                 refreshToken,
             }
@@ -109,8 +109,6 @@ const refreshToken = async () => {
             return response.data;
         }
 
-        // Nếu refresh token hết hạn hoặc không hợp lệ
-        authService.logout();
         return { success: false, message: "Invalid refresh token" };
     } catch (error) {
         authService.logout();

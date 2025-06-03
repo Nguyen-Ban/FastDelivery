@@ -26,6 +26,9 @@ const authService = {
             const res = await RestApiService.postRequest('/auth/login', reqBody)
             return res;
         } catch (error: any) {
+            if (error.response?.status === 401) {
+                return { success: false };
+            }
             throw error;
         }
     },

@@ -25,7 +25,7 @@ import { useFonts } from "expo-font";
 import { useAuth } from "../../../contexts/auth.context";
 import { useLocation } from "../../../contexts/location.context";
 import driverService from "../../../services/driver.service";
-import { ORDER_TYPES } from "@/types";
+import { DRIVER_APPROVAL_STATUS, ORDER_TYPES } from "@/types";
 
 const HomeScreen = () => {
   const [Cascadia] = useFonts({
@@ -80,13 +80,22 @@ const HomeScreen = () => {
     try {
       const response = await driverService.checkRegistered();
       if (response.success) {
-        console.log(response)
-        router.push({
-          pathname: '/driver',
-          params: {
-            vehicleType: response.data.vehicleType
-          }
-        });
+        if (response.data.approvalStatus === DRIVER_APPROVAL_STATUS.APPROVED) {
+          router.push({
+            pathname: '/driver',
+            params: {
+              driverInfo: JSON.stringify(response.data.driverInfo)
+            }
+          });
+        }
+        else {
+          router.push({
+            pathname: '/driver/permission-warn',
+            params: {
+              status: response.data.approvalStatus
+            }
+          })
+        }
       } else {
         router.push('/driver/register');
       }

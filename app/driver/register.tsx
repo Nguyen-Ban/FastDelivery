@@ -72,12 +72,15 @@ const DriverRegistration = () => {
                             router.push({
                                 pathname: '/driver',
                                 params: {
-                                    vehicleType: response.data.driver.vehicleType
+                                    driverInfo: JSON.stringify(response.data.driverInfo)
                                 }
                             });
                         }
                     }
                 ]);
+            } else {
+                if (response.data.registered === 'licenseNumber') Alert.alert('Giấy phép lái xe đã được đăng ký')
+                else if (response.data.registered === 'vehiclePlate') Alert.alert('Biển số xe đã được đăng ký')
             }
         } catch (error) {
             Alert.alert('Lỗi', 'Đã có lỗi xảy ra khi đăng ký. Vui lòng thử lại sau.');

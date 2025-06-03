@@ -18,15 +18,17 @@ import { useLocation } from "../../contexts/location.context";
 import { useAuth } from "../../contexts/auth.context";
 import socketDriverService from "../../services/socket.driver";
 import socket from "@/services/socket";
-import { ROLE, VEHICLE_TYPES } from "@/types";
+import { OrderLocation, OrderDetail, OrderMain, ROLE, VEHICLE_TYPES, OrderSenderReceiver, DriverInfo } from "@/types";
 import { useDriver } from "@/contexts";
+import driverService from "@/services/driver.service";
 
 const Driver = () => {
   const { location, getCurrentLocation } = useLocation();
   const vehicleTypeParam: VEHICLE_TYPES = useLocalSearchParams().vehicleType as VEHICLE_TYPES;
+  const driverInfo = JSON.parse(useLocalSearchParams().driverInfo as string) as DriverInfo
   const { vehicleType, updateVehicleType } = useDriver();
   const { user } = useAuth();
-  const { online, setOnline } = useDriver();
+  const { online, setOnline, setDriverInfo } = useDriver();
   const [hasOrder, setHasOrder] = useState(false);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isOrderVisible, setIsOrderVisible] = useState(false);
@@ -36,7 +38,15 @@ const Driver = () => {
   const router = useRouter();
   const mapRef = useRef<MapView>(null);
 
+
+
+
   const locationUpdateInterval = useRef<NodeJS.Timeout>();
+
+  const handleAutoAccept = async (autoAccept: boolean) => {
+    const res = await driverService.autoAccept({ autoAccept });
+    if (res.success) setAutoReceive(autoAccept)
+  }
 
   // Display Menu Text
   const [isMenuTextVisible, setIsMenuTextVisible] = useState(false);
@@ -70,6 +80,26 @@ const Driver = () => {
   useEffect(() => {
     if (!online) return;
 
+    socket.on('order:available', (response) => {
+      if (response.success) {
+        console.log(1)
+        router.push({
+          pathname: '/driver/delivery/on-delivery',
+
+          params: {
+            orderId: response.data.orderId,
+            orderSenderReceiver: JSON.stringify(response.data.orderSenderReceiver),
+            orderMain: JSON.stringify(response.data.orderMain),
+            driverPickupPolyline: response.data.driverPickupPolyline,
+            pickupDropoffPolyline: response.data.pickupDropoffPolyline,
+            orderLocation: JSON.stringify(response.data.orderLocation),
+            pickupDropoffDistance: response.data.pickupDropoffDistance,
+            orderDetail: JSON.stringify(response.data.orderDetail),
+          }
+        })
+      }
+    })
+
     socket.on('order:new', (response) => {
       console.log('New order received:', response);
       setHasOrder(true);
@@ -84,6 +114,7 @@ const Driver = () => {
     });
 
     return () => {
+      socket.off('order:available')
       socket.off('order:new');
       socket.off('order:completed');
     }
@@ -132,11 +163,12 @@ const Driver = () => {
   };
 
   useEffect(() => {
+    setDriverInfo(driverInfo)
     if (vehicleTypeParam) {
       updateVehicleType(vehicleTypeParam);
     }
-  }, [vehicleTypeParam]);
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // ❗ Chạy 1 lần duy nhất
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
@@ -253,18 +285,10 @@ const Driver = () => {
 
         <TouchableOpacity
           style={styles.navItem}
-          onPress={() => setAutoReceive(!autoReceive)}
+          onPress={() => handleAutoAccept(!autoReceive)}
         >
           <MaterialIcons name="bolt" size={22} color={autoReceive ? "#00a651" : "#666"} />
           <Text style={[styles.navText, autoReceive && { color: "#00a651" }]}>Tự động nhận đơn</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => router.push("/driver/menu/delivery-settings")}
-        >
-          <Ionicons name="ellipsis-horizontal" size={22} color="#666" />
-          <Text style={styles.navText}>Cài đặt</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

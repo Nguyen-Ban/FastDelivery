@@ -12,8 +12,10 @@ import {
 } from 'react-native';
 import { FontAwesome5, Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useDriver } from '@/contexts';
 
 const DriverMenu = () => {
+    const { driverInfo } = useDriver()
     const router = useRouter();
 
     return (
@@ -33,10 +35,10 @@ const DriverMenu = () => {
                         style={styles.avatar}
                     /> */}
                     <View style={styles.profileInfo}>
-                        <Text style={styles.name}>Tài xế #Tên tài xế#</Text>
+                        <Text style={styles.name}>Tài xế {driverInfo?.fullName}</Text>
                         <View style={styles.ratingContainer}>
                             <Ionicons name="star" size={16} color="#FFD700" />
-                            <Text style={styles.rating}>5.0</Text>
+                            <Text style={styles.rating}>{driverInfo?.rating?.toFixed(2)}</Text>
                         </View>
                     </View>
                     <TouchableOpacity onPress={() => router.push("/driver/menu/profile")}>
@@ -46,16 +48,7 @@ const DriverMenu = () => {
 
                 {/* Menu Items */}
                 <View style={styles.menuItems}>
-                    <TouchableOpacity
-                        style={styles.menuItem}
-                        onPress={() => router.push("/driver/menu/my-wallet")}
-                    >
-                        <View style={styles.menuIconBox}>
-                            <Ionicons name="wallet-outline" size={24} color="#333" />
-                        </View>
-                        <Text style={styles.menuItemText}>Ví của tôi</Text>
-                        <Ionicons name="chevron-forward" size={24} color="#666" />
-                    </TouchableOpacity>
+
 
                     <TouchableOpacity
                         style={styles.menuItem}
@@ -79,32 +72,6 @@ const DriverMenu = () => {
                         <Ionicons name="chevron-forward" size={24} color="#666" />
                     </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={styles.menuItem}
-                        onPress={() => router.push("/driver/menu/notifications")}
-                    >
-                        <View style={styles.menuIconBox}>
-                            <FontAwesome5 name="bell" size={24} color="#333" />
-                        </View>
-                        <Text style={styles.menuItemText}>Thông báo</Text>
-                        <Ionicons name="chevron-forward" size={24} color="#666" />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.menuItem}>
-                        <View style={styles.menuIconBox}>
-                            <Ionicons name="settings-outline" size={24} color="#333" />
-                        </View>
-                        <Text style={styles.menuItemText}>Cài đặt</Text>
-                        <Ionicons name="chevron-forward" size={24} color="#666" />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity style={styles.menuItem}>
-                        <View style={styles.menuIconBox}>
-                            <Ionicons name="help-circle-outline" size={24} color="#333" />
-                        </View>
-                        <Text style={styles.menuItemText}>Trợ giúp</Text>
-                        <Ionicons name="chevron-forward" size={24} color="#666" />
-                    </TouchableOpacity>
 
                     <TouchableOpacity
                         style={[styles.menuItem, styles.customerModeItem]}

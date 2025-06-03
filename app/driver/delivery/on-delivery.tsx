@@ -26,10 +26,19 @@ import socket from '@/services/socket';
 const OnDelivery = () => {
     const router = useRouter();
     const params = useLocalSearchParams();
+    console.log(1)
+    console.log(params)
+
     const orderSenderReceiver = JSON.parse(params.orderSenderReceiver as string);
     const orderId = params.orderId as string;
+    console.log(2)
+
     const orderMain = JSON.parse(params.orderMain as string) as OrderMain;
+    console.log(3)
+
     const orderDetail = JSON.parse(params.orderDetail as string) || {};
+    console.log(4)
+
     const orderLocation = JSON.parse(params.orderLocation as string) || {};
     const pickupDropoffDistance = parseFloat(params.pickupDropoffDistance as string) || 0;
     const pickupDropoffPolyline = params.pickupDropoffPolyline as string

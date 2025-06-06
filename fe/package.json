@@ -1,5 +1,4 @@
 {
-<<<<<<< HEAD:fe/package.json
   "name": "fastdelivery",
   "main": "expo-router/entry",
   "version": "1.0.0",
@@ -89,37 +88,7 @@
           "react-native-chart-kit"
         ]
       }
-=======
-    "name": "nodejs-express-sequelize",
-    "version": "1.0.0",
-    "description": "Node.js Express Sequelize MySQL project",
-    "main": "src/index.js",
-    "scripts": {
-        "start": "node src/index.js",
-        "dev": "nodemon src/index.js"
-    },
-    "dependencies": {
-        "axios": "^1.8.4",
-        "bcrypt": "^5.1.1",
-        "casbin": "^5.38.0",
-        "casbin-sequelize-adapter": "^2.7.1",
-        "cors": "^2.8.5",
-        "dotenv": "^16.4.5",
-        "expo-server-sdk": "^3.15.0",
-        "express": "^4.21.2",
-        "firebase-admin": "^13.2.0",
-        "ioredis": "^5.6.0",
-        "joi": "^17.13.3",
-        "jsonwebtoken": "^9.0.2",
-        "mysql2": "^3.9.2",
-        "sequelize": "^6.37.1",
-        "socket.io": "^4.8.1",
-        "vnpay": "^2.3.0",
-        "winston": "^3.17.0",
-        "ws": "^8.18.1"
-    },
-    "devDependencies": {
-        "nodemon": "^3.1.0"
->>>>>>> origin/be-order-feature:package.json
     }
+  },
+  "private": true
 }

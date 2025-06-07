@@ -9,11 +9,13 @@ import {
   StatusBar,
   RefreshControl,
   ActivityIndicator,
-  TouchableOpacity
+  TouchableOpacity,
+  LogBox
 } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from "@/services/axios";
+LogBox.ignoreLogs(['Each child in a list should have a unique "key" prop.']);
 
 interface DriverRegister {
   id: string;

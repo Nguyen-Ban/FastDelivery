@@ -55,10 +55,10 @@ Driver.belongsTo(User, {
     as: 'user'
 });
 
-// Driver.hasMany(Order, {
-//     foreignKey: 'driverId',
-//     as: 'orders'
-// });
+Driver.hasMany(Order, {
+    foreignKey: 'driverId',
+    as: 'orders'
+});
 
 // Order associations
 Order.belongsTo(User, {
@@ -66,10 +66,10 @@ Order.belongsTo(User, {
     as: 'customer'
 });
 
-// Order.belongsTo(Driver, {
-//     foreignKey: 'driverId',
-//     as: 'driver'
-// });
+Order.belongsTo(Driver, {
+    foreignKey: 'driverId',
+    as: 'driver'
+});
 
 Order.hasMany(Message, {
     foreignKey: 'orderId',
@@ -143,21 +143,21 @@ Order.hasOne(Review, {
     as: 'review'
 });
 
-// Payment associations
-Payment.belongsTo(Order, {
-    foreignKey: 'orderId',
-    as: 'order'
-});
+// // Payment associations
+// Payment.belongsTo(Order, {
+//     foreignKey: 'orderId',
+//     as: 'order'
+// });
 
 Payment.belongsTo(User, {
     foreignKey: 'userId',
     as: 'user'
 });
 
-Order.hasOne(Payment, {
-    foreignKey: 'orderId',
-    as: 'payment'
-});
+// Order.hasOne(Payment, {
+//     foreignKey: 'orderId',
+//     as: 'payment'
+// });
 
 User.hasMany(Payment, {
     foreignKey: 'userId',

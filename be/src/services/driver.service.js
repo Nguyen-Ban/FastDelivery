@@ -156,10 +156,14 @@ const matchDriver = async (transportType, orderPickUpLocation, orderData, orderI
         await redisClient.set(`driver:${driver.id}:available`, JSON.stringify({ orderId, ...orderDetail }), 'EX', 30);
         sendNotification(driver.id, 'Có đơn hàng mới', `Đơn vận chuyển mới: ${orderDetail.orderDetail.packageType}`);
         if (autoAccept) {
+            resDriver = driver;
+            pickupDropoffPolyline = orderDetail.pickupDropoffPolyline;
+            driverPickupPolyline = orderDetail.driverPickupPolyline;
             socket.emit('order:available', {
                 success: true,
                 data: { orderId, ...orderDetail }
             });
+            break;
         }
         socket.emit('order:new', {
             success: true,

@@ -43,15 +43,6 @@ module.exports = (io, socket) => {
 
             await Payment.create({ orderId, userId: customerId, ...payment })
 
-
-
-            while (true) {
-                orderId = generateOrderId()
-                const order = await Order.findByPk(orderId)
-                if (!order) break
-            }
-
-
             const { resDriver, pickupDropoffPolyline, driverPickupPolyline } = await matchDriver(vehicleType, { pickupLat, pickupLng }, data, orderId);
             const driverId = resDriver.id;
             await Order.create({ id: orderId, customerId, driverId, ...orderMain }, { transaction: t });

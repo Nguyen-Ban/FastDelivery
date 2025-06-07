@@ -159,6 +159,11 @@ const matchDriver = async (transportType, orderPickUpLocation, orderData, orderI
             resDriver = driver;
             pickupDropoffPolyline = orderDetail.pickupDropoffPolyline;
             driverPickupPolyline = orderDetail.driverPickupPolyline;
+            const driverInstance = await Driver.findByPk(driver.id);
+            if (driverInstance) {
+                await driverInstance.update({ status: 'BUSY' });
+                console.log(`Driver ${driver.id} went busy.`);
+            }
             socket.emit('order:available', {
                 success: true,
                 data: { orderId, ...orderDetail }

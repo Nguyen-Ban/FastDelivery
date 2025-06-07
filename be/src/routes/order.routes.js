@@ -14,6 +14,10 @@ router.get('/customer/stats', authenticateToken, getCustomerStats);
 
 router.get('/event/:id', authenticateToken, getOrderEvent);
 
+router.get('/customer/stats', authenticateToken, getCustomerStats);
+
+router.get('/event/:id', authenticateToken, getOrderEvent);
+
 // router.post('/:id/review', authenticateToken, checkRole(['CUSTOMER']), validate(reviewOrderValidation), reviewOrder);
 router.get('/customer/list', authenticateToken, checkRole(['CUSTOMER']), getOrderList);
 // router.get('/customer/stats', authenticateToken, checkRole(['CUSTOMER']), getCustomerOrderStats);

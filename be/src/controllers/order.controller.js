@@ -236,6 +236,157 @@ const getCustomerStats = async (req, res) => {
     }
 };
 
+const getDriverOrderEvent = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const order = await Order.findByPk(id, {
+            include: [
+                {
+                    model: OrderLocation,
+                    as: 'location',
+                    attributes: ['pickupAddress', 'dropoffAddress']
+                },
+                {
+                    model: OrderSenderReceiver,
+                    as: 'senderReceiver',
+                    attributes: ['senderName', 'senderPhoneNumber', 'receiverName', 'receiverPhoneNumber']
+                }
+            ]
+        });
+
+        if (!order) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found"
+            });
+        }
+
+        const plainOrder = order.get({ plain: true });
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                id: plainOrder.id,
+                sender: {
+                    name: plainOrder.senderReceiver.senderName,
+                    phoneNumber: plainOrder.senderReceiver.senderPhoneNumber
+                },
+                receiver: {
+                    name: plainOrder.senderReceiver.receiverName,
+                    phoneNumber: plainOrder.senderReceiver.receiverPhoneNumber
+                },
+                vehicleType: plainOrder.vehicleType,
+                deliveryType: plainOrder.deliveryType,
+                pickupAddress: plainOrder.location.pickupAddress,
+                dropoffAddress: plainOrder.location.dropoffAddress,
+                status: plainOrder.status,
+                price: plainOrder.deliveryPrice + plainOrder.addonPrice + plainOrder.carPrice,
+                time: plainOrder.createdAt
+            }
+        });
+
+    } catch (error) {
+        console.error('GetDriverOrderEvent Error:', error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch order event",
+            error: error.message
+        });
+    }
+};
+
+const getDriverStats = async (req, res) => {
+    try {
+        const driverId = req.userId;
+        const today = new Date();
+
+        // Calculate dates for last 6 months
+        const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        const startDate = new Date(today.getFullYear(), today.getMonth() - 5, 1);
+
+        // Query for monthly stats
+        const monthlyQuery = `
+            SELECT 
+                EXTRACT(MONTH FROM created_at) AS month,
+                EXTRACT(YEAR FROM created_at) AS year,
+                COALESCE(SUM(delivery_price + COALESCE(addon_price, 0) + COALESCE(car_price, 0)), 0) AS total
+            FROM \`order\`
+            WHERE driver_id = :driverId
+                AND status = 'DELIVERED'
+                AND created_at BETWEEN :startDate AND :endDate
+            GROUP BY EXTRACT(YEAR FROM created_at), EXTRACT(MONTH FROM created_at)
+            ORDER BY year DESC, month DESC
+            LIMIT 6;
+        `;
+
+        const [stats] = await sequelize.query(statsQuery, {
+            replacements: { driverId },
+            type: sequelize.QueryTypes.SELECT
+        });
+
+        const monthlyData = await sequelize.query(monthlyQuery, {
+            replacements: {
+                driverId,
+                startDate: startDate.toISOString().split('T')[0],
+                endDate: endDate.toISOString().split('T')[0]
+            },
+            type: sequelize.QueryTypes.SELECT
+        });
+
+        // Initialize arrays for all 6 months
+        const labels = [];
+        const monthlyEarnings = Array(6).fill(0);
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+            'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+        // Fill in labels for all 6 months first
+        for (let i = 0; i < 6; i++) {
+            const date = new Date(today.getFullYear(), today.getMonth() - 5 + i, 1);
+            labels.push({
+                month: months[date.getMonth()],
+                year: date.getFullYear()
+            });
+        }
+
+        // Fill in earnings data where we have it
+        monthlyData.forEach(data => {
+            const orderDate = new Date(data.year, data.month - 1, 1);
+            const monthsAgo = (today.getFullYear() - orderDate.getFullYear()) * 12
+                + (today.getMonth() - orderDate.getMonth());
+
+            if (monthsAgo >= 0 && monthsAgo < 6) {
+                const index = 5 - monthsAgo;
+                monthlyEarnings[index] = parseFloat(data.total) || 0;
+            }
+        });
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                // Overall stats
+                totalEarnings: parseFloat(stats.total_earnings) || 0,
+                totalOrders: parseInt(stats.total_orders) || 0,
+                deliveredOrders: parseInt(stats.delivered_orders) || 0,
+                cancelledOrders: parseInt(stats.cancelled_orders) || 0,
+
+                // Monthly stats
+                labels,
+                monthlyEarnings,
+                totalMonthlyEarnings: monthlyEarnings.reduce((a, b) => a + b, 0)
+            }
+        });
+
+    } catch (error) {
+        console.error('GetDriverStats Error:', error);
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch driver statistics',
+            error: error.message
+        });
+    }
+};
+
 const getAdminStats = async (req, res) => {
     try {
         const today = new Date();

@@ -97,7 +97,9 @@ const matchDriver = async (transportType, orderPickUpLocation, orderData, orderI
     let resDriver = null;
     const drivers = await getAvailableNearestDrivers(transportType, orderPickUpLocation)
     for (const driver of drivers) {
-        const { autoAccept, status } = await Driver.findByPk(driver.id);
+        const exist = await Driver.findByPk(driver.id);
+        if (!exist) continue;
+        const { status, autoAccept } = exist;
         if (status !== 'AVAILABLE') continue
         const socket = getSocket(driver.id);
         if (!socket) continue;

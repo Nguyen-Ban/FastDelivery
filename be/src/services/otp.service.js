@@ -6,7 +6,7 @@ const logger = require('../config/logger');
 const infobipApiKey = process.env.INFOBIP_API_KEY;
 const infobipBaseUrl = 'per6me.api.infobip.com';
 const infobipSender = process.env.INFOBIP_SENDER;
-const MAX_ATTEMPTS = 3;
+const MAX_ATTEMPTS = 10;
 
 // Send OTP via SMS using Infobip
 const sendOTP = async (phoneNumber) => {

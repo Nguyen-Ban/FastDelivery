@@ -246,6 +246,7 @@ module.exports = (io, socket) => {
         const newEarning = driver.earning + earning
         await order.update({ status: 'DELIVERED' });
         await driver.update({ earning: newEarning });
+        const { customerId } = await Order.findByPk(orderId);
         sendNotification(customerId, 'Đơn vận chuyển hoàn tất', `Cảm ơn bạn đã tin tưởng Fast Delivery`);
         callback({
             success: true,
@@ -254,7 +255,6 @@ module.exports = (io, socket) => {
             }
         })
 
-        const { customerId } = await Order.findByPk(orderId);
         const customerSocket = await getSocket(customerId);
         customerSocket.emit('order:completed', { success: true })
         socket.emit('order:completed', {

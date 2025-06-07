@@ -1,7 +1,7 @@
 const redisClient = require('../config/redis');
 const { sequelize } = require("../config/database");
 
-const { scanForDriver } = require('../services/driver.service');
+const { scanForDriver, matchDriver } = require('../services/driver.service');
 const { Order, OrderLocation, OrderDetail, OrderSenderReceiver, Driver, User, OrderSpecialDemand, Payment } = require('../models/index');
 const { where } = require('sequelize');
 const { getSocket } = require('../services/websocket/driver');
@@ -39,19 +39,20 @@ module.exports = (io, socket) => {
                     }
                 })
             }
+
+
             await Payment.create({ orderId, userId: customerId, ...payment })
 
 
-            // Quét liên tục để tìm tài xế
-            const match = await scanForDriver(
-                vehicleType,
-                pickupLat,
-                pickupLng,
-                data,
-                orderId
-            );
 
-            const { resDriver, pickupDropoffPolyline, driverPickupPolyline } = match;
+            while (true) {
+                orderId = generateOrderId()
+                const order = await Order.findByPk(orderId)
+                if (!order) break
+            }
+
+
+            const { resDriver, pickupDropoffPolyline, driverPickupPolyline } = await matchDriver(vehicleType, { pickupLat, pickupLng }, data, orderId);
             const driverId = resDriver.id;
             await Order.create({ id: orderId, customerId, driverId, ...orderMain }, { transaction: t });
 
@@ -59,6 +60,8 @@ module.exports = (io, socket) => {
             await OrderLocation.create({ orderId, ...orderLocation }, { transaction: t });
             await OrderDetail.create({ orderId, ...orderDetail }, { transaction: t });
             await OrderSpecialDemand.create({ orderId, ...orderSpecialDemand }, { transaction: t });
+
+
             await t.commit(); // Commit transaction nếu không có lỗi
             const driver = await Driver.findByPk(driverId);
             const user = await User.findByPk(driverId);

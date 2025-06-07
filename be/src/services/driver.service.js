@@ -230,4 +230,4 @@ const directRoute = async (transportType, origin, destination) => {
 }
 
 
-module.exports = { scanForDriver, driverDirectionSupport };
+module.exports = { scanForDriver, driverDirectionSupport, matchDriver };

@@ -193,6 +193,8 @@ const Driver = () => {
       <MapView
         ref={mapRef}
         style={styles.map}
+        showsUserLocation={true}
+        showsMyLocationButton={false}
         initialRegion={{
           latitude: location?.coord?.lat || 10.7769,
           longitude: location?.coord?.lng || 106.7009,
@@ -200,12 +202,12 @@ const Driver = () => {
           longitudeDelta: 0.006,
         }}
       >
-        {location && (
+        {/* {location && (
           <Marker
             coordinate={{ latitude: location.coord?.lat as number, longitude: location.coord?.lng as number }}
             title="Vị trí hiện tại"
           />
-        )}
+        )} */}
       </MapView>
 
       {/* Header with menu and profile buttons */}

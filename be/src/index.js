@@ -50,7 +50,7 @@ const startServer = async () => {
         await sequelize.authenticate();
         logger.info('[App] Database connection has been established successfully.');
 
-        await sequelize.sync({ force: true }); // Use { force: true } to drop and recreate tables (for testing)
+        await sequelize.sync(); // Use { force: true } to drop and recreate tables (for testing)
         logger.info('[App] Database synced successfully.');
 
         const sysadmin = await User.findOne({

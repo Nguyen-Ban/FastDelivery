@@ -11,6 +11,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import socket from "@/services/socket";
+import { useDriver } from "@/contexts";
 
 const CompletePayment = () => {
   const router = useRouter();
@@ -20,6 +21,7 @@ const CompletePayment = () => {
   const deliveryPrice = parseFloat(params.deliveryPrice as string)
   const addonPrice = parseFloat(params.addonPrice as string)
   const orderId = params.orderId as string
+  const { driverInfo } = useDriver()
 
   const handleComplete = async () => {
     const response: any = await new Promise((resolve) => {
@@ -29,7 +31,13 @@ const CompletePayment = () => {
     });
 
     if (response.success) {
-      router.push("/driver");
+      router.push({
+        pathname: "/driver",
+        params: {
+          driverInfo: JSON.stringify(driverInfo)
+        }
+      }
+      );
     } else {
       console.error("Error completing order:", response.error);
     }

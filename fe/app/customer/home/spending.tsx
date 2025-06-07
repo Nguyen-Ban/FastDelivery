@@ -62,7 +62,7 @@ const SpendingScreen = () => {
   const averageSpending = Math.round(
     spendingData.monthlySpending.reduce((a: number, b: number) => a + b, 0) / spendingData.monthlySpending.length
   );
-  const percentChange = previousMonth === 0 ? 0 : Math.round(((currentMonth - previousMonth) / previousMonth) * 100);
+  const percentChange = previousMonth === 0 ? currentMonth : Math.round(((currentMonth - previousMonth) / previousMonth) * 100);
 
   const chartConfig = {
     backgroundGradientFrom: "#ffffff",
@@ -107,6 +107,15 @@ const SpendingScreen = () => {
     );
   }
 
+  function renderChange(current: number, previous: number) {
+    if (previous === 0) {
+      return current.toLocaleString() + " ₫";
+    } else {
+      const percentChange = ((current - previous) / previous) * 100;
+      return Math.abs(percentChange).toFixed(2) + "%";
+    }
+  }
+
   // Chuyển đổi dữ liệu để hiển thị label trên hai dòng
   const chartData = {
     labels: spendingData.labels.map(label => `${label.month}${label.year}`),
@@ -149,15 +158,15 @@ const SpendingScreen = () => {
           <Text style={styles.statLabel}>So với tháng trước</Text>
           <View style={styles.statValueContainer}>
             <FontAwesome6
-              name={percentChange >= 0 ? "arrow-up" : "arrow-down"}
+              name={currentMonth > previousMonth ? "arrow-up" : "arrow-down"}
               size={16}
-              color={percentChange >= 0 ? COLOR.red55 : COLOR.green40}
+              color={currentMonth > previousMonth ? COLOR.red55 : COLOR.green40}
             />
             <Text style={[
               styles.statValue,
               { color: percentChange >= 0 ? COLOR.red55 : COLOR.green40 }
             ]}>
-              {Math.abs(percentChange)}%
+              {renderChange(currentMonth, previousMonth)}
             </Text>
           </View>
         </View>

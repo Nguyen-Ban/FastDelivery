@@ -2,6 +2,7 @@ import { Tabs } from "expo-router";
 import { FontAwesome6 } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet } from "react-native";
+
 import COLOR from "@/constants/Colors";
 
 const HomeLayout = () => {
@@ -36,12 +37,12 @@ const HomeLayout = () => {
         }}
       />
       <Tabs.Screen
-        name="notification"
+        name="spending"
         options={{
-          title: "Thông báo",
+          title: "Thống kê",
           tabBarIcon: ({ focused }) => {
             const iconColor = focused ? COLOR.blue40 : COLOR.black;
-            return <FontAwesome6 name="bell" size={24} color={iconColor} />;
+            return <FontAwesome6 name="chart-column" size={24} color={iconColor} />;
           },
         }}
       />

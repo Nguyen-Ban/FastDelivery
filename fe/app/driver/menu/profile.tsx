@@ -25,12 +25,6 @@ const Profile = () => {
         Alert.alert("Chức năng đang phát triển", "Bạn sẽ sớm chỉnh sửa được hồ sơ!");
     };
 
-    const handleLogout = () => {
-        Alert.alert("Đăng xuất", "Bạn có chắc chắn muốn đăng xuất?", [
-            { text: "Huỷ" },
-            { text: "Đăng xuất", style: "destructive", onPress: () => {/* TODO: Thực hiện đăng xuất */ } },
-        ]);
-    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -65,11 +59,6 @@ const Profile = () => {
                     </View>
                 </View>
 
-
-                <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-                    <Ionicons name="log-out-outline" size={20} color="#fff" />
-                    <Text style={styles.logoutBtnText}>Đăng xuất</Text>
-                </TouchableOpacity>
             </ScrollView>
         </SafeAreaView>
     );

@@ -24,9 +24,7 @@ import driverService from "@/services/driver.service";
 
 const Driver = () => {
   const { location, getCurrentLocation } = useLocation();
-  const vehicleTypeParam: VEHICLE_TYPES = useLocalSearchParams().vehicleType as VEHICLE_TYPES;
   const driverInfo = JSON.parse(useLocalSearchParams().driverInfo as string) as DriverInfo
-  const { vehicleType, updateVehicleType } = useDriver();
   const { user } = useAuth();
   const { online, setOnline, setDriverInfo } = useDriver();
   const [hasOrder, setHasOrder] = useState(false);
@@ -164,9 +162,6 @@ const Driver = () => {
 
   useEffect(() => {
     setDriverInfo(driverInfo)
-    if (vehicleTypeParam) {
-      updateVehicleType(vehicleTypeParam);
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // ❗ Chạy 1 lần duy nhất
   return (
@@ -279,7 +274,7 @@ const Driver = () => {
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem}>
-          <FontAwesome5 name={vehicleType === 'MOTORBIKE' ? "motorcycle" : 'truck'} size={22} color="#00a651" />
+          <FontAwesome5 name={driverInfo.vehicleType === 'MOTORBIKE' ? "motorcycle" : 'truck'} size={22} color="#00a651" />
           <Text style={styles.navText}>Dịch vụ</Text>
         </TouchableOpacity>
 

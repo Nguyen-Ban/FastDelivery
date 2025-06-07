@@ -133,7 +133,7 @@ const HomeScreen = () => {
     | "/customer/order/location"
     | "/customer/home"
     | "/driver"
-    | "/customer/user/spending"
+    | "/customer/home/spending"
     | "/customer/home/activity"
     | "/driver/register";
 
@@ -146,7 +146,7 @@ const HomeScreen = () => {
       case "2":
         return "/customer/home/activity";
       case "3":
-        return "/customer/user/spending";
+        return "/customer/home/spending";
       case "7":
         return () => handleDriverMode();
       default:

@@ -91,7 +91,7 @@ enum DRIVER_APPROVAL_STATUS {
     APPROVED = 'APPROVED',
     BAN = 'BAN',
     PENDING = 'PENDING',
-    REJECTED = 'REJECTED'
+    REJECTED = 'REJECTED',
 }
 
 export {

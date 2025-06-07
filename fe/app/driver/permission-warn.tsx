@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Button } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, router } from 'expo-router';
 import { DRIVER_APPROVAL_STATUS } from '@/types';
 
 const PermissionWarn: React.FC = () => {
@@ -49,6 +49,12 @@ const PermissionWarn: React.FC = () => {
             </View>
             <Text style={styles.title}>{config.title}</Text>
             <Text style={styles.message}>{config.message}</Text>
+            <View style={styles.buttonContainer}>
+                <Button
+                    title="Trở về chế độ khách hàng"
+                    onPress={() => router.push('/customer/home')}
+                />
+            </View>
         </View>
     );
 };
@@ -75,6 +81,10 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         color: '#666',
         lineHeight: 24,
+    },
+    buttonContainer: {
+        marginTop: 30,
+        width: '100%',
     },
 });
 

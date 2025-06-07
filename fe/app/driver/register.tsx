@@ -18,7 +18,7 @@ import Button from '../../components/Button/ButtonComponent';
 import driverService from '../../services/driver.service';
 import { Picker } from '@react-native-picker/picker';
 import Checkbox from 'expo-checkbox';
-import { VEHICLE_TYPES } from '@/types';
+import { DRIVER_APPROVAL_STATUS, VEHICLE_TYPES } from '@/types';
 
 const DriverRegistration = () => {
     const [showForm, setShowForm] = useState(false);
@@ -69,12 +69,21 @@ const DriverRegistration = () => {
                 Alert.alert('Thành công', 'Đăng ký tài xế thành công', [
                     {
                         text: 'OK', onPress: () => {
-                            router.push({
-                                pathname: '/driver',
-                                params: {
-                                    driverInfo: JSON.stringify(response.data.driverInfo)
-                                }
-                            });
+                            if (response.data.driverInfo.approvalStatus === DRIVER_APPROVAL_STATUS.APPROVED) {
+                                router.push({
+                                    pathname: '/driver',
+                                    params: {
+                                        driverInfo: JSON.stringify(response.data.driverInfo)
+                                    }
+                                });
+                            } else {
+                                router.push({
+                                    pathname: '/driver/permission-warn',
+                                    params: {
+                                        status: response.data.driverInfo.approvalStatus
+                                    }
+                                })
+                            }
                         }
                     }
                 ]);

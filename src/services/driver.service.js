@@ -4,8 +4,55 @@ const { getSocket } = require("./websocket/driver");
 const { Driver } = require("../models/index");
 const { getInfoBasedOnRoadRoute, getPolyline } = require("./map.service");
 const { sendNotification } = require("./notification.service");
+const logger = require("../config/logger");
 
 const HERE_API_KEY = process.env.HERE_API_KEY;
+
+const FIND_DRIVER_TIMEOUT_SECS = 300;
+const FIND_DRIVER_INTERVAL_SECS = 3;
+
+const searchSessions = new Map(); // { sessionId: { socket, vehicleType, pickupLat, pickupLng, data, orderId, interval, resolve, reject } }
+
+const scanForDriver = (vehicleType, pickupLat, pickupLng, data, orderId) => {
+    return new Promise((resolve, reject) => {
+        const sessionId = orderId
+        let interval;
+
+        const scan = async () => {
+            try {
+                const match = await matchDriver(vehicleType, { pickupLat, pickupLng }, data, orderId);
+                if (match) {
+                    clearInterval(interval);
+                    searchSessions.delete(sessionId);
+                    resolve(match);
+                }
+            } catch (error) {
+                logger.error('Scan error:', error);
+            }
+        };
+        // Quét ban đầu
+        scan();
+
+        // Quét định kỳ mỗi 3 giây
+        interval = setInterval(scan, FIND_DRIVER_INTERVAL_SECS * 1000);
+
+        // Lưu session
+        searchSessions.set(sessionId, {
+            interval,
+            reject,
+        });
+
+        // Dừng sau timeout
+        setTimeout(() => {
+            if (searchSessions.has(sessionId)) {
+                clearInterval(interval);
+                searchSessions.delete(sessionId);
+                reject(new Error('No driver found within timeout'));
+            }
+        }, FIND_DRIVER_TIMEOUT_SECS * 1000);
+    })
+}
+
 
 const getAvailableNearestDrivers = async (transportType, orderPickUpLocation) => {
     const { pickupLat: lat, pickupLng: lng } = orderPickUpLocation;
@@ -97,7 +144,9 @@ const matchDriver = async (transportType, orderPickUpLocation, orderData, orderI
     let resDriver = null;
     const drivers = await getAvailableNearestDrivers(transportType, orderPickUpLocation)
     for (const driver of drivers) {
-        const { autoAccept, status } = await Driver.findByPk(driver.id);
+        const exist = await Driver.findByPk(driver.id);
+        if (!exist) continue;
+        const { status, autoAccept } = exist;
         if (status !== 'AVAILABLE') continue
         const socket = getSocket(driver.id);
         if (!socket) continue;
@@ -136,6 +185,7 @@ const matchDriver = async (transportType, orderPickUpLocation, orderData, orderI
 
     }
     console.log('3', resDriver)
+    if (!resDriver || !pickupDropoffPolyline || !driverPickupPolyline) return null;
     return { resDriver, pickupDropoffPolyline, driverPickupPolyline };
 }
 
@@ -180,4 +230,4 @@ const directRoute = async (transportType, origin, destination) => {
 }
 
 
-module.exports = { matchDriver, driverDirectionSupport };
+module.exports = { scanForDriver, driverDirectionSupport };

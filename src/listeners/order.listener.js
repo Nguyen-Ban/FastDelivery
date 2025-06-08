@@ -1,13 +1,14 @@
 const redisClient = require('../config/redis');
 const { sequelize } = require("../config/database");
 
-const { matchDriver } = require('../services/driver.service');
-const { Order, OrderLocation, OrderDetail, OrderSenderReceiver, Driver, User, OrderSpecialDemand } = require('../models/index');
+const { scanForDriver } = require('../services/driver.service');
+const { Order, OrderLocation, OrderDetail, OrderSenderReceiver, Driver, User, OrderSpecialDemand, Payment } = require('../models/index');
 const { where } = require('sequelize');
 const { getSocket } = require('../services/websocket/driver');
 const logger = require('../config/logger');
 const { getPolyline, getInfoBasedOnRoadRoute } = require('../services/map.service');
 const { sendNotification } = require('../services/notification.service');
+const paymentService = require('../services/payment.service');
 module.exports = (io, socket) => {
     socket.on('order:create', async (data) => {
         if (socket.activeRole !== 'CUSTOMER') return socket.emit('error', 'Not authorized');
@@ -17,10 +18,11 @@ module.exports = (io, socket) => {
         const customerId = socket.userId;
 
         try {
-            const { orderMain, orderSenderReceiver, orderLocation, orderDetail, orderSpecialDemand } = data;
+            const { orderMain, orderSenderReceiver, orderLocation, orderDetail, orderSpecialDemand, payment } = data;
             console.log('order', orderMain, orderSenderReceiver, orderLocation, orderDetail, orderSpecialDemand);
             const { pickupLat, pickupLng, dropoffLat, dropoffLng } = orderLocation;
             const { vehicleType } = orderMain;
+            const { paymentMethod, amount } = payment;
             let orderId
             while (true) {
                 orderId = generateOrderId()
@@ -28,8 +30,28 @@ module.exports = (io, socket) => {
                 if (!order) break
             }
 
+            if (paymentMethod === 'VNPAY') {
+                const { paymentUrl } = paymentService.createPaymentUrl({ orderId, amount, ipAddr: socket.handshake.address })
+                socket.emit('payment:url', {
+                    success: true,
+                    data: {
+                        paymentUrl
+                    }
+                })
+            }
+            await Payment.create({ orderId, userId: customerId, ...payment })
 
-            const { resDriver, pickupDropoffPolyline, driverPickupPolyline } = await matchDriver(vehicleType, { pickupLat, pickupLng }, data, orderId);
+
+            // Quét liên tục để tìm tài xế
+            const match = await scanForDriver(
+                vehicleType,
+                pickupLat,
+                pickupLng,
+                data,
+                orderId
+            );
+
+            const { resDriver, pickupDropoffPolyline, driverPickupPolyline } = match;
             const driverId = resDriver.id;
             await Order.create({ id: orderId, customerId, driverId, ...orderMain }, { transaction: t });
 
@@ -37,7 +59,6 @@ module.exports = (io, socket) => {
             await OrderLocation.create({ orderId, ...orderLocation }, { transaction: t });
             await OrderDetail.create({ orderId, ...orderDetail }, { transaction: t });
             await OrderSpecialDemand.create({ orderId, ...orderSpecialDemand }, { transaction: t });
-
             await t.commit(); // Commit transaction nếu không có lỗi
             const driver = await Driver.findByPk(driverId);
             const user = await User.findByPk(driverId);
@@ -151,6 +172,8 @@ module.exports = (io, socket) => {
         const orderDetail = await OrderDetail.findByPk(orderId)
         const orderLocation = await OrderLocation.findByPk(orderId)
         const orderSpecialDemand = await OrderSpecialDemand.findByPk(orderId)
+        const payment = await Payment.findOne({ where: { orderId: orderId } });
+
         callback({
             success: true,
             data: {
@@ -167,7 +190,12 @@ module.exports = (io, socket) => {
                         phoneNumber: orderSenderReceiver.receiverPhoneNumber
                     }
                 },
-                orderSpecialDemand
+                orderSpecialDemand,
+                payment: {
+                    paymentMethod: payment.paymentMethod,
+                    paymentStatus: payment.status,
+                    amount: payment.amount,
+                }
             }
         })
     });
@@ -202,7 +230,12 @@ module.exports = (io, socket) => {
 
     socket.on('order:picked', async (data, callback) => {
         const { orderId } = data;
+        const payment = await Payment.findOne({ where: { orderId: orderId } });
 
+        if (payment && payment.paymentMethod === 'SENDER_CASH') {
+            payment.status = 'COMPLETED';
+            await payment.save();
+        }
         const { customerId } = await Order.findByPk(orderId);
         const customerSocket = await getSocket(customerId);
         customerSocket.emit('order:picked', { success: true })
@@ -241,11 +274,18 @@ module.exports = (io, socket) => {
     socket.on('order:complete', async (data, callback) => {
         const { orderId } = data;
         const order = await Order.findByPk(orderId);
+        const payment = await Payment.findOne({ where: { orderId: orderId } });
+
+        if (payment && payment.paymentMethod === 'RECEIVER_CASH') {
+            payment.status = 'COMPLETED';
+            await payment.save();
+        }
         const driver = await Driver.findByPk(order.driverId)
         const earning = (order.deliveryPrice + order.addonPrice + order.carPrice) * 0.5;
         const newEarning = driver.earning + earning
         await order.update({ status: 'DELIVERED' });
         await driver.update({ earning: newEarning });
+        const { customerId } = await Order.findByPk(orderId);
         sendNotification(customerId, 'Đơn vận chuyển hoàn tất', `Cảm ơn bạn đã tin tưởng Fast Delivery`);
         callback({
             success: true,
@@ -254,7 +294,6 @@ module.exports = (io, socket) => {
             }
         })
 
-        const { customerId } = await Order.findByPk(orderId);
         const customerSocket = await getSocket(customerId);
         customerSocket.emit('order:completed', { success: true })
         socket.emit('order:completed', {

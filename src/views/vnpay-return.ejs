@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết Quả Thanh Toán - Fast Delivery</title>
+    <style>
+        :root {
+            --primary-cyan: #00BCD4;
+            --primary-orange: #FF9800;
+            --light-cyan: #E0F7FA;
+            --light-orange: #FFF3E0;
+            --dark-cyan: #0097A7;
+            --dark-orange: #F57C00;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, var(--light-cyan) 0%, var(--light-orange) 100%);
+        }
+
+        .container {
+            background-color: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--primary-cyan);
+        }
+
+        .brand h2 {
+            font-size: 2rem;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .brand p {
+            color: var(--primary-orange);
+            margin: 0.5rem 0 0;
+            font-size: 1.1rem;
+        }
+
+        .status {
+            text-align: center;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            border-radius: 12px;
+        }
+
+        .success {
+            background-color: var(--light-cyan);
+            color: var(--dark-cyan);
+        }
+
+        .error {
+            background-color: #FFEBEE;
+            color: #C62828;
+        }
+
+        .status h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .details {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid var(--light-cyan);
+        }
+
+        .detail-item {
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        .detail-item:hover {
+            background-color: var(--light-cyan);
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: var(--dark-cyan);
+            font-size: 0.95rem;
+        }
+
+        .detail-value {
+            color: #333;
+            font-weight: 500;
+        }
+
+        .amount {
+            font-size: 1.2rem;
+            color: var(--primary-orange);
+            font-weight: 600;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 1.5rem;
+            }
+
+            .brand h2 {
+                font-size: 1.5rem;
+            }
+
+            .status h1 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="brand">
+            <h2>Fast Delivery</h2>
+            <p>Kết Quả Thanh Toán</p>
+        </div>
+
+        <div class="status <%= vnp_ResponseCode === '00' ? 'success' : 'error' %>">
+            <% if (vnp_ResponseCode==='00' ) { %>
+                <h1>Thanh Toán Thành Công!</h1>
+                <% } else { %>
+                    <h1>Thanh Toán Thất Bại</h1>
+                    <% } %>
+        </div>
+
+        <div class="details">
+            <div class="detail-item">
+                <span class="detail-label">Mã Giao Dịch:</span>
+                <span class="detail-value">
+                    <%= vnp_TxnRef %>
+                </span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Số Tiền:</span>
+                <span class="detail-value amount">
+                    <%= (vnp_Amount/100).toLocaleString('vi-VN') %> VND
+                </span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Ngân Hàng:</span>
+                <span class="detail-value">
+                    <%= vnp_BankCode %>
+                </span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Mã Giao Dịch Ngân Hàng:</span>
+                <span class="detail-value">
+                    <%= vnp_TransactionNo %>
+                </span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Thời Gian Thanh Toán:</span>
+                <span class="detail-value">
+                    <%= vnp_PayDate %>
+                </span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Nội Dung:</span>
+                <span class="detail-value">
+                    <%= vnp_OrderInfo %>
+                </span>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

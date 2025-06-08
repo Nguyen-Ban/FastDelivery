@@ -12,6 +12,12 @@ const checkDriver = async (req, res) => {
                 userId,
             },
         });
+        if (!driver) {
+            return res.status(200).json({
+                success: false,
+                message: 'Driver not found',
+            });
+        }
         if (driver.approvalStatus !== 'APPROVED') {
             return res.status(200).json({
                 success: true,
@@ -21,12 +27,7 @@ const checkDriver = async (req, res) => {
                 }
             })
         }
-        if (!driver) {
-            return res.status(200).json({
-                success: false,
-                message: 'Driver not found',
-            });
-        }
+
         let driverRating = 0;
         const orders = await Order.findAll({ where: { driverId: driver.userId, status: 'DELIVERED' } });
         reviewLength = 0;

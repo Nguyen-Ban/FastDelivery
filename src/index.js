@@ -10,6 +10,7 @@ const { User } = require('./models/index');
 
 const app = express();
 const apiRouter = require('./routes/index');
+const viewRouter = require('./routes/view.routes');
 const errorHandler = require('./middleware/error.middleware');
 const redisClient = require('./config/redis');
 const { sendNotification } = require('./services/notification.service');
@@ -20,6 +21,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Set up EJS view engine
+app.set('view engine', 'ejs');
+app.set('views', './src/views');
+
 // Routes
 app.get('/', (req, res) => {
     logger.info('[App] Health check endpoint accessed');
@@ -27,6 +32,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api', apiRouter);
+app.use('/', viewRouter);
 
 app.get('/get-ip', (req, res) => {
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;

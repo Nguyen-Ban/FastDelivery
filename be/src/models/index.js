@@ -9,6 +9,7 @@ const DeviceToken = require('./deviceToken.model');
 const Notification = require('./notification.model');
 const Review = require('./review.model');
 const OrderSenderReceiver = require('./order.senderReceiver');
+const Payment = require('./payment.model');
 // User associations
 User.hasOne(Driver, {
     foreignKey: 'userId',
@@ -54,10 +55,10 @@ Driver.belongsTo(User, {
     as: 'user'
 });
 
-Driver.hasMany(Order, {
-    foreignKey: 'driverId',
-    as: 'orders'
-});
+// Driver.hasMany(Order, {
+//     foreignKey: 'driverId',
+//     as: 'orders'
+// });
 
 // Order associations
 Order.belongsTo(User, {
@@ -65,10 +66,10 @@ Order.belongsTo(User, {
     as: 'customer'
 });
 
-Order.belongsTo(Driver, {
-    foreignKey: 'driverId',
-    as: 'driver'
-});
+// Order.belongsTo(Driver, {
+//     foreignKey: 'driverId',
+//     as: 'driver'
+// });
 
 Order.hasMany(Message, {
     foreignKey: 'orderId',
@@ -142,7 +143,26 @@ Order.hasOne(Review, {
     as: 'review'
 });
 
+// Payment associations
+Payment.belongsTo(Order, {
+    foreignKey: 'orderId',
+    as: 'order'
+});
 
+Payment.belongsTo(User, {
+    foreignKey: 'userId',
+    as: 'user'
+});
+
+Order.hasOne(Payment, {
+    foreignKey: 'orderId',
+    as: 'payment'
+});
+
+User.hasMany(Payment, {
+    foreignKey: 'userId',
+    as: 'payments'
+});
 
 module.exports = {
     User,
@@ -155,5 +175,6 @@ module.exports = {
     Message,
     DeviceToken,
     Notification,
-    Review
+    Review,
+    Payment
 }; 

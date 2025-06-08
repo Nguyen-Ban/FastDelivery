@@ -1,4 +1,4 @@
-const { Order, OrderDetail, OrderAddon, OrderSenderReceiver, OrderSpecialDemand, Driver, User, OrderLocation } = require("../models/index");
+const { Order, OrderDetail, OrderAddon, OrderSenderReceiver, OrderSpecialDemand, Driver, User, OrderLocation, Payment } = require("../models/index");
 const { sequelize } = require("../config/database");
 const { logger } = require("../config/logger");
 const { calPrice } = require("../services/price.service");
@@ -109,6 +109,7 @@ const getOrderList = async (req, res) => {
                 deliveryType: plainOrder.deliveryType,
                 pickupAddress: plainOrder.location.pickupAddress,
                 dropoffAddress: plainOrder.location.dropoffAddress,
+                packageType: plainOrder.detail.packageType,
                 status: plainOrder.status
             };
         });
@@ -137,6 +138,9 @@ const getOrderEvent = async (req, res) => {
     const orderLocation = await OrderLocation.findByPk(id);
     const driver = await Driver.findByPk(order.driverId);
     const user = await User.findByPk(driver.userId);
+    const payment = await Payment.findOne({ where: { orderId: id } });
+
+
     return res.status(200).json({
         success: true,
         data: {
@@ -145,6 +149,8 @@ const getOrderEvent = async (req, res) => {
             driverPhoneNumber: user.phoneNumber,
             vehicleType: order.vehicleType,
             deliveryType: order.deliveryType,
+            paymentStatus: payment.status,
+            paymentMethod: payment.paymentMethod,
             pickupAddress: orderLocation.pickupAddress,
             dropoffAddress: orderLocation.dropoffAddress,
             status: order.status,
@@ -251,9 +257,24 @@ const getDriverOrderEvent = async (req, res) => {
                     model: OrderSenderReceiver,
                     as: 'senderReceiver',
                     attributes: ['senderName', 'senderPhoneNumber', 'receiverName', 'receiverPhoneNumber']
+                },
+                {
+                    model: OrderDetail,
+                    as: 'detail',
+                    attributes: ['packageType', 'weightKg', 'lengthCm', 'widthCm', 'heightCm', 'sizeName']
+                },
+                {
+                    model: OrderSpecialDemand,
+                    as: 'specialDemand',
+                    attributes: [
+                        'handDelivery', 'fragileDelivery', 'donateDriver',
+                        'homeMoving', 'loading', 'businessValue',
+                        'eDocument', 'waiting'
+                    ]
                 }
             ]
         });
+
 
         if (!order) {
             return res.status(404).json({
@@ -263,6 +284,9 @@ const getDriverOrderEvent = async (req, res) => {
         }
 
         const plainOrder = order.get({ plain: true });
+
+        const payment = await Payment.findOne({ where: { orderId: id } });
+
 
         return res.status(200).json({
             success: true,
@@ -282,7 +306,18 @@ const getDriverOrderEvent = async (req, res) => {
                 dropoffAddress: plainOrder.location.dropoffAddress,
                 status: plainOrder.status,
                 price: plainOrder.deliveryPrice + plainOrder.addonPrice + plainOrder.carPrice,
-                time: plainOrder.createdAt
+                time: plainOrder.createdAt,
+                detail: {
+                    packageType: plainOrder.detail.packageType,
+                    weightKg: plainOrder.detail.weightKg,
+                    lengthCm: plainOrder.detail.lengthCm,
+                    widthCm: plainOrder.detail.widthCm,
+                    heightCm: plainOrder.detail.heightCm,
+                    sizeName: plainOrder.detail.sizeName
+                },
+                specialDemand: plainOrder.specialDemand,
+                paymentStatus: payment.status,
+                paymentMethod: payment.paymentMethod,
             }
         });
 
@@ -305,12 +340,23 @@ const getDriverStats = async (req, res) => {
         const endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
         const startDate = new Date(today.getFullYear(), today.getMonth() - 5, 1);
 
+        // Query for overall stats
+        const statsQuery = `
+            SELECT 
+                COUNT(*) AS total_orders,
+                COALESCE(SUM(delivery_price + COALESCE(addon_price, 0) + COALESCE(car_price, 0))/2, 0) AS total_earnings,
+                COALESCE(SUM(CASE WHEN status = 'DELIVERED' THEN 1 ELSE 0 END), 0) AS delivered_orders,
+                COALESCE(SUM(CASE WHEN status = 'CANCELLED' THEN 1 ELSE 0 END), 0) AS cancelled_orders
+            FROM \`order\`
+            WHERE driver_id = :driverId
+        `;
+
         // Query for monthly stats
         const monthlyQuery = `
             SELECT 
                 EXTRACT(MONTH FROM created_at) AS month,
                 EXTRACT(YEAR FROM created_at) AS year,
-                COALESCE(SUM(delivery_price + COALESCE(addon_price, 0) + COALESCE(car_price, 0)), 0) AS total
+                COALESCE(SUM(delivery_price + COALESCE(addon_price, 0) + COALESCE(car_price, 0))/2, 0) AS total
             FROM \`order\`
             WHERE driver_id = :driverId
                 AND status = 'DELIVERED'
@@ -481,5 +527,55 @@ const getAdminStats = async (req, res) => {
         });
     }
 };
-module.exports = { getOrderList, getPrices, getOrderEvent, getCustomerStats, getAdminStats };
+
+const handleVnpayReturn = async (req, res) => {
+    try {
+        const {
+            vnp_Amount,
+            vnp_BankCode,
+            vnp_BankTranNo,
+            vnp_CardType,
+            vnp_OrderInfo,
+            vnp_PayDate,
+            vnp_ResponseCode,
+            vnp_TmnCode,
+            vnp_TransactionNo,
+            vnp_TransactionStatus,
+            vnp_TxnRef,
+            vnp_SecureHash
+        } = req.query;
+        if (vnp_ResponseCode === '00') {
+            const payment = await Payment.findOne({ where: { orderId: vnp_TxnRef } });
+
+            if (payment) {
+                payment.status = 'COMPLETED';
+                payment.transactionDate = vnp_PayDate; // nếu cần
+                payment.transactionNo = vnp_TransactionNo;
+                await payment.save();
+            }
+        }
+        // Render the VNPay return page with the payment details
+        res.render('vnpay-return', {
+            vnp_Amount,
+            vnp_BankCode,
+            vnp_BankTranNo,
+            vnp_CardType,
+            vnp_OrderInfo,
+            vnp_PayDate,
+            vnp_ResponseCode,
+            vnp_TmnCode,
+            vnp_TransactionNo,
+            vnp_TransactionStatus,
+            vnp_TxnRef,
+            vnp_SecureHash
+        });
+    } catch (error) {
+        logger.error(`[OrderController] Error handling VNPay return: ${error}`);
+        res.status(500).render('vnpay-return', {
+            error: 'An error occurred while processing your payment'
+        });
+    }
+};
+
+module.exports = { getOrderList, getPrices, getOrderEvent, getCustomerStats, getAdminStats, getDriverOrderEvent, getDriverStats, handleVnpayReturn };
 

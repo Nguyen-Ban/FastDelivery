@@ -4,7 +4,7 @@ import * as Keychain from "react-native-keychain";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ApiResponse } from "@/types";
 
-const BASE_URL = "http://34.143.186.249:3000";
+const BASE_URL = "http://10.11.36.206:3000";
 
 const axiosInstance = axios.create({
     baseURL: `${BASE_URL}/api`,

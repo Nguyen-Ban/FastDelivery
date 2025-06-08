@@ -1,5 +1,5 @@
 
-import { DELIVERY_TYPE, Location, OrderPerson, OrderSpecialDemand, PACKAGE_TYPES, VEHICLE_TYPES } from '@/types';
+import { DELIVERY_TYPE, Location, OrderPerson, OrderSpecialDemand, PACKAGE_TYPES, PAYMENT_METHOD, VEHICLE_TYPES } from '@/types';
 import React, { createContext, useContext, useState } from 'react';
 
 interface DriverInfo {
@@ -43,6 +43,10 @@ interface OrderContextType {
 
     specialDemands?: OrderSpecialDemand;
     addonPrice: number;
+
+    paymentMethod?: PAYMENT_METHOD;
+
+    setPaymentMethod: (paymentMethod: PAYMENT_METHOD) => void;
 
     // State setters
     setPolyline: (polyline: string) => void;
@@ -88,6 +92,8 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const [pickupLocation, setPickupLocation] = useState<Location>();
     const [dropoffLocation, setDropoffLocation] = useState<Location>();
     const [specialDemands, setSpecialDemands] = useState<OrderSpecialDemand>();
+
+    const [paymentMethod, setPaymentMethod] = useState<PAYMENT_METHOD>(PAYMENT_METHOD.SENDER_CASH);
     return (
         <OrderContext.Provider
             value={{
@@ -111,6 +117,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 specialDemands,
 
                 addonPrice,
+                paymentMethod,
                 setPolyline,
                 setVehicleType,
                 setDeliveryType,
@@ -127,7 +134,8 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({ childre
                 setPickupLocation,
                 setDropoffLocation,
                 setSpecialDemands,
-                setAddonPrice
+                setAddonPrice,
+                setPaymentMethod
             }}
         >
             {children}

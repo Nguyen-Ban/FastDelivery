@@ -29,22 +29,25 @@ const DriverMenu = () => {
             </View>
             <ScrollView style={styles.content}>
                 {/* Profile Section */}
-                <View style={styles.profileSection}>
-                    {/* <Image
+                <TouchableOpacity onPress={() => router.push("/driver/menu/profile")}>
+
+                    <View style={styles.profileSection}>
+                        {/* <Image
                         source={require('../../assets/images/default-avatar.png')}
                         style={styles.avatar}
                     /> */}
-                    <View style={styles.profileInfo}>
-                        <Text style={styles.name}>Tài xế {driverInfo?.fullName}</Text>
-                        <View style={styles.ratingContainer}>
-                            <Ionicons name="star" size={16} color="#FFD700" />
-                            <Text style={styles.rating}>{driverInfo?.rating?.toFixed(2)}</Text>
+
+                        <View style={styles.profileInfo}>
+                            <Text style={styles.name}>Tài xế {driverInfo?.fullName}</Text>
+                            <View style={styles.ratingContainer}>
+                                <Ionicons name="star" size={16} color="#FFD700" />
+                                <Text style={styles.rating}>{driverInfo?.rating?.toFixed(2)}</Text>
+                            </View>
                         </View>
-                    </View>
-                    <TouchableOpacity onPress={() => router.push("/driver/menu/profile")}>
                         <Ionicons name="chevron-forward" size={24} color="#666" />
-                    </TouchableOpacity>
-                </View>
+                    </View>
+                </TouchableOpacity>
+
 
                 {/* Menu Items */}
                 <View style={styles.menuItems}>
@@ -68,7 +71,7 @@ const DriverMenu = () => {
                         <View style={styles.menuIconBox}>
                             <Ionicons name="stats-chart-outline" size={24} color="#333" />
                         </View>
-                        <Text style={styles.menuItemText}>Thống kê</Text>
+                        <Text style={styles.menuItemText}>Thống kê thu nhập</Text>
                         <Ionicons name="chevron-forward" size={24} color="#666" />
                     </TouchableOpacity>
 

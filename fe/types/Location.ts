@@ -12,6 +12,7 @@ interface Location {
 interface MapLocation extends Location {
     id: string;
     distance?: number;
+    position: Coordinate
 }
 
 

@@ -126,8 +126,8 @@ const Driver = () => {
       mapRef.current.animateToRegion({
         latitude: currentLocation.coord?.lat as number,
         longitude: currentLocation.coord?.lng as number,
-        latitudeDelta: 0.001,
-        longitudeDelta: 0.001,
+        latitudeDelta: 0.006,
+        longitudeDelta: 0.006,
       }, 500);
     }
   };
@@ -196,8 +196,8 @@ const Driver = () => {
         initialRegion={{
           latitude: location?.coord?.lat || 10.7769,
           longitude: location?.coord?.lng || 106.7009,
-          latitudeDelta: 0.001,
-          longitudeDelta: 0.001,
+          latitudeDelta: 0.006,
+          longitudeDelta: 0.006,
         }}
       >
         {location && (
@@ -226,18 +226,23 @@ const Driver = () => {
       )}
 
       {/* Calendar Button with Notification */}
-      <TouchableOpacity
-        style={styles.calendarButton}
-        onPress={() => {
-          router.push("/driver/order/available-order")
-          setHasOrder(false); // Reset order Notification}
-        }}
-      >
-        <View style={styles.calendarIconContainer}>
-          <MaterialIcons name="event-note" size={24} color="#333" />
-          {hasOrder ? <View style={styles.notificationBadge} /> : null}
-        </View>
-      </TouchableOpacity>
+      {online && (
+        <TouchableOpacity
+          style={styles.calendarButton}
+          onPress={() => {
+            router.push({
+              pathname: "/driver/order/available-order",
+              params: { vehicleType: driverInfo.vehicleType }
+            })
+            setHasOrder(false); // Reset order Notification}
+          }}
+        >
+          <View style={styles.calendarIconContainer}>
+            <MaterialIcons name="event-note" size={24} color="#333" />
+            {hasOrder ? <View style={styles.notificationBadge} /> : null}
+          </View>
+        </TouchableOpacity>
+      )}
 
       {/* Action buttons on map */}
       <View style={styles.mapButtons}>

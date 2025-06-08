@@ -17,8 +17,6 @@ interface Location {
   longitude: number;
 }
 
-
-
 const LocationMapPick = () => {
   const router = useRouter();
   const { orderType, locationType } = useLocalSearchParams();
@@ -29,36 +27,28 @@ const LocationMapPick = () => {
   const [places, setPlaces] = useState<MapLocation[]>([]);
   const [loading, setLoading] = useState(false);
   const [region, setRegion] = useState<Region>({
-    latitude: location?.coord?.lat as number,//21.03835308269753,
-    longitude: location?.coord?.lng as number,//105.78267549063561,
+    latitude: location?.coord?.lat ?? 21.03835308269753,
+    longitude: location?.coord?.lng ?? 105.78267549063561,
     latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   });
 
   // Fetch nearby places when component mounts or location changes
   useEffect(() => {
-    if (location && location.coord) {
+    if (location?.coord?.lat && location?.coord?.lng) {
       const newLocation = {
         latitude: location.coord.lat,
         longitude: location.coord.lng,
       };
       setSelectedLocation(newLocation);
+      setRegion({
+        ...region,
+        latitude: location.coord.lat,
+        longitude: location.coord.lng,
+      });
       fetchNearbyPlaces(location.coord.lng, location.coord.lat);
     }
-  }, [location]);
-
-  // Animate to region when component mounts
-  useEffect(() => {
-    if (mapRef.current && selectedLocation) {
-      setTimeout(() => {
-        mapRef.current?.animateToRegion({
-          ...region,
-          latitude: selectedLocation.latitude,
-          longitude: selectedLocation.longitude,
-        }, 500);
-      }, 100);
-    }
-  }, [selectedLocation]);
+  }, []);
 
   const fetchNearbyPlaces = async (lng: number, lat: number) => {
     setLoading(true);
@@ -82,19 +72,11 @@ const LocationMapPick = () => {
 
   const handlePlaceSelect = (place: MapLocation) => {
     const newLocation = {
-      latitude: place.coord.lat,
-      longitude: place.coord.lng
+      latitude: place.position.lat,
+      longitude: place.position.lng
     };
     setSelectedLocation(newLocation);
 
-    // Animate map to the selected location
-    if (mapRef.current) {
-      mapRef.current.animateToRegion({
-        ...region,
-        latitude: place.coord.lat,
-        longitude: place.coord.lng
-      }, 300);
-    }
   };
 
   const handleConfirm = () => {
@@ -103,8 +85,8 @@ const LocationMapPick = () => {
     // Find the selected place from places array
     const selectedPlace = places.find(
       place =>
-        place.coord.lat === selectedLocation.latitude &&
-        place.coord.lng === selectedLocation.longitude
+        place.position.lat === selectedLocation.latitude &&
+        place.position.lng === selectedLocation.longitude
     );
 
     const locationData = {
@@ -137,8 +119,8 @@ const LocationMapPick = () => {
     <TouchableOpacity
       style={[
         styles.placeItem,
-        selectedLocation?.latitude === item.coord.lat &&
-          selectedLocation?.longitude === item.coord.lng ?
+        selectedLocation?.latitude === item.position.lat &&
+          selectedLocation?.longitude === item.position.lng ?
           styles.selectedPlace : null
       ]}
       onPress={() => handlePlaceSelect(item)}
@@ -169,8 +151,8 @@ const LocationMapPick = () => {
 
         {places.map(place => {
           const isSelected =
-            selectedLocation?.latitude === place.coord.lat &&
-            selectedLocation?.longitude === place.coord.lng;
+            selectedLocation?.latitude === place.position?.lat &&
+            selectedLocation?.longitude === place.position?.lng;
 
           // Only render non-selected places as small dots
           if (!isSelected) {
@@ -178,8 +160,8 @@ const LocationMapPick = () => {
               <Circle
                 key={place.id}
                 center={{
-                  latitude: place.coord.lat,
-                  longitude: place.coord.lng
+                  latitude: place.position.lat,
+                  longitude: place.position.lng
                 }}
                 radius={8}
                 strokeColor={COLOR.blue40}

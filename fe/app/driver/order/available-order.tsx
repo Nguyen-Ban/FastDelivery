@@ -12,12 +12,14 @@ import {
     Modal,
 } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import socket from '@/services/socket';
 import { OrderDetail, OrderLocation, OrderMain, OrderSenderReceiver } from '@/types';
 
 const OrderDetails = () => {
     const router = useRouter();
+    const { vehicleType } = useLocalSearchParams();
+    console.log(vehicleType)
 
     const [orderId, setOrderId] = useState()
     const [showPackageInfo, setShowPackageInfo] = useState(false);
@@ -99,7 +101,6 @@ const OrderDetails = () => {
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView style={styles.content}>
-
                 {/* Header */}
                 <View style={styles.header}>
                     <View style={styles.serviceInfo}>
@@ -107,77 +108,101 @@ const OrderDetails = () => {
                             source={require('../../assets/images/bike-icon.png')}
                             style={styles.bikeIcon}
                         /> */}
-                        <Text style={styles.serviceName}>Đơn hàng mới</Text>
+                        <Text style={styles.serviceName}>
+                            {vehicleType === 'MOTORBIKE' ? 'Đơn hàng xe máy' : 'Đơn hàng mới'}
+                        </Text>
                     </View>
                 </View>
 
-                {/* Price Section */}
-                <View style={styles.priceSection}>
-                    <Text style={styles.priceLabel}>Cước phí</Text>
-                    <Text style={styles.price}>{orderMain?.addonPrice !== undefined && orderMain?.deliveryPrice && orderMain?.carPrice !== undefined && (orderMain?.addonPrice + orderMain.deliveryPrice + orderMain.carPrice).toLocaleString()}đ</Text>
-                    <View style={styles.paymentMethods}>
-                        <View style={styles.paymentMethod}>
-                            <Text style={styles.paymentMethodText}>Thẻ/Ví</Text>
-                        </View>
-                        <View style={[styles.paymentMethod, styles.paymentMethodInactive]}>
-                            <Text style={styles.paymentMethodTextInactive}>Giảm giá</Text>
-                        </View>
+                {!orderId ? (
+                    <View style={styles.noOrderContainer}>
+                        <MaterialIcons
+                            name={vehicleType === 'MOTORBIKE' ? 'two-wheeler' : 'local-shipping'}
+                            size={48}
+                            color="#ccc"
+                        />
+                        <Text style={styles.noOrderText}>Chưa có đơn hàng mới</Text>
+                        <TouchableOpacity
+                            style={styles.acceptButton}
+                            onPress={() => router.back()}
+                        >
+                            <Text style={styles.acceptButtonText}>Quay về</Text>
+                        </TouchableOpacity>
                     </View>
-                </View>
-
-                {/* Trip Info */}
-                <View style={styles.tripInfo}>
-                    <Text style={styles.tripDistance}>Khoảng cách: {`${pickupDropoffDistance}`} m</Text>
-                    <Text style={styles.currentDistance}>Đang cách bạn {`${driverPickupDistance}`} m</Text>
-                </View>
-
-                {/* Location Details */}
-                <View style={styles.locationDetails}>
-                    {/* Pickup Point */}
-                    <View style={styles.locationPoint}>
-                        <View style={styles.locationIconContainer}>
-                            <View style={[styles.locationDot, styles.startDot]} />
-                            <Text style={styles.locationLabel}>Điểm lấy hàng</Text>
+                ) : (
+                    <>
+                        {/* Price Section */}
+                        <View style={styles.priceSection}>
+                            <Text style={styles.priceLabel}>Cước phí</Text>
+                            <Text style={styles.price}>
+                                {orderMain?.addonPrice !== undefined && orderMain?.deliveryPrice && orderMain?.carPrice !== undefined &&
+                                    (orderMain?.addonPrice + orderMain.deliveryPrice + orderMain.carPrice).toLocaleString()}đ
+                            </Text>
+                            <View style={styles.paymentMethods}>
+                                <View style={styles.paymentMethod}>
+                                    <Text style={styles.paymentMethodText}>Thẻ/Ví</Text>
+                                </View>
+                                <View style={[styles.paymentMethod, styles.paymentMethodInactive]}>
+                                    <Text style={styles.paymentMethodTextInactive}>Giảm giá</Text>
+                                </View>
+                            </View>
                         </View>
-                        <View style={styles.locationText}>
-                            <Text style={styles.locationName}>{`${orderLocation?.pickupTitle}`}</Text>
-                            <Text style={styles.locationAddress}>{`${orderLocation?.pickupAddress}`}</Text>
-                        </View>
-                    </View>
 
-                    {/* Package Info Button */}
-                    <TouchableOpacity
-                        style={styles.packageInfoButton}
-                        onPress={() => setShowPackageInfo(true)}
-                    >
-                        <MaterialIcons name="inventory" size={20} color="#007AFF" />
-                        <Text style={styles.packageInfoButtonText}>Thông tin bưu kiện</Text>
-                        <MaterialIcons name="chevron-right" size={20} color="#007AFF" />
-                    </TouchableOpacity>
-
-                    {/* Delivery Point */}
-                    <View style={styles.locationPoint}>
-                        <View style={styles.locationIconContainer}>
-                            <View style={[styles.locationDot, styles.endDot]} />
-                            <Text style={styles.locationLabel}>Điểm trả hàng</Text>
+                        {/* Trip Info */}
+                        <View style={styles.tripInfo}>
+                            <Text style={styles.tripDistance}>Khoảng cách: {`${pickupDropoffDistance}`} m</Text>
+                            <Text style={styles.currentDistance}>Đang cách bạn {`${driverPickupDistance}`} m</Text>
                         </View>
-                        <View style={styles.locationText}>
-                            <Text style={styles.locationName}>{`${orderLocation?.dropoffTitle}`}</Text>
-                            <Text style={styles.locationAddress}>{`${orderLocation?.dropoffAddress}`}</Text>
-                        </View>
-                    </View>
-                </View>
 
-                {/* Accept Button */}
-                <TouchableOpacity
-                    style={styles.acceptButton}
-                    onPress={handleOnAccept}
-                >
-                    <Text style={styles.acceptButtonText}>Nhận chuyến</Text>
-                    <View style={styles.timeContainer}>
-                        <Text style={styles.timeText}>{ttl ?? 0}</Text>
-                    </View>
-                </TouchableOpacity>
+                        {/* Location Details */}
+                        <View style={styles.locationDetails}>
+                            {/* Pickup Point */}
+                            <View style={styles.locationPoint}>
+                                <View style={styles.locationIconContainer}>
+                                    <View style={[styles.locationDot, styles.startDot]} />
+                                    <Text style={styles.locationLabel}>Điểm lấy hàng</Text>
+                                </View>
+                                <View style={styles.locationText}>
+                                    <Text style={styles.locationName}>{`${orderLocation?.pickupTitle}`}</Text>
+                                    <Text style={styles.locationAddress}>{`${orderLocation?.pickupAddress}`}</Text>
+                                </View>
+                            </View>
+
+                            {/* Package Info Button */}
+                            <TouchableOpacity
+                                style={styles.packageInfoButton}
+                                onPress={() => setShowPackageInfo(true)}
+                            >
+                                <MaterialIcons name="inventory" size={20} color="#007AFF" />
+                                <Text style={styles.packageInfoButtonText}>Thông tin bưu kiện</Text>
+                                <MaterialIcons name="chevron-right" size={20} color="#007AFF" />
+                            </TouchableOpacity>
+
+                            {/* Delivery Point */}
+                            <View style={styles.locationPoint}>
+                                <View style={styles.locationIconContainer}>
+                                    <View style={[styles.locationDot, styles.endDot]} />
+                                    <Text style={styles.locationLabel}>Điểm trả hàng</Text>
+                                </View>
+                                <View style={styles.locationText}>
+                                    <Text style={styles.locationName}>{`${orderLocation?.dropoffTitle}`}</Text>
+                                    <Text style={styles.locationAddress}>{`${orderLocation?.dropoffAddress}`}</Text>
+                                </View>
+                            </View>
+                        </View>
+
+                        {/* Accept Button */}
+                        <TouchableOpacity
+                            style={styles.acceptButton}
+                            onPress={handleOnAccept}
+                        >
+                            <Text style={styles.acceptButtonText}>Nhận chuyến</Text>
+                            <View style={styles.timeContainer}>
+                                <Text style={styles.timeText}>{ttl ?? 0}</Text>
+                            </View>
+                        </TouchableOpacity>
+                    </>
+                )}
             </ScrollView>
 
             {/* Package Info Modal */}
@@ -447,6 +472,17 @@ const styles = StyleSheet.create({
         color: '#00BFA5',
         fontSize: 14,
         fontWeight: 'bold',
+    },
+    noOrderContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingVertical: 40,
+    },
+    noOrderText: {
+        fontSize: 16,
+        color: '#666',
+        marginTop: 12,
     },
 });
 

@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, ViewStyle, Platform, StatusBar, Dimensions } from "react-native";
+import { View, Text, StyleSheet, ScrollView, ViewStyle, Platform, StatusBar, Dimensions, LogBox } from "react-native";
 import { FontAwesome5 } from "@expo/vector-icons";
 import orderService from "@/services/order.service";
 import { LineChart } from "react-native-chart-kit";
+
+// Ignore specific warning from react-native-chart-kit
+LogBox.ignoreLogs(['Text strings must be rendered within a <Text> component']);
 
 interface StatisticCardProps {
   title: string;
@@ -25,7 +28,6 @@ const StatisticCard = ({ title, value, icon, color, style }: StatisticCardProps)
 export default function AdminDashboard() {
   const screenWidth = Dimensions.get("window").width;
   const chartConfig = {
-
     backgroundGradientFrom: "#ffffff",
     backgroundGradientTo: "#ffffff",
     color: (opacity = 1) => `rgba(0, 191, 165, ${opacity})`,
@@ -34,13 +36,13 @@ export default function AdminDashboard() {
     barPercentage: 0.9,
     propsForHorizontalLabels: {
       dx: 0,
-      dy: 20, // Dịch label xuống để không bị cắt
+      dy: 20,
       fontSize: 11,
-      translateX: -15, // Dịch sang trái một chút
+      translateX: -15,
     },
     horizontalLabelRotation: -45,
     horizontalOffset: 30,
-    spacing: 0.5, // Tăng khoảng cách giữa các điểm
+    spacing: 0.5,
     labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
     style: {
       borderRadius: 16,
@@ -57,13 +59,14 @@ export default function AdminDashboard() {
     formatYLabel: (value: string) => {
       const num = parseInt(value);
       if (num >= 1000000) {
-        return (num / 1000000).toString() + 'M';
+        return `${(num / 1000000).toFixed(1)}M`;
       }
       if (num >= 1000) {
-        return (num / 1000).toString() + 'K';
+        return `${(num / 1000).toFixed(1)}K`;
       }
       return num.toString();
     },
+    formatXLabel: (value: string) => value,
   };
   const [chartData, setChartData] = useState({
     labels: [],
@@ -88,12 +91,12 @@ export default function AdminDashboard() {
       icon: "check-circle",
       color: "#00BFA5",
     },
-    {
-      title: "Đơn bị hủy",
-      value: "...",
-      icon: "times-circle",
-      color: "#FF6B6B",
-    },
+    // {
+    //   title: "Đơn bị hủy",
+    //   value: "...",
+    //   icon: "times-circle",
+    //   color: "#FF6B6B",
+    // },
   ]);
 
   useEffect(() => {
@@ -115,10 +118,10 @@ export default function AdminDashboard() {
             ...statistics[2],
             value: data.deliveredOrders.toString()
           },
-          {
-            ...statistics[3],
-            value: data.cancelledOrders.toString()
-          }
+          // {
+          //   ...statistics[3],
+          //   value: data.cancelledOrders.toString()
+          // }
         ]);
         setChartData({
           labels: data.labels.map((label: { month: string; year: string }) => `${label.month}/${label.year}`),
@@ -140,12 +143,14 @@ export default function AdminDashboard() {
 
       <View style={styles.statisticsContainer}>
         <View style={styles.statisticsRow}>
-          <StatisticCard {...statistics[0]} style={styles.statisticCard} />
+          <StatisticCard {...statistics[2]} style={styles.statisticCard} />
+
           <StatisticCard {...statistics[1]} style={styles.statisticCard} />
         </View>
         <View style={styles.statisticsRow}>
-          <StatisticCard {...statistics[2]} style={styles.statisticCard} />
-          <StatisticCard {...statistics[3]} style={styles.statisticCard} />
+          <StatisticCard {...statistics[0]} style={styles.statisticCard} />
+
+          {/* <StatisticCard {...statistics[3]} style={styles.statisticCard} /> */}
         </View>
       </View>      {/* Phần này sẽ thêm biểu đồ thống kê sau */}
       <View style={styles.chartContainer}>

@@ -2,6 +2,7 @@
   "expo": {
     "name": "FastDelivery",
     "slug": "FastDelivery",
+    "icon": "./assets/logo.png",
     "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "myapp",

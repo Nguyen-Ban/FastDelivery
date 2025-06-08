@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, TextInput } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import MapView, { Marker } from "react-native-maps";
@@ -22,13 +22,20 @@ const LocationPicked = () => {
     name: "",
     phone: ""
   });
+  const mapRef = useRef<MapView>(null);
 
   const location = {
     latitude: parseFloat(params.latitude as string),
     longitude: parseFloat(params.longitude as string),
-    latitudeDelta: 0.001,
-    longitudeDelta: 0.001,
+    latitudeDelta: 0.007,
+    longitudeDelta: 0.007,
   };
+
+  useEffect(() => {
+    if (mapRef.current) {
+      mapRef.current.animateToRegion(location, 500);
+    }
+  }, [location]);
 
   const validatePhone = (phoneNumber: string) => {
     const phoneRegex = /^0\d{9,11}$/;
@@ -94,6 +101,7 @@ const LocationPicked = () => {
         locations={[0.15, 0.25]}
       />
       <MapView
+        ref={mapRef}
         style={styles.map}
         initialRegion={location}
         zoomEnabled={true}

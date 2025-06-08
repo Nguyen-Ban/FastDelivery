@@ -52,7 +52,6 @@ const OnDelivery = () => {
     const dropoffLng = orderLocation.dropoffLng;
     const mapRef = useRef<MapView>(null);
     const { location } = useLocation();
-    const markerAnimation = useRef(new Animated.Value(0)).current;
     const [markerPosition, setMarkerPosition] = useState({
         latitude: location?.coord?.lat || 10.762622,
         longitude: location?.coord?.lng || 106.660172,
@@ -162,21 +161,31 @@ const OnDelivery = () => {
         longitudeDelta: 0.0421,
     };
 
+    // Function to fit map to route bounds
+    const fitMapToRoute = () => {
+        if (!pickupLat || !pickupLng || !dropoffLat || !dropoffLng || !mapRef.current) return;
+
+        const coordinates = [
+            { latitude: pickupLat, longitude: pickupLng },
+            { latitude: dropoffLat, longitude: dropoffLng },
+            { latitude: location?.coord?.lat, longitude: location?.coord?.lng },
+
+        ];
+        console.log('Fitting to coordinates:', coordinates);
+
+        mapRef.current.fitToCoordinates(coordinates, {
+            edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
+            animated: true
+        });
+    };
 
     // Fit map to route when locations are available
     useEffect(() => {
-        if (pickupLat && pickupLng && dropoffLat && dropoffLng && mapRef.current) {
-            const coordinates = [
-                { latitude: pickupLat, longitude: pickupLng },
-                { latitude: dropoffLat, longitude: dropoffLng },
-                { latitude: location?.coord?.lat, longitude: location?.coord?.lng },
-            ];
-            mapRef.current.fitToCoordinates(coordinates, {
-                edgePadding: { top: 50, right: 50, bottom: 200, left: 50 },
-                animated: true
-            });
-        }
-    }, [pickupLat, pickupLng, dropoffLat, dropoffLng]);
+        fitMapToRoute();
+
+    }, []);
+
+
 
     // Update marker position when location changes
     useEffect(() => {
@@ -220,12 +229,7 @@ const OnDelivery = () => {
                 ref={mapRef}
                 provider={PROVIDER_GOOGLE}
                 style={styles.map}
-                initialRegion={{
-                    latitude: markerPosition.latitude,
-                    longitude: markerPosition.longitude,
-                    latitudeDelta: 0.0922,
-                    longitudeDelta: 0.0421,
-                }}
+                initialRegion={initialRegion}
             >
                 {/* Animated Pickup Marker */}
                 {location?.coord?.lat && location.coord.lng && (
@@ -251,15 +255,29 @@ const OnDelivery = () => {
                     <Marker
                         coordinate={{ latitude: dropoffLat, longitude: dropoffLng }}
                         title="Điểm trả hàng"
-                        pinColor={COLOR.green40}
+                        pinColor={COLOR.orange50}
                     />
                 )}
-                {/* Route Line */}
+
+                {/* Route Lines */}
                 <Polyline
-                    coordinates={routeCoordinates}
+                    coordinates={pickupDropoffDecoded.map(point => ({
+                        latitude: point[0],
+                        longitude: point[1]
+                    }))}
                     strokeColor={COLOR.orange50}
                     strokeWidth={4}
                 />
+                {driverPickupDecoded.length > 0 && (
+                    <Polyline
+                        coordinates={driverPickupDecoded.map(point => ({
+                            latitude: point[0],
+                            longitude: point[1]
+                        }))}
+                        strokeColor={COLOR.blue70}
+                        strokeWidth={4}
+                    />
+                )}
             </MapView>
 
 
@@ -332,7 +350,6 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     customerCard: {
-        position: 'absolute',
         bottom: 0,
         left: 0,
         right: 0,
@@ -340,6 +357,7 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 20,
         borderTopRightRadius: 20,
         padding: 20,
+        paddingTop: 10,
         shadowColor: "#000",
         shadowOffset: {
             width: 0,
@@ -351,9 +369,7 @@ const styles = StyleSheet.create({
     },
     customerHeader: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
+        marginBottom: 4,
     },
     customerLabel: {
         fontSize: 14,
@@ -361,7 +377,8 @@ const styles = StyleSheet.create({
     },
     headerButtons: {
         flexDirection: 'row',
-        gap: 8,
+        // justifyContent: 'space-around',
+        width: '100%',
     },
     detailButton: {
         flexDirection: 'row',
@@ -392,18 +409,18 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     customerInfo: {
-        marginBottom: 16,
+        marginBottom: 8,
     },
     customerName: {
         fontSize: 18,
         fontWeight: 'bold',
-        marginBottom: 8,
+        marginBottom: 2,
     },
     locationAddress: {
         fontSize: 14,
         color: '#666',
         lineHeight: 20,
-        marginBottom: 8,
+        marginBottom: 4,
     },
     price: {
         fontSize: 16,
@@ -421,8 +438,8 @@ const styles = StyleSheet.create({
     actionButtons: {
         flexDirection: 'row',
         justifyContent: 'space-around',
-        marginBottom: 16,
-        paddingVertical: 12,
+        marginBottom: 10,
+        paddingVertical: 8,
         borderTopWidth: 1,
         borderBottomWidth: 1,
         borderColor: '#eee',
@@ -452,7 +469,9 @@ const styles = StyleSheet.create({
     },
     motorcycleMarker: {
         backgroundColor: 'white',
-        borderRadius: 12,
+        borderRadius: 20,
+        borderWidth: 2,
+        borderColor: COLOR.orange50,
         padding: 6,
         elevation: 2,
         shadowColor: '#000',
@@ -462,6 +481,7 @@ const styles = StyleSheet.create({
         },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
+
     },
     infoTag: {
         fontSize: 15,

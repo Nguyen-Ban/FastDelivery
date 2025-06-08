@@ -4,22 +4,16 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
-  TextInput,
-  FlatList,
+  SafeAreaView,
+  StatusBar,
+  ScrollView,
+  Platform,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-
-import Button from "../../../components/Button/ButtonComponent";
-import InfoCard from "../../../components/InfoCard";
-import EventCard from "../../../components/EventCard";
-import COLOR from "../../../constants/Colors";
-import GLOBAL from "../../../constants/GlobalStyles";
-import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-
+import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { Order } from "@/types";
 import orderService from "@/services/order.service";
+import COLOR from "../../../constants/Colors";
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -34,6 +28,19 @@ const getStatusColor = (status: string) => {
   }
 };
 
+const getStatusText = (status: string) => {
+  switch (status) {
+    case 'IN_DELIVERY':
+      return 'Đang giao hàng';
+    case 'DELIVERED':
+      return 'Đã giao';
+    case 'CANCELLED':
+      return 'Đã hủy';
+    default:
+      return 'Chờ xác nhận';
+  }
+};
+
 interface Activity {
   id: string;
   time: Date;
@@ -43,11 +50,10 @@ interface Activity {
   pickupAddress: string;
   dropoffAddress: string;
   price: number;
-
 }
 
 const Activity = () => {
-  const [deliveries, setDeliveries] = useState<Activity[]>([])
+  const [deliveries, setDeliveries] = useState<Activity[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -61,85 +67,189 @@ const Activity = () => {
     }, [])
   );
 
-
   return (
-    <View style={GLOBAL.home_container}>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" backgroundColor="white" />
+
+      {/* Header */}
       <View style={styles.header}>
-        <LinearGradient
-          colors={[COLOR.blue70, COLOR.orange70]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.gradient}
-        >
-          <Text style={styles.title}>Hoạt động</Text>
-        </LinearGradient>
+        <Text style={styles.headerTitle}>Hoạt động</Text>
       </View>
-      {deliveries.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Bạn chưa có hoạt động nào</Text>
-        </View>
-      ) : (
-        <FlatList
-          data={deliveries}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <EventCard
-              amount={item.price.toLocaleString() + "đ"}
-              date={new Date(item.time).toLocaleDateString('vi-VN')}
-              time={new Date(item.time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-              vehicleType={item.vehicleType || "MOTORCYCLE"}
-              pickup={item.pickupAddress || ""}
-              dropoff={item.dropoffAddress || ""}
-              status={item.status || "PENDING"}
-              statusColor={getStatusColor(item.status)}
+
+      {/* Delivery List */}
+      <ScrollView style={styles.deliveryList}>
+        {deliveries.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Bạn chưa có hoạt động nào</Text>
+          </View>
+        ) : (
+          deliveries.map((delivery, index) => (
+            <TouchableOpacity
+              key={index}
+              style={styles.deliveryItem}
               onPress={() => {
                 router.push({
                   pathname: "/customer/user/event-detail",
-                  params: {
-                    id: item.id,
-                  }
+                  params: { id: delivery.id },
                 });
               }}
-              container_style={{ paddingBottom: 10 }}
-            />
-          )}
-          style={{
-            marginVertical: 5,
-            paddingHorizontal: 15,
-          }}
-        />
-      )}
-    </View>
+            >
+              <View style={styles.deliveryHeader}>
+                <View>
+                  <View style={styles.vehicleInfo}>
+                    <Ionicons name="bicycle" size={20} color="#00BFA5" />
+                    <Text style={styles.amount}>{delivery.price.toLocaleString()}đ</Text>
+                  </View>
+                  <Text style={styles.time}>
+                    {new Date(delivery.time).toLocaleString('vi-VN')}
+                  </Text>
+                  <View style={styles.typeInfo}>
+                    <Text style={styles.vehicleType}>
+                      {delivery.vehicleType === 'MOTORBIKE' ? 'Xe máy' : 'Xe tải'}
+                    </Text>
+                    <Text style={styles.separator}>|</Text>
+                    <Text style={styles.deliveryType}>
+                      {delivery.deliveryType === 'EXPRESS' ? 'Siêu tốc' : 'Tiết kiệm'}
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  style={[styles.statusButton, { backgroundColor: getStatusColor(delivery.status) }]}
+                >
+                  <Text style={styles.statusText}>{getStatusText(delivery.status)}</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.addressContainer}>
+                <View style={styles.addressRow}>
+                  <View style={styles.dotBlack} />
+                  <Text style={styles.address} numberOfLines={1}>{delivery.pickupAddress}</Text>
+                </View>
+                <View style={styles.addressRow}>
+                  <View style={styles.dotOrange} />
+                  <Text style={styles.address} numberOfLines={1}>{delivery.dropoffAddress}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
-export default Activity;
-
 const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "flex-start",
-  },
-  title: {
-    paddingLeft: 16,
-    fontSize: 24,
-    fontWeight: "bold",
-  },
-  gradient: {
+  container: {
     flex: 1,
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
+    backgroundColor: '#fff',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    paddingTop: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  deliveryList: {
+    flex: 1,
+  },
+  deliveryItem: {
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  deliveryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  vehicleInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  amount: {
+    marginLeft: 8,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  time: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  typeInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  vehicleType: {
+    fontSize: 12,
+    color: '#00BFA5',
+  },
+  deliveryType: {
+    fontSize: 12,
+    color: COLOR.orange50,
+  },
+  statusButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 16,
+  },
+  statusText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  addressContainer: {
+    marginTop: 8,
+  },
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  dotBlack: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#333',
+    marginRight: 8,
+  },
+  dotOrange: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF9500',
+    marginRight: 8,
+  },
+  address: {
+    flex: 1,
+    fontSize: 14,
+    color: '#666',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
   },
   emptyText: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
   },
+  separator: {
+    fontSize: 12,
+    color: '#666',
+    marginHorizontal: 4,
+  },
 });
+
+export default Activity;

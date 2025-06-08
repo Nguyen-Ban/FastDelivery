@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -11,67 +11,69 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import orderService from '@/services/order.service';
+import COLOR from '@/constants/Colors';
+
+const getStatusColor = (status: string) => {
+    switch (status) {
+        case 'IN_DELIVERY':
+            return COLOR.orange50;
+        case 'DELIVERED':
+            return COLOR.green40;
+        case 'CANCELLED':
+            return COLOR.red55;
+        default:
+            return COLOR.blue70;
+    }
+};
+
+const getStatusText = (status: string) => {
+    switch (status) {
+        case 'IN_DELIVERY':
+            return 'Đang giao hàng';
+        case 'DELIVERED':
+            return 'Đã giao';
+        case 'CANCELLED':
+            return 'Đã hủy';
+        default:
+            return 'Chờ xác nhận';
+    }
+};
+
+interface DeliveryItem {
+    id: string;
+    price: number;
+    time: string;
+    vehicleType: string;
+    deliveryType: string;
+    packageType: string;
+    pickupAddress: string;
+    dropoffAddress: string;
+    status: string;
+}
 
 const DeliveryHistory = () => {
     const router = useRouter();
+    const [deliveries, setDeliveries] = useState<DeliveryItem[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    const deliveries = [
-        {
-            date: '04/04/2024',
-            items: [
-                {
-                    amount: '56.000đ',
-                    time: '15:13',
-                    vehicleType: 'Xanh SM Bike',
-                    packageType: 'Bưu kiện nhỏ',
-                    pickup: '300/23/21 Nguyễn Văn Linh P.Bình Thuận',
-                    dropoff: 'Morin Milk Tea - Coffee 64/20 Võ Oanh',
-                    status: 'Hoàn thành',
-                },
-                {
-                    amount: '20.000đ',
-                    time: '14:38',
-                    vehicleType: 'Xanh SM Bike',
-                    packageType: 'Bưu kiện nhỏ',
-                    pickup: "Eddie's New York Deli & Diner",
-                    dropoff: 'Chung Cư Khánh Hội 3',
-                    status: 'Hoàn thành',
-                },
-                {
-                    amount: '48.000đ',
-                    time: '14:02',
-                    vehicleType: 'Xanh SM Bike',
-                    packageType: 'Bưu kiện vừa',
-                    pickup: '6 Tân Trào 6 Tan Trao St.',
-                    dropoff: '140 Nguyễn Văn Thủ P.Da Kao',
-                    status: 'Hoàn thành',
-                },
-                {
-                    amount: '20.000đ',
-                    time: '13:44',
-                    vehicleType: 'Xanh SM Bike',
-                    packageType: 'Bưu kiện nhỏ',
-                    pickup: 'Q7 Saigon Riverside Complex - Cổng Chính D...',
-                    dropoff: 'GO! Nguyễn Thị Thập - Cổng Phụ 99 Nguyen...',
-                    status: 'Hoàn thành',
-                }
-            ]
-        },
-        {
-            date: '03/04/2024',
-            items: [
-                {
-                    amount: '35.000đ',
-                    time: '15:30',
-                    vehicleType: 'Xanh SM Bike',
-                    packageType: 'Bưu kiện nhỏ',
-                    pickup: 'Sample Address',
-                    dropoff: 'Sample Destination',
-                    status: 'Hoàn thành',
-                }
-            ]
+    const fetchDeliveries = async () => {
+        try {
+            setLoading(true);
+            const res = await orderService.getDriverOrderList();
+            if (res.success) {
+                setDeliveries(res.data);
+            }
+        } catch (error) {
+            console.error('Error fetching deliveries:', error);
+        } finally {
+            setLoading(false);
         }
-    ];
+    };
+
+    useEffect(() => {
+        fetchDeliveries();
+    }, []);
 
     return (
         <SafeAreaView style={styles.container}>
@@ -82,61 +84,74 @@ const DeliveryHistory = () => {
                 <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name="arrow-back" size={24} color="#000" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Lịch sử chuyến đi</Text>
+                <Text style={styles.headerTitle}>Lịch sử vận chuyển</Text>
                 <View style={{ width: 24 }} />
-            </View>
-
-            {/* Filter Tabs */}
-            <View style={styles.filterTabs}>
-                <TouchableOpacity style={[styles.filterTab, styles.activeTab]}>
-                    <Text style={[styles.filterText, styles.activeFilterText]}>Hoàn thành</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.filterTab}>
-                    <Text style={styles.filterText}>Hủy</Text>
-                </TouchableOpacity>
             </View>
 
             {/* Delivery List */}
             <ScrollView style={styles.deliveryList}>
-                {deliveries.map((dateGroup, dateIndex) => (
-                    <View key={dateIndex}>
-                        <Text style={styles.dateHeader}>{dateGroup.date}</Text>
-                        {dateGroup.items.map((delivery, index) => (
-                            <View key={index} style={styles.deliveryItem}>
-                                <View style={styles.deliveryHeader}>
-                                    <View>
-                                        <View style={styles.vehicleInfo}>
-                                            <Ionicons name="bicycle" size={20} color="#00BFA5" />
-                                            <Text style={styles.amount}>{delivery.amount}</Text>
-                                        </View>
-                                        <View style={styles.timeVehicleInfo}>
-                                            <Text style={styles.time}>{delivery.time}</Text>
-                                            <Text style={styles.separator}>|</Text>
-                                            <Text style={styles.vehicleType}>{delivery.vehicleType}</Text>
-                                        </View>
+                {loading ? (
+                    <View style={styles.loadingContainer}>
+                        <Text>Đang tải...</Text>
+                    </View>
+                ) : deliveries.length === 0 ? (
+                    <View style={styles.emptyContainer}>
+                        <Text>Không có lịch sử chuyến đi</Text>
+                    </View>
+                ) : (
+                    deliveries.map((delivery, index) => (
+                        <TouchableOpacity
+                            key={index}
+                            style={styles.deliveryItem}
+                            onPress={() => router.push({
+                                pathname: '/driver/menu/delivery-detail',
+                                params: { id: delivery.id }
+                            })}
+                        >
+                            <View style={styles.deliveryHeader}>
+                                <View>
+                                    <View style={styles.vehicleInfo}>
+                                        <Ionicons name="bicycle" size={20} color="#00BFA5" />
+                                        <Text style={styles.amount}>{delivery.price.toLocaleString()}đ</Text>
                                     </View>
-                                    <TouchableOpacity style={styles.statusButton}>
-                                        <Text style={styles.statusText}>{delivery.status}</Text>
-                                    </TouchableOpacity>
+                                    <Text style={styles.time}>
+                                        {new Date(delivery.time).toLocaleString('vi-VN')}
+                                    </Text>
+                                    <View style={styles.typeInfo}>
+                                        <Text style={styles.vehicleType}>
+                                            {delivery.vehicleType === 'MOTORBIKE' ? 'Xe máy' : 'Xe tải'}
+                                        </Text>
+                                        <Text style={styles.separator}>|</Text>
+                                        <Text style={styles.deliveryType}>
+                                            {delivery.deliveryType === 'EXPRESS' ? 'Siêu tốc' : 'Tiết kiệm'}
+                                        </Text>
+                                    </View>
                                 </View>
-                                <View style={styles.addressContainer}>
-                                    <View style={styles.packageTypeRow}>
-                                        <Ionicons name="cube-outline" size={16} color="#666" />
-                                        <Text style={styles.packageType}>{delivery.packageType}</Text>
-                                    </View>
-                                    <View style={styles.addressRow}>
-                                        <View style={styles.dotBlack} />
-                                        <Text style={styles.address} numberOfLines={1}>{delivery.pickup}</Text>
-                                    </View>
-                                    <View style={styles.addressRow}>
-                                        <View style={styles.dotOrange} />
-                                        <Text style={styles.address} numberOfLines={1}>{delivery.dropoff}</Text>
-                                    </View>
+                                <TouchableOpacity
+                                    style={[styles.statusButton, { backgroundColor: getStatusColor(delivery.status) }]}
+                                >
+                                    <Text style={styles.statusText}>{getStatusText(delivery.status)}</Text>
+                                </TouchableOpacity>
+                            </View>
+                            <View style={styles.addressContainer}>
+                                <View style={styles.packageTypeRow}>
+                                    <Ionicons name="cube-outline" size={16} color="#666" />
+                                    <Text style={styles.packageType}>
+                                        {delivery.packageType}
+                                    </Text>
+                                </View>
+                                <View style={styles.addressRow}>
+                                    <View style={styles.dotBlack} />
+                                    <Text style={styles.address} numberOfLines={1}>{delivery.pickupAddress}</Text>
+                                </View>
+                                <View style={styles.addressRow}>
+                                    <View style={styles.dotOrange} />
+                                    <Text style={styles.address} numberOfLines={1}>{delivery.dropoffAddress}</Text>
                                 </View>
                             </View>
-                        ))}
-                    </View>
-                ))}
+                        </TouchableOpacity>
+                    ))
+                )}
             </ScrollView>
         </SafeAreaView>
     );
@@ -160,37 +175,8 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
     },
-    filterTabs: {
-        flexDirection: 'row',
-        padding: 16,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    filterTab: {
-        marginRight: 16,
-        paddingVertical: 8,
-        paddingHorizontal: 16,
-        borderRadius: 20,
-        backgroundColor: '#f5f5f5',
-    },
-    activeTab: {
-        backgroundColor: '#e6f7f5',
-    },
-    filterText: {
-        color: '#666',
-    },
-    activeFilterText: {
-        color: '#00BFA5',
-        fontWeight: '500',
-    },
     deliveryList: {
         flex: 1,
-    },
-    dateHeader: {
-        padding: 16,
-        fontSize: 16,
-        fontWeight: '500',
-        backgroundColor: '#f9f9f9',
     },
     deliveryItem: {
         padding: 16,
@@ -213,25 +199,24 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: 'bold',
     },
-    timeVehicleInfo: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
     time: {
         fontSize: 12,
         color: '#666',
+        marginBottom: 4,
     },
-    separator: {
-        fontSize: 12,
-        color: '#666',
-        marginHorizontal: 4,
+    typeInfo: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     vehicleType: {
         fontSize: 12,
         color: '#00BFA5',
     },
+    deliveryType: {
+        fontSize: 12,
+        color: COLOR.orange50,
+    },
     statusButton: {
-        backgroundColor: '#00BFA5',
         paddingVertical: 6,
         paddingHorizontal: 12,
         borderRadius: 16,
@@ -277,6 +262,23 @@ const styles = StyleSheet.create({
         marginLeft: 8,
         fontSize: 14,
         color: '#666',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    separator: {
+        fontSize: 12,
+        color: '#666',
+        marginHorizontal: 4,
     },
 });
 

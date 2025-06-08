@@ -65,17 +65,6 @@ const Note = () => {
                 />
               </View>
 
-              <View style={styles.imageUploadSection}>
-                <TouchableOpacity style={styles.imageUpload}>
-                  <View style={styles.imageIconContainer}>
-                    <Ionicons name="image-outline" size={24} color="#000" />
-                    <View style={styles.addIconBadge}>
-                      <Ionicons name="add" size={12} color="#fff" />
-                    </View>
-                  </View>
-                </TouchableOpacity>
-              </View>
-
               <TouchableOpacity
                 style={styles.confirmButton}
                 onPress={() => setModalVisible(false)}

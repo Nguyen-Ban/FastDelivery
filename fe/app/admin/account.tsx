@@ -58,35 +58,11 @@ const AccountScreen = () => {
           <FontAwesome5 name="user-circle" size={60} color="#00BFA5" />
           <View style={styles.profileInfo}>
             <Text style={styles.name}>{user?.fullName || '...'}</Text>
-            <Text style={styles.email}>{user?.email || '...'}</Text>
           </View>
         </View>
 
         {/* Menu Items */}
         <View style={styles.menuItems}>
-          <TouchableOpacity style={styles.menuItem}>
-            <FontAwesome5 name="user-edit" size={24} color="#333" />
-            <Text style={styles.menuItemText}>Chỉnh sửa thông tin</Text>
-            <Ionicons name="chevron-forward" size={24} color="#666" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem}>
-            <FontAwesome5 name="key" size={24} color="#333" />
-            <Text style={styles.menuItemText}>Đổi mật khẩu</Text>
-            <Ionicons name="chevron-forward" size={24} color="#666" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem}>
-            <Ionicons name="settings-outline" size={24} color="#333" />
-            <Text style={styles.menuItemText}>Cài đặt</Text>
-            <Ionicons name="chevron-forward" size={24} color="#666" />
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.menuItem}>
-            <Ionicons name="help-circle-outline" size={24} color="#333" />
-            <Text style={styles.menuItemText}>Trợ giúp</Text>
-            <Ionicons name="chevron-forward" size={24} color="#666" />
-          </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.menuItem, styles.logoutItem]}
@@ -101,7 +77,7 @@ const AccountScreen = () => {
         {/* Version Info */}
         <Text style={styles.version}>Phiên bản 1.0.0</Text>
       </ScrollView>
-    </SafeAreaView>
+    </SafeAreaView >
   );
 };
 

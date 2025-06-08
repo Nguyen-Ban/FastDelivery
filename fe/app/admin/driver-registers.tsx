@@ -18,8 +18,8 @@ import { BASE_URL } from "@/services/axios";
 interface DriverRegister {
   id: string;
   userId: string;
-  name: string;
-  phone: string;
+  fullName: string;
+  phoneNumber: string;
   email?: string;
   vehicleType: string;
   vehiclePlate: string;
@@ -54,8 +54,8 @@ const RegisterCard = ({
       <View style={styles.userInfo}>
         <FontAwesome5 name="user-circle" size={40} color="#9e9e9e" />
         <View style={styles.nameContainer}>
-          <Text style={styles.userName}>{register.name}</Text>
-          <Text style={styles.userPhone}>{register.phone}</Text>
+          <Text style={styles.userName}>{register.fullName}</Text>
+          <Text style={styles.userPhone}>{register.phoneNumber}</Text>
           {register.email && (
             <Text style={styles.userEmail}>{register.email}</Text>
           )}
@@ -66,16 +66,19 @@ const RegisterCard = ({
 
     <View style={styles.detailsContainer}>
       <DetailItem
+        key="vehicleType"
         icon="motorcycle"
         label="Loại xe"
         value={register.vehicleType}
       />
       <DetailItem
+        key="vehiclePlate"
         icon="id-card"
         label="Biển số"
         value={register.vehiclePlate}
       />
       <DetailItem
+        key="licenseNumber"
         icon="id-badge"
         label="Số GPLX"
         value={register.licenseNumber}

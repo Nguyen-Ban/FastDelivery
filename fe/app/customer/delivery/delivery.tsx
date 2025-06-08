@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Linking } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, TouchableOpacity, ScrollView, Linking, Modal, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE, Region } from 'react-native-maps';
@@ -9,11 +9,12 @@ import COLOR from '../../../constants/Colors';
 import { decode } from '@here/flexpolyline';
 import { useOrder } from '../../../contexts/order.context';
 import FindingDriverPanel from './_components/finding-driver-panel';
-import { DELIVERY_STATUS, DriverInfo, VEHICLE_TYPES, Coordinate, DELIVERY_STATES } from '@/types';
+import { DELIVERY_STATUS, DriverInfo, VEHICLE_TYPES, Coordinate, DELIVERY_STATES, PAYMENT_METHOD } from '@/types';
 import OnDeliveryPanel from './_components/on-delivery-panel';
 import CompleteDeliveryPanel from './_components/complete-delivery-panel';
 import CancelledPanel from './_components/cancelled-panel';
 import socket from '@/services/socket';
+import { WebView } from 'react-native-webview';
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -23,6 +24,8 @@ const PANEL_HEIGHT = SCREEN_HEIGHT * 0.45;
 const DeliveryPage = () => {
     const router = useRouter();
     const params = useLocalSearchParams();
+    const paymentMethod = params.paymentMethod as PAYMENT_METHOD
+    const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
     // Parse params for complex objects if needed
     const pickupLocation = JSON.parse(params.pickupLocation as string);
     const dropoffLocation = JSON.parse(params.dropoffLocation as string);
@@ -34,6 +37,7 @@ const DeliveryPage = () => {
     const [pickupDropoffPolyline, setPickupDropoffPolyline] = useState<string>(polyline);
     const [driverPickupPolyline, setDriverPickupPolyline] = useState<string>();
     const [orderId, setOrderId] = useState('#FD123456'); // Mock order ID, replace with actual data later
+    const [hasFitMap, setHasFitMap] = useState(false);
 
     const mapRef = useRef<MapView>(null);
 
@@ -41,6 +45,8 @@ const DeliveryPage = () => {
 
     const [deliveryStatus, setDeliveryStatus] = useState<DELIVERY_STATUS>(DELIVERY_STATUS.PENDING);
     const [onDeliveryState, setOnDeliveryState] = useState<DELIVERY_STATES>(DELIVERY_STATES.MOVING_TO_PICKUP)
+
+    const [paymentStatus, setPaymentStatus] = useState<'pending' | 'success' | 'failed'>('pending');
 
     // Decode polyline strings
     const pickupDropoffDecoded = pickupDropoffPolyline ? decode(pickupDropoffPolyline).polyline : [];
@@ -88,19 +94,33 @@ const DeliveryPage = () => {
         });
     };
 
+    // Function to fit map to route bounds
+    const fitMapToRouteFirst = () => {
+        if (!pickupLocation?.coord || !dropoffLocation?.coord || !mapRef.current) return;
+
+        const coordinates = [
+            { latitude: pickupLocation.coord.lat, longitude: pickupLocation.coord.lng },
+            { latitude: dropoffLocation.coord.lat, longitude: dropoffLocation.coord.lng },
+        ];
+
+        mapRef.current.fitToCoordinates(coordinates, {
+            edgePadding: { top: 50, right: 50, bottom: PANEL_HEIGHT + 50, left: 50 },
+            animated: true
+        });
+    };
+
     // Effect to zoom to route when locations are available
     useEffect(() => {
-        if (pickupLocation?.coord && dropoffLocation?.coord) {
+        if (driverCoord && !hasFitMap) {
             fitMapToRoute();
-        }
-    }, [pickupLocation, dropoffLocation, driverCoord]);
-
-    // Effect to update map when driver location changes
-    useEffect(() => {
-        if (driverCoord) {
-            fitMapToRoute();
+            setHasFitMap(true);
         }
     }, [driverCoord]);
+
+
+    useEffect(() => {
+        fitMapToRouteFirst()
+    }, [])
 
     // Hiển thị panel tìm tài xế cho đến khi driverFound là true
     useEffect(() => {
@@ -195,6 +215,15 @@ const DeliveryPage = () => {
             }
         })
 
+        // Add payment URL handler
+        if (paymentMethod === PAYMENT_METHOD.VNPAY) {
+            socket.on('payment:url', (response) => {
+                if (response.success) {
+                    setPaymentUrl(response.data.paymentUrl);
+                }
+            });
+        }
+
         // Clean up socket listeners on unmount
         return () => {
             socket.off('order:picked');
@@ -204,8 +233,41 @@ const DeliveryPage = () => {
             socket.off('driver:location');
             socket.off('order:completed');
             socket.off('order:cancelled');
+            socket.off('payment:url');
         };
-    }, []);
+    }, [paymentMethod]);
+
+    const closeWebView = () => {
+        setPaymentUrl(null);
+    };
+
+    const handlePaymentResponse = (url: string) => {
+        try {
+            const urlObj = new URL(url);
+            const params = new URLSearchParams(urlObj.search);
+            const responseCode = params.get('vnp_ResponseCode');
+
+            if (responseCode === '00') {
+                setPaymentStatus('success');
+                // setPaymentUrl(null);
+                // Alert.alert(
+                //     'Thành công',
+                //     'Thanh toán thành công!',
+                //     [{ text: 'OK' }]
+                // );
+            } else {
+                setPaymentStatus('failed');
+                // setPaymentUrl(null);
+                // Alert.alert(
+                //     'Thất bại',
+                //     'Thanh toán thất bại. Vui lòng thử lại sau.',
+                //     [{ text: 'OK' }]
+                // );
+            }
+        } catch (error) {
+            console.error('Error parsing payment response:', error);
+        }
+    };
 
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
@@ -216,7 +278,6 @@ const DeliveryPage = () => {
                     provider={PROVIDER_GOOGLE}
                     style={styles.map}
                     initialRegion={initialRegion}
-                    mapPadding={{ top: 40, right: 40, bottom: PANEL_HEIGHT + 40, left: 40 }}
                 >
                     {/* Pickup Marker */}
                     {pickupLocation?.coord && (
@@ -225,7 +286,7 @@ const DeliveryPage = () => {
                                 latitude: pickupLocation.coord.lat,
                                 longitude: pickupLocation.coord.lng
                             }}
-                            title="Điểm đón"
+                            title="Điểm lấy hàng"
                             pinColor={COLOR.orange50}
                         />
                     )}
@@ -237,7 +298,7 @@ const DeliveryPage = () => {
                                 latitude: dropoffLocation.coord.lat,
                                 longitude: dropoffLocation.coord.lng
                             }}
-                            title="Điểm trả"
+                            title="Điểm trả hàng"
                             pinColor={COLOR.green40}
                         />
                     )}
@@ -250,6 +311,8 @@ const DeliveryPage = () => {
                                 longitude: driverCoord.lng
                             }}
                             title="Tài xế"
+                            anchor={{ x: 0.5, y: 0.5 }}
+
                         >
                             <View style={styles.motorcycleMarker}>
                                 <FontAwesome5 name="motorcycle" size={20} color={COLOR.orange50} />
@@ -321,6 +384,39 @@ const DeliveryPage = () => {
                         <CancelledPanel onBackHome={() => router.push('/customer/home')} />
                     )}
                 </View>
+
+                {/* Payment WebView Modal */}
+                <Modal
+                    visible={!!paymentUrl}
+                    animationType="slide"
+                    onRequestClose={closeWebView}
+                >
+                    <View style={styles.webViewContainer}>
+                        <TouchableOpacity
+                            style={styles.closeButton}
+                            onPress={closeWebView}
+                        >
+                            <Text style={styles.closeButtonText}>Đóng</Text>
+                        </TouchableOpacity>
+                        {paymentUrl && (
+                            <WebView
+                                source={{ uri: paymentUrl }}
+                                style={styles.webView}
+                                onError={(syntheticEvent) => {
+                                    const { nativeEvent } = syntheticEvent;
+                                    if (nativeEvent.url.includes('vnpay_return')) {
+                                        handlePaymentResponse(nativeEvent.url);
+                                    }
+                                }}
+                                onNavigationStateChange={(navState) => {
+                                    if (navState.url.includes('vnpay_return')) {
+                                        handlePaymentResponse(navState.url);
+                                    }
+                                }}
+                            />
+                        )}
+                    </View>
+                </Modal>
             </SafeAreaView>
         </GestureHandlerRootView>
     );
@@ -484,7 +580,23 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
-        elevation: 5,
+        elevation: 2,
+    },
+    webViewContainer: {
+        flex: 1,
+        backgroundColor: '#fff',
+    },
+    webView: {
+        flex: 1,
+    },
+    closeButton: {
+        padding: 16,
+        backgroundColor: COLOR.orange50,
+    },
+    closeButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });
 

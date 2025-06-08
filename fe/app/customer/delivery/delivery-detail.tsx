@@ -6,7 +6,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import COLOR from '../../../constants/Colors';
 import { useOrder } from '@/contexts/order.context';
 import socket from '@/services/socket';
-import { OrderDetail, OrderLocation, OrderMain, OrderSenderReceiver, OrderSpecialDemand } from '@/types';
+import { OrderDetail, OrderLocation, OrderMain, OrderSenderReceiver, OrderSpecialDemand, Payment } from '@/types';
 
 const DeliveryDetailPage = () => {
     const router = useRouter();
@@ -16,6 +16,19 @@ const DeliveryDetailPage = () => {
     const [orderLocation, setOrderLocation] = useState<OrderLocation>()
     const [orderSenderReceiver, setOrderSenderReceiver] = useState<OrderSenderReceiver>()
     const [orderSpecialDemand, setOrderSpecialDemand] = useState<OrderSpecialDemand>()
+    const [payment, setPayment] = useState<Payment>()
+
+    const paymentStatusLabel: Record<string, string> = {
+        COMPLETED: 'Đã thanh toán',
+        PENDING: 'Chưa thanh toán'
+    };
+
+    const paymentMethodLabel: Record<string, string> = {
+        VNPAY: 'Cổng VNPay',
+        SENDER_CASH: 'Tiền mặt (Người gửi)',
+        RECEIVER_CASH: 'Tiền mặt (Người nhận)'
+    };
+
     useEffect(() => {
         socket.emit('order:detail', { orderId }, (response) => {
             if (response.success) {
@@ -23,7 +36,8 @@ const DeliveryDetailPage = () => {
                 setOrderDetail(response.data.orderDetail)
                 setOrderLocation(response.data.orderLocation);
                 setOrderSenderReceiver(response.data.orderSenderReceiver);
-                setOrderSpecialDemand(response.data.orderSpecialDemand)
+                setOrderSpecialDemand(response.data.orderSpecialDemand);
+                setPayment(response.data.payment)
                 console.log(orderMain)
             }
         })
@@ -195,12 +209,12 @@ const DeliveryDetailPage = () => {
                     <View style={styles.paymentContainer}>
                         <View style={styles.paymentRow}>
                             <Text style={styles.paymentLabel}>Phương thức:</Text>
-                            <Text style={styles.paymentValue}>{orderDetails.payment.method}</Text>
+                            <Text style={styles.paymentValue}>{payment?.paymentMethod ? paymentMethodLabel[payment.paymentMethod] : ''}</Text>
                         </View>
                         <View style={styles.paymentRow}>
                             <Text style={styles.paymentLabel}>Trạng thái:</Text>
-                            <Text style={[styles.paymentValue, styles.paidStatus]}>
-                                {orderDetails.payment.status}
+                            <Text style={[styles.paymentValue, payment?.paymentStatus === 'COMPLETED' ? styles.paidStatus : styles.pendingStatus]}>
+                                {payment?.paymentStatus ? paymentStatusLabel[payment.paymentStatus] : ''}
                             </Text>
                         </View>
                         <View style={styles.paymentRow}>
@@ -393,6 +407,9 @@ const styles = StyleSheet.create({
     },
     paidStatus: {
         color: '#4CAF50',
+    },
+    pendingStatus: {
+        color: '#FFA500',
     },
     totalAmount: {
         color: COLOR.orange50,

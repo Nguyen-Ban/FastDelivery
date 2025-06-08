@@ -66,7 +66,7 @@ const OnDeliveryPanel: React.FC<OnDeliveryProps> = ({ ON_DELIVERY_STATE, onDeliv
             {/* Driver Information */}
             <View style={styles.driverSection}>
                 <Text style={styles.sectionTitle}>Thông tin tài xế</Text>
-                <ScrollView style={{ maxHeight: 120 }}>
+                <ScrollView style={{ maxHeight: 450 }}>
                     <View style={styles.driverInfo}>
                         <View style={styles.infoRow}>
                             <View style={styles.infoIcon}>

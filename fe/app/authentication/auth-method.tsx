@@ -73,7 +73,7 @@ const AuthMethod = () => {
   };
 
   return (
-    <View style={GLOBAL.container}>
+    <View style={[GLOBAL.container, { paddingTop: 20 }]}>
       <Text style={styles.title}>Đăng ký/Đăng nhập với số điện thoại</Text>
       <PhoneInput
         ref={phoneInput}
@@ -109,7 +109,7 @@ const AuthMethod = () => {
           color={COLOR.blue_theme}
         />
       )}
-      <View style={styles.otherAuthContainer}>
+      {/* <View style={styles.otherAuthContainer}>
         <View style={styles.line} />
         <Text style={styles.otherAuthText}>Hoặc đăng nhập bằng</Text>
         <View style={styles.line} />
@@ -120,7 +120,7 @@ const AuthMethod = () => {
         size="large"
         type="sub"
         leftImg={<FontAwesome6 name="google" size={20} color="black" />}
-      />
+      /> */}
     </View>
   );
 };

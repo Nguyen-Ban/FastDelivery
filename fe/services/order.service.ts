@@ -57,6 +57,22 @@ const orderService = {
             throw error;
         }
     },
+    async fetchDriverStats(): Promise<ApiResponse> {
+        try {
+            const res = await RestApiService.getRequest(`/order/driver/stats`);
+            return res;
+        } catch (error: any) {
+            throw error;
+        }
+    },
+    async fetchDriverEventDetail(id: string): Promise<ApiResponse> {
+        try {
+            const res = await RestApiService.getRequest(`/order/event/driver/${id}`);
+            return res;
+        } catch (error: any) {
+            throw error;
+        }
+    },
 
 }
 

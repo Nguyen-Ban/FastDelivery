@@ -5,13 +5,13 @@ import { useOrder } from "../../../../../contexts/order.context";
 import COLOR from "../../../../../constants/Colors";
 import Payment from "./payment";
 import mapService from "@/services/map.service";
-import { Location, ROLE, VEHICLE_TYPES } from "@/types";
+import { Location, PAYMENT_METHOD, ROLE, VEHICLE_TYPES } from "@/types";
 import socket from "@/services/socket";
 
 const OrderConfirm = () => {
-  const [selectedMethod, setSelectedMethod] = useState('sendercash');
   const router = useRouter();
   const {
+    paymentMethod,
     pickupLocation,
     dropoffLocation,
     polyline,
@@ -37,6 +37,65 @@ const OrderConfirm = () => {
   const totalPrice = useMemo(() => {
     return addonPrice + deliveryPrice + carPrice;
   }, [addonPrice, deliveryPrice, carPrice]);
+
+  const orderData = useMemo(() => ({
+    orderMain: {
+      addonPrice: addonPrice,
+      deliveryPrice: deliveryPrice,
+      carPrice: carPrice,
+      vehicleType: vehicleType,
+      deliveryType: deliveryType,
+      note: note,
+    },
+    orderSenderReceiver: {
+      senderName: sender?.name || "",
+      senderPhoneNumber: sender?.phoneNumber || "",
+      receiverName: receiver?.name || "",
+      receiverPhoneNumber: receiver?.phoneNumber || ""
+    },
+    orderLocation: {
+      pickupTitle: pickupLocation?.title,
+      dropoffTitle: dropoffLocation?.title,
+      pickupAddress: pickupLocation?.address,
+      pickupLat: pickupLocation?.coord?.lat,
+      pickupLng: pickupLocation?.coord?.lng,
+      dropoffAddress: dropoffLocation?.address,
+      dropoffLat: dropoffLocation?.coord?.lat,
+      dropoffLng: dropoffLocation?.coord?.lng
+    },
+    orderDetail: {
+      packageType: packageType,
+      weightKg: weightKg,
+      lengthCm: lengthCm,
+      widthCm: widthCm,
+      heightCm: heightCm,
+      sizeName: sizeName,
+    },
+    orderSpecialDemand: specialDemands,
+    payment: {
+      paymentMethod,
+      amount: deliveryPrice + addonPrice + carPrice,
+    }
+  }), [
+    addonPrice,
+    deliveryPrice,
+    carPrice,
+    vehicleType,
+    deliveryType,
+    note,
+    sender,
+    receiver,
+    pickupLocation,
+    dropoffLocation,
+    packageType,
+    weightKg,
+    lengthCm,
+    widthCm,
+    heightCm,
+    sizeName,
+    specialDemands,
+    paymentMethod
+  ]);
 
   const validateOrder = () => {
     if (!pickupLocation || !dropoffLocation) {
@@ -99,45 +158,8 @@ const OrderConfirm = () => {
       return;
     }
 
-
     try {
-      // Format order data according to the required structure
-      const orderData = {
-        orderMain: {
-          addonPrice: addonPrice,
-          deliveryPrice: deliveryPrice,
-          carPrice: carPrice,
-          vehicleType: vehicleType,
-          deliveryType: deliveryType,
-          note: note,
-        },
-        orderSenderReceiver: {
-          senderName: sender?.name || "",
-          senderPhoneNumber: sender?.phoneNumber || "",
-          receiverName: receiver?.name || "",
-          receiverPhoneNumber: receiver?.phoneNumber || ""
-        },
-        orderLocation: {
-          pickupTitle: pickupLocation?.title,
-          dropoffTitle: dropoffLocation?.title,
-          pickupAddress: pickupLocation?.address,
-          pickupLat: pickupLocation?.coord?.lat,
-          pickupLng: pickupLocation?.coord?.lng,
-          dropoffAddress: dropoffLocation?.address,
-          dropoffLat: dropoffLocation?.coord?.lat,
-          dropoffLng: dropoffLocation?.coord?.lng
-        },
-        orderDetail: {
-          packageType: packageType,
-          weightKg: weightKg,
-          lengthCm: lengthCm,
-          widthCm: widthCm,
-          heightCm: heightCm,
-          sizeName: sizeName,
-        },
-        orderSpecialDemand: specialDemands
-      };
-
+      console.log(orderData)
       socket.emit('order:create', orderData);
 
       // Navigate to delivery screen
@@ -148,6 +170,7 @@ const OrderConfirm = () => {
           dropoffLocation: JSON.stringify(dropoffLocation),
           vehicleType: vehicleType,
           polyline: polyline,
+          paymentMethod: paymentMethod,
         }
       });
     } catch (error) {
@@ -163,8 +186,6 @@ const OrderConfirm = () => {
   return (
     <View style={styles.container}>
       <Payment
-        selectedMethod={selectedMethod}
-        onSelectMethod={setSelectedMethod}
         totalPrice={totalPrice}
       />
 
@@ -187,8 +208,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: "#fff",
-    paddingHorizontal: 16,
-    paddingTop: 8,
     paddingBottom: 24,
     borderTopWidth: 1,
     borderTopColor: "#eee",
@@ -201,6 +220,7 @@ const styles = StyleSheet.create({
   },
   orderButton: {
     backgroundColor: COLOR.orange50,
+    marginInline: 16,
     padding: 16,
     borderRadius: 8,
     alignItems: "center",

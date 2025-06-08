@@ -1,4 +1,4 @@
-import { DELIVERY_TYPE, PACKAGE_TYPES, VEHICLE_TYPES } from "./enums";
+import { DELIVERY_TYPE, PACKAGE_TYPES, PAYMENT_METHOD, VEHICLE_TYPES } from "./enums";
 
 interface Order {
     orderMain: OrderMain;
@@ -62,8 +62,14 @@ interface OrderSpecialDemand {
     waiting?: boolean;
 }
 
+interface Payment {
+    paymentMethod: PAYMENT_METHOD;
+    paymentStatus: string;
+    amount: number;
+}
+
 export {
-    Order, OrderSenderReceiver,
+    Order, OrderSenderReceiver, Payment,
     OrderMain, OrderPerson, OrderDetail,
     OrderLocation, OrderSpecialDemand
 }

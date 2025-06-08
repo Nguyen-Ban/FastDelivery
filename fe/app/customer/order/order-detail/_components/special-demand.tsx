@@ -87,154 +87,182 @@ const motorbikeServices: ServiceItem[] = [
 interface SpecialDemandState {
   selectedDemands: string[];
   addonPrice: number;
+  donateAmount: number;
 }
 
 const DEFAULT_STATE: SpecialDemandState = {
   selectedDemands: [],
-  addonPrice: 0
+  addonPrice: 0,
+  donateAmount: 0
 };
 
 const SpecialDemand = () => {
   const [expanded, setExpanded] = useState(false);
-  const { specialDemands, setSpecialDemands, setAddonPrice, vehicleType } = useOrder();
-  const [state, setState] = useState<SpecialDemandState>(DEFAULT_STATE);
+  const { specialDemands, setSpecialDemands, addonPrice, setAddonPrice, vehicleType } = useOrder();
+  const [state, setState] = useState<SpecialDemandState>(() => {
+    const selectedDemands: string[] = [];
+    let donateAmount = 0;
+
+    // Map specialDemands back to selectedDemands array
+    if (specialDemands?.handDelivery) selectedDemands.push("handDelivery");
+    if (specialDemands?.fragileDelivery) selectedDemands.push("fragileDelivery");
+    if (specialDemands?.homeMoving) selectedDemands.push("homeMoving");
+    if (specialDemands?.loading) selectedDemands.push("loading");
+    if (specialDemands?.eDocument) selectedDemands.push("eDocument");
+    if (specialDemands?.waiting) selectedDemands.push("waiting");
+    if (specialDemands?.donateDriver) {
+      selectedDemands.push("donateDriver");
+      donateAmount = specialDemands.donateDriver;
+    }
+
+    return {
+      selectedDemands,
+      donateAmount,
+      addonPrice: addonPrice || 0
+    };
+  });
 
   const isMotorbike = vehicleType === 'MOTORBIKE';
   const services = isMotorbike ? motorbikeServices : vanServices;
-  const visibleServices = services.filter(service => service.alwaysVisible);
-  const expandableServices = services.filter(service => !service.alwaysVisible);
 
-  const toggleExpand = () => {
-    setExpanded(!expanded);
-  };
+  const visibleServices = services.filter(s => s.alwaysVisible);
+  const expandableServices = services.filter(s => !s.alwaysVisible);
 
-  const calculateTotalPrice = (selectedIds: string[]): number => {
-    return services
-      .filter(service => selectedIds.includes(service.id))
-      .reduce((total, service) => total + service.priceValue, 0);
+  const updateStateAndContext = (selectedDemands: string[], donateAmount: number) => {
+    const serviceTotal = services
+      .filter(service => selectedDemands.includes(service.id) && service.id !== "donateDriver")
+      .reduce((sum, s) => sum + s.priceValue, 0);
+
+    const addonPrice = serviceTotal + donateAmount;
+
+    setState({ selectedDemands, donateAmount, addonPrice });
+    setSpecialDemands(mapSelectedDemandsToSpecialDemands(selectedDemands, donateAmount));
+    setAddonPrice(addonPrice);
   };
 
   const toggleService = (serviceId: string) => {
-    const newSelectedDemands = state.selectedDemands.includes(serviceId)
+    if (serviceId === "donateDriver") return;
+
+    const selected = state.selectedDemands.includes(serviceId)
       ? state.selectedDemands.filter(id => id !== serviceId)
       : [...state.selectedDemands, serviceId];
 
-    const newTotalPrice = calculateTotalPrice(newSelectedDemands);
+    // Keep donateDriver if donateAmount > 0
+    if (state.donateAmount > 0 && !selected.includes("donateDriver")) {
+      selected.push("donateDriver");
+    }
 
-    setState({
-      selectedDemands: newSelectedDemands,
-      addonPrice: newTotalPrice
-    });
-
-    setSpecialDemands(mapSelectedDemandsToSpecialDemands(state.selectedDemands));
-    setAddonPrice(newTotalPrice);
+    updateStateAndContext(selected, state.donateAmount);
   };
 
-  const mapSelectedDemandsToSpecialDemands = (selectedDemands: string[]): OrderSpecialDemand => {
-    const specialDemands: OrderSpecialDemand = {};
+  const adjustDonateAmount = (increase: boolean) => {
+    const newAmount = increase
+      ? state.donateAmount + 5000
+      : Math.max(0, state.donateAmount - 5000);
 
-    selectedDemands.forEach(id => {
+    let selected = [...state.selectedDemands];
+    if (newAmount > 0 && !selected.includes("donateDriver")) {
+      selected.push("donateDriver");
+    } else if (newAmount === 0) {
+      selected = selected.filter(id => id !== "donateDriver");
+    }
+
+    updateStateAndContext(selected, newAmount);
+  };
+
+  const mapSelectedDemandsToSpecialDemands = (selected: string[], donate: number): OrderSpecialDemand => {
+    const sd: OrderSpecialDemand = {};
+    selected.forEach(id => {
       switch (id) {
-        case "handDelivery":
-          specialDemands.handDelivery = true;
-          break;
-        case "fragileDelivery":
-          specialDemands.fragileDelivery = true;
-          break;
-        case "donateDriver":
-          // Nếu donateDriver là số (ví dụ tiền hỗ trợ), bạn có thể set mặc định hoặc lấy giá từ đâu đó
-          specialDemands.donateDriver = 10000; // ví dụ
-          break;
-        case "homeMoving":
-          specialDemands.homeMoving = true;
-          break;
-        case "loading":
-          specialDemands.loading = true;
-          break;
-        case "businessValue":
-          specialDemands.businessValue = 0; // hoặc giá phù hợp
-          break;
-        case "eDocument":
-          specialDemands.eDocument = true;
-          break;
-        case "waiting":
-          specialDemands.waiting = true;
-          break;
+        case "handDelivery": sd.handDelivery = true; break;
+        case "fragileDelivery": sd.fragileDelivery = true; break;
+        case "donateDriver": sd.donateDriver = donate; break;
+        case "homeMoving": sd.homeMoving = true; break;
+        case "loading": sd.loading = true; break;
+        case "businessValue": sd.businessValue = 0; break;
+        case "eDocument": sd.eDocument = true; break;
+        case "waiting": sd.waiting = true; break;
       }
     });
-
-    return specialDemands;
+    return sd;
   };
 
-  const renderService = (service: ServiceItem) => (
-    <View key={service.id} style={styles.serviceItem}>
-      <View style={styles.serviceInfo}>
-        <View style={styles.serviceDetails}>
-          <Text style={styles.serviceName}>{service.name}</Text>
-          <Ionicons name="information-circle-outline" size={18} color="#ccc" style={styles.infoIcon} />
+  const renderService = (service: ServiceItem) => {
+    const isSelected = state.selectedDemands.includes(service.id);
+
+    if (service.id === "donateDriver") {
+      return (
+        <View key={service.id} style={styles.serviceItem}>
+          <View style={styles.serviceInfo}>
+            <Text style={styles.serviceName}>{service.name}</Text>
+            <Text style={styles.servicePrice}>{state.donateAmount.toLocaleString()}đ</Text>
+          </View>
+          <View style={styles.donateControls}>
+            <TouchableOpacity
+              style={[styles.donateButton, state.donateAmount === 0 && styles.disabledButton]}
+              onPress={() => adjustDonateAmount(false)}
+              disabled={state.donateAmount === 0}
+            >
+              <Ionicons name="remove" size={22} color={state.donateAmount === 0 ? "#ccc" : COLOR.orange50} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.donateButton} onPress={() => adjustDonateAmount(true)}>
+              <Ionicons name="add" size={22} color={COLOR.orange50} />
+            </TouchableOpacity>
+          </View>
         </View>
-        <Text style={styles.servicePrice}>{service.price}</Text>
+      );
+    }
+
+    return (
+      <View key={service.id} style={styles.serviceItem}>
+        <View style={styles.serviceInfo}>
+          <Text style={styles.serviceName}>{service.name}</Text>
+          <Text style={styles.servicePrice}>{service.price}</Text>
+        </View>
+        <TouchableOpacity
+          style={[styles.addButton, isSelected && styles.selectedButton]}
+          onPress={() => toggleService(service.id)}
+        >
+          <Ionicons
+            name={isSelected ? "checkmark" : "add"}
+            size={22}
+            color={isSelected ? "#fff" : COLOR.orange50}
+          />
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        style={[
-          styles.addButton,
-          state.selectedDemands.includes(service.id) && styles.selectedButton
-        ]}
-        onPress={() => toggleService(service.id)}
-      >
-        <Ionicons
-          name={state.selectedDemands.includes(service.id) ? "checkmark" : "add"}
-          size={22}
-          color={state.selectedDemands.includes(service.id) ? "#fff" : COLOR.orange50}
-        />
-      </TouchableOpacity>
-    </View>
-  );
+    );
+  };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Yêu cầu đặc biệt</Text>
 
-      {/* Always visible services */}
       {visibleServices.map(renderService)}
 
-      {/* Expandable services for motorbike type */}
       {isMotorbike && expanded && expandableServices.map(renderService)}
 
-      {/* Expand/Collapse button only for VAN type */}
       {!isMotorbike && expandableServices.length > 0 && (
-        <TouchableOpacity style={styles.collapseButton} onPress={toggleExpand}>
-          <Text style={styles.collapseText}>
-            {expanded ? "Thu gọn" : "Xem thêm"}
-          </Text>
-          <Ionicons
-            name={expanded ? "chevron-up" : "chevron-down"}
-            size={18}
-            color="#999"
-          />
+        <TouchableOpacity style={styles.collapseButton} onPress={() => setExpanded(!expanded)}>
+          <Text style={styles.collapseText}>{expanded ? "Thu gọn" : "Xem thêm"}</Text>
+          <Ionicons name={expanded ? "chevron-up" : "chevron-down"} size={18} color="#999" />
         </TouchableOpacity>
       )}
 
-      {state.selectedDemands.length > 0 && (
+      {state.addonPrice > 0 && (
         <View style={styles.totalPriceContainer}>
           <Text style={styles.totalPriceLabel}>Tổng phí dịch vụ:</Text>
-          <Text style={styles.totalPriceValue}>
-            {state.addonPrice.toLocaleString()}đ
-          </Text>
+          <Text style={styles.totalPriceValue}>{state.addonPrice.toLocaleString()}đ</Text>
         </View>
       )}
 
       <View style={styles.verificationRow}>
         <Ionicons name="checkmark-circle" size={20} color={COLOR.blue_theme} />
-        <Text style={styles.verificationText}>
-          Đơn đã được áp dụng Khai giá hàng hóa
-        </Text>
+        <Text style={styles.verificationText}>Đơn đã được áp dụng Khai giá hàng hóa</Text>
         <Ionicons name="chevron-forward" size={20} color="#ccc" />
       </View>
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   container: {
     backgroundColor: "#fff",
@@ -335,6 +363,23 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: COLOR.orange50,
+  },
+  donateControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  donateButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLOR.orange50,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  disabledButton: {
+    borderColor: "#ccc",
   },
 });
 
